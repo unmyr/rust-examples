@@ -3,8 +3,11 @@
     "**/target/**": true
   },
   "cSpell.words": [
+    "accum",
+    "backtrace",
     "clippy",
     "debuginfo",
+    "println",
     "rustc",
     "rustup",
     "tamasfe",
