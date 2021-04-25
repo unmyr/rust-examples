@@ -1,4 +1,7 @@
 {
+  "[rust]": {
+    "editor.tabSize": 4
+  },
   "files.watcherExclude": {
     "**/target/**": true
   },
