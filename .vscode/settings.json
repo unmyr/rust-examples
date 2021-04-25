@@ -1,0 +1,13 @@
+{
+  "files.watcherExclude": {
+    "**/target/**": true
+  },
+  "cSpell.words": [
+    "clippy",
+    "debuginfo",
+    "rustc",
+    "rustup",
+    "tamasfe",
+    "unoptimized"
+  ]
+}
