@@ -16,3 +16,53 @@ $ cd guessing_game
 ----
 $ cargo run
 ----
+
+=== Allowing Multiple Guesses with Looping
+[source,console]
+----
+$ cargo run
+   Compiling guessing_game v0.1.0 (<path-to-project>/guessing_game)
+    Finished dev [unoptimized + debuginfo] target(s) in 1.71s
+     Running `target/debug/guessing_game`
+Guess the number!
+The secret number is: 49
+Please input your guess.
+45
+You guessed: 45
+Too small!
+Please input your guess.
+60
+You guessed: 60
+Too big!
+Please input your guess.
+59
+You guessed: 59
+Too big!
+Please input your guess.
+44
+You guessed: 44
+Too small!
+Please input your guess.
+quit
+thread 'main' panicked at 'Please type a number!: ParseIntError { kind: InvalidDigit }', src/main.rs:20:47
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+----
+
+----
+Guess the number!
+The secret number is: 64
+Please input your guess.
+32
+You guessed: 32
+Too small!
+Please input your guess.
+quit
+Please input your guess.
+12
+You guessed: 12
+Too small!
+Please input your guess.
+64
+You guessed: 64
+You win!
+----
