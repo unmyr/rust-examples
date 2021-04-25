@@ -1,0 +1,30 @@
+=== Create
+* https://doc.rust-lang.org/book/ch03-01-variables-and-mutability.html[Variables and Mutability - The Rust Programming Language^]
+
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new variables
+     Created binary (application) `variables` package
+$ cd variables
+----
+
+. open src/main.rs and replace its code with the following code that won’t compile just yet
++
+[source,rust]
+----
+fn main() {
+    let x = 5;
+    println!("The value of x is: {}", x);
+    x = 6;
+    println!("The value of x is: {}", x);
+}
+----
+
+. Run `cargo run` command
++
+[source,console]
+----
+$ cargo run
+----
