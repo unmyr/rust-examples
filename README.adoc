@@ -19,7 +19,7 @@ curl https://sh.rustup.rs -sSf | sh
 +
 [NOTE]
 ====
-* The installation script automatically adds Rust to your system path after your next login to SSH.
+* The installation script automatically adds Rust to your system path after your next login.
 ====
 
 . If you need to use Rust immediately without restarting terminal you can add Rust to path manually.
@@ -67,6 +67,7 @@ $ cargo install --force cargo-make
 
 ==== Linter
 
+[source,console]
 ----
 $ rustup update
 ...
