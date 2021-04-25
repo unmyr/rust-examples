@@ -1,0 +1,18 @@
+=== Create
+* https://doc.rust-lang.org/book/ch02-00-guessing-game-tutorial.html[Programming a Guessing Game - The Rust Programming Language^]
+
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new guessing_game --bin
+     Created binary (application) `guessing_game` package
+$ cd guessing_game
+----
+
+. Run `cargo run` command
++
+[source,console]
+----
+$ cargo run
+----
