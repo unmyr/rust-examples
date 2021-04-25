@@ -1,0 +1,133 @@
+
+
+== Rust examples
+
+.Environment
+* Ubuntu 18.04 LTS (WSL1)
+* Rust
+** rustc 1.51.0
+
+=== Install
+
+. Install
++
+[source,console]
+----
+sudo apt update
+curl https://sh.rustup.rs -sSf | sh
+----
++
+[NOTE]
+====
+* The installation script automatically adds Rust to your system path after your next login to SSH.
+====
+
+. If you need to use Rust immediately without restarting terminal you can add Rust to path manually.
++
+[source,console]
+----
+$ . $HOME/.cargo/env
+$ rustc --version
+rustc 1.51.0 (2fd73fabe 2021-03-23)
+$
+----
+
+. Set warning suppression for WSL 1.
++
+[source,json]
+.vscode/settings.json
+----
+  "files.watcherExclude": {
+    "**/target/**": true
+  },
+----
+
+=== Setup
+
+==== Builder
+
+. Add config
++
+[source,ini]
+----
+[net]
+git-fetch-with-cli = true
+----
+
+. Install cargo-make
++
+[source,console]
+----
+$ cargo install --force cargo-make
+----
++
+.References
+* https://github.com/sagiegurari/cargo-make[sagiegurari/cargo-make: Rust task runner and build tool. - GitHub^] +
+  rust cargo-make hello - Google Search
+
+==== Linter
+
+----
+$ rustup update
+...
+$ rustup component add clippy
+...
+$ cd <path-to-project>
+$ cargo clippy
+----
+
+
+.References
+* https://github.com/rust-lang/rust-clippy[rust-lang/rust-clippy: A bunch of lints to catch common mistakes and improve your Rust code - GitHub^] +
+  rust linter - Google Search
+
+=== Hello world
+
+. Create a new project.
++
+[source,console]
+----
+$ cargo new hello_world --bin
+$ cd hello_world
+----
+
+. Build project
++
+[source,console]
+----
+$ cargo build
+----
++
+[NOTE]
+====
+Warning Message of cargo build when using vscode-remote of WSL1.
+
+[source,console]
+----
+$ cargo build
+   Compiling hello_world v0.1.0 (<path_to_project>/hello_world)
+warning: Error finalizing incremental compilation session directory `<path_to_project>/hello_world/target/debug/incremental/hello_world-...snip.../...snip...-working`: Permission denied (os error 13)
+
+warning: 1 warning emitted
+----
+
+.References
+* https://github.com/rust-lang/rust/issues/62031[Warning Message of `cargo build` when using vscode-remote of wsl · Issue #62031 · rust-lang/rust - GitHub^] +
+  rust cargo build "Permission denied (os error 13)" "Error finalizing incremental compilation session directory" - Google Search
+====
+
+. Run application.
++
+[source,console]
+----
+$ cargo run
+   Compiling hello_world v0.1.0 (<path_to_project>/hello_world)
+    Finished dev [unoptimized + debuginfo] target(s) in 1.84s
+     Running `target/debug/hello_world`
+Hello, world!
+----
+
+=== VS-Code Extension
+* https://marketplace.visualstudio.com/items?itemName=rust-lang.rust[Rust - Visual Studio Marketplace^]
+* https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb[CodeLLDB - Visual Studio Marketplace^]
+* https://marketplace.visualstudio.com/items?itemName=tamasfe.even-better-toml[Even Better TOML - Visual Studio Marketplace^]
