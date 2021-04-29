@@ -5,9 +5,9 @@
 +
 [source,console]
 ----
-$ cargo new --lib collections
-     Created library `restaurant` package
-$ cd collections/
+$ cargo new --lib vectors
+     Created library `vectors` package
+$ cd vectors/
 ----
 
 === Reading Elements of Vectors
@@ -44,7 +44,7 @@ fn main() {
 .Compiling this code will result in this error:
 ----
 $ cargo run
-   Compiling collections v0.1.0 (<path-to-project>/collections)
+   Compiling vectors v0.1.0 (<path-to-project>/vectors)
 warning: unused variable: `does_not_exist`
  --> src/main.rs:4:9
   |
@@ -62,7 +62,7 @@ warning: unused variable: `does_not_exist`
 warning: 2 warnings emitted
 
     Finished dev [unoptimized + debuginfo] target(s) in 1.45s
-     Running `target/debug/collections`
+     Running `target/debug/vectors`
 thread 'main' panicked at 'index out of bounds: the len is 5 but the index is 100', src/main.rs:4:27
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
 ----
@@ -87,7 +87,7 @@ fn main() {
 .Compiling this code will result in this error:
 ----
 $ cargo run
-   Compiling collections v0.1.0 (<path-to-project>/collections)
+   Compiling vectors v0.1.0 (<path-to-project>/vectors)
 error[E0502]: cannot borrow `v` as mutable because it is also borrowed as immutable
  --> src/main.rs:6:5
   |
@@ -103,7 +103,7 @@ error[E0502]: cannot borrow `v` as mutable because it is also borrowed as immuta
 error: aborting due to previous error
 
 For more information about this error, try `rustc --explain E0502`.
-error: could not compile `collections`
+error: could not compile `vectors`
 
 To learn more, run the command again with --verbose.
 ----
