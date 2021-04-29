@@ -1,0 +1,28 @@
+=== Create
+* https://doc.rust-lang.org/book/ch08-01-vectors.html[Storing Lists of Values with Vectors - The Rust Programming Language^]
+
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --lib collections
+     Created library `restaurant` package
+$ cd collections/
+----
+
+=== Reading Elements of Vectors
+[source,rust]
+.src/main.rs
+----
+fn main() {
+    let v = vec![1, 2, 3, 4, 5];
+
+    let third: &i32 = &v[2];
+    println!("The third element is {}", third);
+
+    match v.get(2) {
+        Some(third) => println!("The third element is {}", third),
+        None => println!("There is no third element."),
+    }
+}
+----
