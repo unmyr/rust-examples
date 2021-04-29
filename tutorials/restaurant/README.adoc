@@ -1,0 +1,33 @@
+=== Create
+* https://doc.rust-lang.org/book/ch07-02-defining-modules-to-control-scope-and-privacy.html[Defining Modules to Control Scope and Privacy - The Rust Programming Language^]
+
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --lib restaurant
+     Created library `restaurant` package
+$ cd restaurant
+----
+
+. open src/main.rs and replace its code with the following code 
++
+[source,rust]
+.src/lib.rs
+----
+mod front_of_house {
+    mod hosting {
+        fn add_to_waitlist() {}
+
+        fn seat_at_table() {}
+    }
+
+    mod serving {
+        fn take_order() {}
+
+        fn serve_order() {}
+
+        fn take_payment() {}
+    }
+}
+----
