@@ -1,0 +1,37 @@
+=== Create
+* https://doc.rust-lang.org/book/ch05-02-example-structs.html[An Example Program Using Structs - The Rust Programming Language^]
+
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new tutorial_structs
+     Created binary (application) `tutorial_structs` package
+$ cd tutorial_structs
+----
+
+. open src/main.rs and replace its code with the following code that won’t compile just yet
++
+[source,rust]
+----
+fn main() {
+    let width1 = 30;
+    let height1 = 50;
+
+    println!(
+        "The area of the rectangle is {} square pixels.",
+        area(width1, height1)
+    );
+}
+
+fn area(width: u32, height: u32) -> u32 {
+    width * height
+}
+----
+
+. Run `cargo run` command
++
+[source,console]
+----
+$ cargo run
+----

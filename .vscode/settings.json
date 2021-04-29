@@ -13,7 +13,9 @@
     "println",
     "rustc",
     "rustup",
+    "structs",
     "tamasfe",
+    "tutorial",
     "unoptimized"
   ]
 }
