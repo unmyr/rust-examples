@@ -87,6 +87,7 @@ pub fn eat_at_restaurant() {
 
 === Separating Modules into Different Files
 
+==== Separating 2 modules
 [source,rust]
 .src/lib.rs
 ----
@@ -102,9 +103,25 @@ pub fn eat_at_restaurant() {
 ----
 
 [source,rust]
-.src/lib.rs
+.src/front_of_house.rs
 ----
 pub mod hosting {
     pub fn add_to_waitlist() {}
 }
+----
+
+==== Separating 3 modules
+
+[source,rust]
+.src/front_of_house.rs
+----
+pub mod hosting {
+    pub fn add_to_waitlist() {}
+}
+----
+
+[source,rust]
+.src/front_of_house/hosting.rs
+----
+pub fn add_to_waitlist() {}
 ----
