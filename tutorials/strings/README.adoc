@@ -1,0 +1,34 @@
+=== Create
+* https://doc.rust-lang.org/book/ch08-02-strings.html[Storing UTF-8 Encoded Text with Strings - The Rust Programming Language^]
+
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --bin strings
+     Created binary (application) `strings` package
+$ cd strings/
+----
+
+=== Updating a String
+
+==== Appending to a String with push_str and push
+[source,rust]
+.Using a string slice after appending its contents to a `String`
+----
+fn main() {
+    let mut s1 = String::from("foo");
+    let s2 = "bar";
+    s1.push_str(s2);
+    println!("s2 is {}", s2);
+}
+----
+
+[source,console]
+----
+$ cargo run --bin push_str
+   Compiling strings v0.1.0 (<path-to-project>/strings)
+    Finished dev [unoptimized + debuginfo] target(s) in 2.49s
+     Running `target/debug/push_str`
+s2 is bar
+----
