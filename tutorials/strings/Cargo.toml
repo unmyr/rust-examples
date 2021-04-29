@@ -10,4 +10,8 @@ edition = "2018"
 name = "push_str"
 path = "src/push_str.rs"
 
+[[bin]]
+name = "concat1"
+path = "src/concat1.rs"
+
 [dependencies]

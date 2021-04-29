@@ -32,3 +32,24 @@ $ cargo run --bin push_str
      Running `target/debug/push_str`
 s2 is bar
 ----
+
+=== Concatenation with the + Operator or the format! Macro
+[source,rust]
+.Using the `+` operator to combine two String values into a new String value
+----
+fn main() {
+    let s1 = String::from("Hello, ");
+    let s2 = String::from("world!");
+    let s3 = s1 + &s2; // note s1 has been moved here and can no longer be used
+    println!("s3 is {}", s3);
+}
+----
+
+[source,console]
+----
+$ cargo run --bin concat1
+   Compiling strings v0.1.0 (<path-to-project>/strings)
+    Finished dev [unoptimized + debuginfo] target(s) in 1.62s
+     Running `target/debug/concat1`
+s3 is Hello, world!
+----
