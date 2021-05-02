@@ -18,4 +18,8 @@ path = "src/file_open_and_unwrap.rs"
 name = "file_open_and_expect"
 path = "src/file_open_and_expect.rs"
 
+[[bin]]
+name = "propagating_errors"
+path = "src/propagating_errors.rs"
+
 [dependencies]

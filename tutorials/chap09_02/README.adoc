@@ -118,3 +118,62 @@ chap09_02$ cargo run --bin file_open_and_expect
 thread 'main' panicked at 'Failed to open hello.txt: Os { code: 2, kind: NotFound, message: "No such file or directory" }', src/file_open_and_expect.rs:4:38
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
 ----
+
+=== Propagating Errors
+[source,rust]
+----
+use std::fs::File;
+use std::io;
+use std::io::Read;
+
+fn read_username_from_file() -> Result<String, io::Error> {
+    let f = File::open("hello.txt");
+
+    let mut f = match f {
+        Ok(file) => file,
+        Err(e) => return Err(e),
+    };
+
+    let mut s = String::new();
+
+    match f.read_to_string(&mut s) {
+        Ok(_) => Ok(s),
+        Err(e) => Err(e),
+    }
+}
+
+fn main() {
+    match read_username_from_file() {
+        Ok(str) => println!("str is {}", str),
+        Err(error) => panic!("Problem opening the file: {:?}", error)
+    };
+}
+----
+
+[source,console]
+----
+chap09_02$ cargo run --bin file_open_and_expect
+   Compiling chap09_02 v0.1.0 (<path-to-project>/chap09_02)
+    Finished dev [unoptimized + debuginfo] target(s) in 1.41s
+     Running `target/debug/file_open_and_expect`
+thread 'main' panicked at 'Failed to open hello.txt: Os { code: 2, kind: NotFound, message: "No such file or directory" }', src/file_open_and_expect.rs:4:38
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+chap09_02$ touch src/propagating_errors.rs
+chap09_02$ cargo run --bin propagating_errors
+   Compiling chap09_02 v0.1.0 (<path-to-project>/chap09_02)
+    Finished dev [unoptimized + debuginfo] target(s) in 2.15s
+     Running `target/debug/propagating_errors`
+thread 'main' panicked at 'Problem opening the file: Os { code: 2, kind: NotFound, message: "No such file or directory" }', src/propagating_errors.rs:24:23
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+chap09_02$ echo "foo" > hello.txt
+chap09_02$ cargo run --bin propagating_errors
+    Finished dev [unoptimized + debuginfo] target(s) in 0.03s
+     Running `target/debug/propagating_errors`
+str is foo
+
+chap09_02$ 
+----
+
+=== A Shortcut for Propagating Errors: the `?` Operator
+
+=== The `?` Operator Can Be Used in Functions That Return Result
