@@ -10,4 +10,8 @@ edition = "2018"
 name = "file_open_and_match"
 path = "src/file_open_and_match.rs"
 
+[[bin]]
+name = "file_open_and_unwrap"
+path = "src/file_open_and_unwrap.rs"
+
 [dependencies]
