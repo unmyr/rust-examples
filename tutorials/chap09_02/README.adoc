@@ -1,0 +1,11 @@
+=== Create
+* https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html[Recoverable Errors with Result - The Rust Programming Language^]
+
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --bin chap09_02
+     Created binary (application) `chap09_02` package
+$ cd chap09_02/
+----
