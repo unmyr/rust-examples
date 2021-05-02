@@ -14,4 +14,8 @@ path = "src/file_open_and_match.rs"
 name = "file_open_and_unwrap"
 path = "src/file_open_and_unwrap.rs"
 
+[[bin]]
+name = "file_open_and_expect"
+path = "src/file_open_and_expect.rs"
+
 [dependencies]

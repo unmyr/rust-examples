@@ -84,7 +84,7 @@ chap09_02$
 use std::fs::File;
 
 fn main() {
-    let f = File::open("hello.txt").unwrap();
+    let _f = File::open("hello.txt").unwrap();
 }
 ----
 
@@ -98,4 +98,23 @@ chap09_02$ cargo run --bin file_open_and_unwrap
 thread 'main' panicked at 'called `Result::unwrap()` on an `Err` value: Os { code: 2, kind: NotFound, message: "No such file or directory" }', src/file_open_and_unwrap.rs:4:38
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
 chap09_02$ 
+----
+
+[source,rust]
+----
+use std::fs::File;
+
+fn main() {
+    let _f = File::open("hello.txt").expect("Failed to open hello.txt");
+}
+----
+
+[source,console]
+----
+chap09_02$ cargo run --bin file_open_and_expect
+   Compiling chap09_02 v0.1.0 (<path-of-project>/chap09_02)
+    Finished dev [unoptimized + debuginfo] target(s) in 1.41s
+     Running `target/debug/file_open_and_expect`
+thread 'main' panicked at 'Failed to open hello.txt: Os { code: 2, kind: NotFound, message: "No such file or directory" }', src/file_open_and_expect.rs:4:38
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
 ----
