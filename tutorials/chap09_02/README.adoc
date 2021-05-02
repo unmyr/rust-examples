@@ -64,3 +64,15 @@ fn main() {
     };
 }
 ----
+
+[source,console]
+----
+chap09_02$ rm hello.txt 
+rm: cannot remove 'hello.txt': No such file or directory
+chap09_02$ cargo run --bin file_open_and_match
+    Finished dev [unoptimized + debuginfo] target(s) in 0.03s
+     Running `target/debug/file_open_and_match`
+chap09_02$ ls -l hello.txt 
+-rw-r--r-- 1 guest guest 0 May  3 03:36 hello.txt
+chap09_02$ 
+----
