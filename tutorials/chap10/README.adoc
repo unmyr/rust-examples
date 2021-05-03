@@ -1,0 +1,43 @@
+== Recoverable Errors with Result
+
+* https://doc.rust-lang.org/book/ch10-00-generics.html[Generic Types, Traits, and Lifetimes - The Rust Programming Language^]
+
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --bin tutorials/chap10
+     Created binary (application) `tutorials/chap10` package
+$ cd tutorials/chap10/
+----
+
+=== Removing Duplication by Extracting a Function
+
+==== Code to find the largest number in a list of numbers
+[source,rust]
+.src/largest_i32.rs
+----
+fn main() {
+    let number_list = vec![34, 50, 25, 100, 65];
+
+    let mut largest = number_list[0];
+
+    for number in number_list {
+        if number > largest {
+            largest = number;
+        }
+    }
+
+    println!("The largest number is {}", largest);
+}
+----
+
+[source,console]
+----
+chap10$ cargo run --bin largest_i32
+   Compiling chap10 v0.1.0 (<path-to-project>/chap10)
+    Finished dev [unoptimized + debuginfo] target(s) in 2.15s
+     Running `target/debug/largest_i32`
+The largest number is 100
+----

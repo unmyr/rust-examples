@@ -1,0 +1,11 @@
+[package]
+name = "chap10"
+version = "0.1.0"
+authors = ["unmyr <56982541+unmyr@users.noreply.github.com>"]
+edition = "2018"
+
+[[bin]]
+name = "largest_i32"
+path = "src/largest_i32.rs"
+
+[dependencies]
