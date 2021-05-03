@@ -351,6 +351,7 @@ The longest string is long string is long
 ----
 
 [source,rust]
+.src/different_lifetimes.rs
 ----
 fn main() {
     let string1 = String::from("long string is long");
@@ -371,6 +372,7 @@ fn longest<'a>(x: &'a str, y: &'a str) -> &'a str {
 }
 ----
 
+[source,console]
 .Compile error.
 ----
 chap10$ cargo run --bin different_lifetimes
