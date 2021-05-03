@@ -239,8 +239,61 @@ fn main() {
 }
 ----
 
+.Compile error
 ----
 `x` does not live long enough
 
 borrowed value does not live long enough
+----
+
+=== Generic Lifetimes in Functions
+
+[source,rust]
+----
+fn largest<T: PartialOrd>(list: &[T]) -> &T {
+    let mut largest = &list[0];
+
+    for item in list {
+        if item > largest {
+            largest = item;
+        }
+    }
+
+    largest
+}
+
+fn main() {
+    let number_list = vec![34, 50, 25, 100, 65];
+
+    let result = largest(&number_list);
+    println!("The largest number is {}", result);
+
+    let char_list = vec!['y', 'm', 'a', 'q'];
+
+    let result = largest(&char_list);
+    println!("The largest char is {}", result);
+}
+----
+
+.Compile error 1
+----
+missing lifetime specifier
+
+expected named lifetime parameter
+
+help: this function's return type contains a borrowed value, but the signature does not say whether it is borrowed from `x` or `y`
+----
+
+.Compile error 2
+----
+explicit lifetime required in the type of `x`
+
+lifetime `'static` required
+----
+
+.Compile error 3
+----
+explicit lifetime required in the type of `y`
+
+lifetime `'static` required
 ----

@@ -16,4 +16,8 @@ path = "src/largest_generic.rs"
 name = "out_of_scope"
 path = "src/out_of_scope.rs"
 
+[[bin]]
+name = "longest_str"
+path = "src/longest_str.rs"
+
 [dependencies]
