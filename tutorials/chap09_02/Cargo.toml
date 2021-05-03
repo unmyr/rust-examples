@@ -22,4 +22,8 @@ path = "src/file_open_and_expect.rs"
 name = "propagating_errors"
 path = "src/propagating_errors.rs"
 
+[[bin]]
+name = "file_open_and_qop"
+path = "src/file_open_and_qop.rs"
+
 [dependencies]
