@@ -122,8 +122,12 @@ The largest number is 100
 The largest number is 6000
 ----
 
-=== Generic Data Types
+== Generic Data Types
 * https://doc.rust-lang.org/book/ch10-01-syntax.html[Generic Data Types - The Rust Programming Language^]
+
+=== In Function Definitions
+
+==== Two functions that differ only in their names and the types in their signatures
 
 [source,rust]
 ----
@@ -162,4 +166,53 @@ fn main() {
     let result = largest_char(&char_list);
     println!("The largest char is {}", result);
 }
+----
+
+[source,console]
+----
+chap10$ cargo run --bin largest_generic
+   Compiling chap10 v0.1.0 (<path-to-project>/chap10)
+    Finished dev [unoptimized + debuginfo] target(s) in 1.84s
+     Running `target/debug/largest_generic`
+The largest number is 100
+The largest char is y
+----
+
+
+==== A definition of the largest function that uses generic type parameters but doesn’t compile yet
+
+[source,rust]
+----
+fn largest<T: PartialOrd>(list: &[T]) -> &T {
+    let mut largest = &list[0];
+
+    for item in list {
+        if item > largest {
+            largest = item;
+        }
+    }
+
+    largest
+}
+
+fn main() {
+    let number_list = vec![34, 50, 25, 100, 65];
+
+    let result = largest(&number_list);
+    println!("The largest number is {}", result);
+
+    let char_list = vec!['y', 'm', 'a', 'q'];
+
+    let result = largest(&char_list);
+    println!("The largest char is {}", result);
+}
+----
+
+[source,console]
+----
+chap10$ cargo run --bin largest_generic
+    Finished dev [unoptimized + debuginfo] target(s) in 0.03s
+     Running `target/debug/largest_generic`
+The largest number is 100
+The largest char is y
 ----
