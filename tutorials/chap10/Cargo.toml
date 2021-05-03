@@ -20,4 +20,8 @@ path = "src/out_of_scope.rs"
 name = "longest_str"
 path = "src/longest_str.rs"
 
+[[bin]]
+name = "different_lifetimes"
+path = "src/different_lifetimes.rs"
+
 [dependencies]
