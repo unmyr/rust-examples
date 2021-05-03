@@ -7,9 +7,9 @@
 +
 [source,console]
 ----
-$ cargo new --bin chap09_02
-     Created binary (application) `chap09_02` package
-$ cd chap09_02/
+$ cargo new --bin chap09
+     Created binary (application) `chap09` package
+$ cd chap09/
 ----
 
 === Opening a file
@@ -67,14 +67,14 @@ fn main() {
 
 [source,console]
 ----
-chap09_02$ rm hello.txt 
+chap09$ rm hello.txt 
 rm: cannot remove 'hello.txt': No such file or directory
-chap09_02$ cargo run --bin file_open_and_match
+chap09$ cargo run --bin file_open_and_match
     Finished dev [unoptimized + debuginfo] target(s) in 0.03s
      Running `target/debug/file_open_and_match`
-chap09_02$ ls -l hello.txt 
+chap09$ ls -l hello.txt 
 -rw-r--r-- 1 guest guest 0 May  3 03:36 hello.txt
-chap09_02$ 
+chap09$ 
 ----
 
 === Shortcuts for Panic on Error: unwrap and expect
@@ -90,14 +90,14 @@ fn main() {
 
 [source,console]
 ----
-chap09_02$ rm hello.txt 
-chap09_02$ cargo run --bin file_open_and_unwrap
-   Compiling chap09_02 v0.1.0 (<path-of-project>/chap09_02)
+chap09$ rm hello.txt 
+chap09$ cargo run --bin file_open_and_unwrap
+   Compiling chap09 v0.1.0 (<path-of-project>/chap09)
     Finished dev [unoptimized + debuginfo] target(s) in 1.36s
      Running `target/debug/file_open_and_unwrap`
 thread 'main' panicked at 'called `Result::unwrap()` on an `Err` value: Os { code: 2, kind: NotFound, message: "No such file or directory" }', src/file_open_and_unwrap.rs:4:38
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
-chap09_02$ 
+chap09$ 
 ----
 
 [source,rust]
@@ -111,8 +111,8 @@ fn main() {
 
 [source,console]
 ----
-chap09_02$ cargo run --bin file_open_and_expect
-   Compiling chap09_02 v0.1.0 (<path-of-project>/chap09_02)
+chap09$ cargo run --bin file_open_and_expect
+   Compiling chap09 v0.1.0 (<path-of-project>/chap09)
     Finished dev [unoptimized + debuginfo] target(s) in 1.41s
      Running `target/debug/file_open_and_expect`
 thread 'main' panicked at 'Failed to open hello.txt: Os { code: 2, kind: NotFound, message: "No such file or directory" }', src/file_open_and_expect.rs:4:38
@@ -152,26 +152,26 @@ fn main() {
 
 [source,console]
 ----
-chap09_02$ cargo run --bin file_open_and_expect
-   Compiling chap09_02 v0.1.0 (<path-to-project>/chap09_02)
+chap09$ cargo run --bin file_open_and_expect
+   Compiling chap09 v0.1.0 (<path-to-project>/chap09)
     Finished dev [unoptimized + debuginfo] target(s) in 1.41s
      Running `target/debug/file_open_and_expect`
 thread 'main' panicked at 'Failed to open hello.txt: Os { code: 2, kind: NotFound, message: "No such file or directory" }', src/file_open_and_expect.rs:4:38
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
-chap09_02$ touch src/propagating_errors.rs
-chap09_02$ cargo run --bin propagating_errors
-   Compiling chap09_02 v0.1.0 (<path-to-project>/chap09_02)
+chap09$ touch src/propagating_errors.rs
+chap09$ cargo run --bin propagating_errors
+   Compiling chap09 v0.1.0 (<path-to-project>/chap09)
     Finished dev [unoptimized + debuginfo] target(s) in 2.15s
      Running `target/debug/propagating_errors`
 thread 'main' panicked at 'Problem opening the file: Os { code: 2, kind: NotFound, message: "No such file or directory" }', src/propagating_errors.rs:24:23
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
-chap09_02$ echo "foo" > hello.txt
-chap09_02$ cargo run --bin propagating_errors
+chap09$ echo "foo" > hello.txt
+chap09$ cargo run --bin propagating_errors
     Finished dev [unoptimized + debuginfo] target(s) in 0.03s
      Running `target/debug/propagating_errors`
 str is foo
 
-chap09_02$ 
+chap09$ 
 ----
 
 === A Shortcut for Propagating Errors: the `?` Operator
@@ -199,19 +199,17 @@ fn main() {
 
 [source,console]
 ----
-chap09_02$ echo "foo" > hello.txt
-chap09_02$ cargo run --bin file_open_and_qop
+chap09$ echo "foo" > hello.txt
+chap09$ cargo run --bin file_open_and_qop
     Finished dev [unoptimized + debuginfo] target(s) in 0.06s
      Running `target/debug/file_open_and_qop`
 str is foo
 
-chap09_02$ rm hello.txt 
-chap09_02$ cargo run --bin file_open_and_qop
+chap09$ rm hello.txt 
+chap09$ cargo run --bin file_open_and_qop
     Finished dev [unoptimized + debuginfo] target(s) in 0.04s
      Running `target/debug/file_open_and_qop`
 thread 'main' panicked at 'Problem opening the file: Os { code: 2, kind: NotFound, message: "No such file or directory" }', src/file_open_and_qop.rs:15:23
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
-chap09_02$
+chap09$
 ----
-
-=== The `?` Operator Can Be Used in Functions That Return Result
