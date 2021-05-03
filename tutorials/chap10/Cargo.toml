@@ -8,4 +8,8 @@ edition = "2018"
 name = "largest_i32"
 path = "src/largest_i32.rs"
 
+[[bin]]
+name = "largest_generic"
+path = "src/largest_generic.rs"
+
 [dependencies]
