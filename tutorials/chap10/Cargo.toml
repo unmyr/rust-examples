@@ -12,4 +12,8 @@ path = "src/largest_i32.rs"
 name = "largest_generic"
 path = "src/largest_generic.rs"
 
+[[bin]]
+name = "out_of_scope"
+path = "src/out_of_scope.rs"
+
 [dependencies]

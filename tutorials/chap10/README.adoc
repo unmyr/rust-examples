@@ -216,3 +216,31 @@ chap10$ cargo run --bin largest_generic
 The largest number is 100
 The largest char is y
 ----
+
+
+== Validating References with Lifetimes
+
+* https://doc.rust-lang.org/book/ch10-03-lifetime-syntax.html[Validating References with Lifetimes - The Rust Programming Language^]
+
+=== Preventing Dangling References with Lifetimes
+
+[source,rust]
+.src/out_of_scope.rs
+----
+fn main() {
+    let r;
+
+    {
+        let x = 5;
+        r = &x;
+    }
+
+    println!("r: {}", r);
+}
+----
+
+----
+`x` does not live long enough
+
+borrowed value does not live long enough
+----
