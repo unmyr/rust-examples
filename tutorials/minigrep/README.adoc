@@ -62,10 +62,17 @@ In file sample.txt
 == Reading a File
 * https://doc.rust-lang.org/book/ch12-02-reading-a-file.html[Reading a File - The Rust Programming Language^]
 
+ifdef::env-github,backend-html5[]
+  <<poem.txt, poem.txt>>
+endif::[]
+// includes for AsciiDoc processing
+ifndef::env-github,backend-html5[]
 .poem.txt
 ----
 include::poem.txt[]
 ----
+endif::[]
+
 
 === Reading the contents of the file specified by the second argument
 [source,diff]
@@ -107,3 +114,6 @@ How public, like a frog
 To tell your name the livelong day
 To an admiring bog!
 ----
+
+== Refactoring to Improve Modularity and Error Handling
+* https://doc.rust-lang.org/book/ch12-03-improving-error-handling-and-modularity.html[Refactoring to Improve Modularity and Error Handling - The Rust Programming Language^]
