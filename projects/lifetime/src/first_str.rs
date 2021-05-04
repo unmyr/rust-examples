@@ -6,6 +6,6 @@ fn main() {
     println!("The first string is {}", result);
 }
 
-fn first_str(x: &str, _: &str) -> &str{
+fn first_str<'a>(x: &'a str, _: &str) -> &'a str{
     x
 }

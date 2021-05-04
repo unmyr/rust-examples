@@ -49,3 +49,26 @@ error: could not compile `lifetime`
 
 To learn more, run the command again with --verbose.
 ----
+
+[source,diff]
+.src/first_str.rs
+----
+@@ -6,6 +6,6 @@ fn main() {
+     println!("The first string is {}", result);
+ }
+
+-fn first_str(x: &str, _: &str) -> &str{
++fn first_str<'a>(x: &'a str, _: &str) -> &'a str{
+     x
+ }
+----
+
+[source,console]
+.Results
+----
+lifetime$ cargo run --bin=first_str
+   Compiling lifetime v0.1.0 (<path-to-project>/lifetime)
+    Finished dev [unoptimized + debuginfo] target(s) in 1.45s
+     Running `target/debug/first_str`
+The first string is abcd
+----
