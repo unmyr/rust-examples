@@ -48,3 +48,62 @@ fn main() {
     println!("In file {}", filename);
 }
 ----
+
+[source,console]
+----
+$ cargo run test sample.txt
+   Compiling minigrep v0.1.0 (file:///projects/minigrep)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.0s
+     Running `target/debug/minigrep test sample.txt`
+Searching for test
+In file sample.txt
+----
+
+== Reading a File
+* https://doc.rust-lang.org/book/ch12-02-reading-a-file.html[Reading a File - The Rust Programming Language^]
+
+.poem.txt
+----
+include::poem.txt[]
+----
+
+=== Reading the contents of the file specified by the second argument
+[source,diff]
+----
+@@ -1,4 +1,5 @@
+ use std::env;
++use std::fs;
+
+ fn main() {
+     let args: Vec<String> = env::args().collect();
+@@ -8,4 +9,9 @@ fn main() {
+
+     println!("Searching for {}", query);
+     println!("In file {}", filename);
++
++    let contents = fs::read_to_string(filename)
++        .expect("Something went wrong reading the file");
++
++    println!("With text:\n{}", contents);
+ }
+----
+
+[source,console]
+----
+minigrep$ cargo run the poem.txt
+   Compiling minigrep v0.1.0 (<path-to-project>/minigrep)
+    Finished dev [unoptimized + debuginfo] target(s) in 1.97s
+     Running `target/debug/minigrep the poem.txt`
+Searching for the
+In file poem.txt
+With text:
+I'm nobody! Who are you?
+Are you nobody, too?
+Then there's a pair of us - don't tell!
+They'd banish us, you know.
+
+How dreary to be somebody!
+How public, like a frog
+To tell your name the livelong day
+To an admiring bog!
+----
