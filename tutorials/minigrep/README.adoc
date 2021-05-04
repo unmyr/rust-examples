@@ -372,3 +372,42 @@ How public, like a frog
 To tell your name the livelong day
 To an admiring bog!
 ----
+
+=== Fixing the Error Handling
+
+[source,console]
+.thread 'main' panicked at 'index out of bounds: the len is 1 but the index is 1'
+----
+minigrep$ cargo run
+    Finished dev [unoptimized + debuginfo] target(s) in 0.03s
+     Running `target/debug/minigrep`
+thread 'main' panicked at 'index out of bounds: the len is 1 but the index is 1', src/main.rs:25:21
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+----
+
+==== Adding a check for the number of arguments
+
+[source,diff]
+.src/main.rs
+----
+@@ -22,6 +22,9 @@ struct Config {
+
+ impl Config {
+     fn new(args: &[String]) -> Config {
++        if args.len() < 3 {
++            panic!("not enough arguments");
++        }
+         let query = args[1].clone();
+         let filename = args[2].clone();
+----
+
+[source,console]
+.thread 'main' panicked at 'not enough arguments'
+----
+minigrep$ cargo run
+   Compiling minigrep v0.1.0 (/home/guest/tmp_rust/rust-examples/tutorials/minigrep)
+    Finished dev [unoptimized + debuginfo] target(s) in 2.17s
+     Running `target/debug/minigrep`
+thread 'main' panicked at 'not enough arguments', src/main.rs:26:13
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+----
