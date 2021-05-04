@@ -547,3 +547,79 @@ impl Config {
     }
 }
 ----
+
+=== Returning Errors from the run Function
+
+==== Changing the `run` function to return `Result`
+[source,diff]
+----
+@@ -1,6 +1,7 @@
+ use std::env;
+ use std::fs;
+ use std::process;
++use std::error::Error;
+
+ fn main() {
+     let args: Vec<String> = env::args().collect();
+@@ -16,11 +17,12 @@ fn main() {
+     run(config);
+ }
+
+-fn run(config: Config) {
+-    let contents = fs::read_to_string(config.filename)
+-        .expect("Something went wrong reading the file");
++fn run(config: Config) -> Result<(), Box<dyn Error>> {
++    let contents = fs::read_to_string(config.filename)?;
+
+     println!("With text:\n{}", contents);
++
++    Ok(())
+ }
+----
+
+[source,rust]
+.src/main.rs
+----
+use std::error::Error;
+
+// --snip--
+
+fn run(config: Config) -> Result<(), Box<dyn Error>> {
+    let contents = fs::read_to_string(config.filename)?;
+
+    println!("With text:\n{}", contents);
+
+    Ok(())
+}
+----
+When you run this code, it will compile but will display a warning:
+
+[source,console]
+----
+minigrep$ cargo run the poem.txt
+warning: unused `std::result::Result` that must be used
+  --> src/main.rs:17:5
+   |
+17 |     run(config);
+   |     ^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_must_use)]` on by default
+   = note: this `Result` may be an `Err` variant, which should be handled
+
+warning: 1 warning emitted
+
+    Finished dev [unoptimized + debuginfo] target(s) in 0.04s
+     Running `target/debug/minigrep the poem.txt`
+Searching for the
+In file poem.txt
+With text:
+I'm nobody! Who are you?
+Are you nobody, too?
+Then there's a pair of us - don't tell!
+They'd banish us, you know.
+
+How dreary to be somebody!
+How public, like a frog
+To tell your name the livelong day
+To an admiring bog!
+----
