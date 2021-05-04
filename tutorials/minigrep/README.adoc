@@ -643,3 +643,27 @@ To an admiring bog!
 
  fn run(config: Config) -> Result<(), Box<dyn Error>> {
 ----
+
+=== Splitting Code into a Library Crate
+
+[source,rust]
+.Moving Config and run into src/lib.rs
+----
+use std::error::Error;
+use std::fs;
+
+pub struct Config {
+    pub query: String,
+    pub filename: String,
+}
+
+impl Config {
+    pub fn new(args: &[String]) -> Result<Config, &str> {
+        // --snip--
+    }
+}
+
+pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
+    // --snip--
+}
+----
