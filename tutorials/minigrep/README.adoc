@@ -1117,7 +1117,10 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 
 First, we’ll add a configuration option to the Config struct to switch between case-sensitive and case-insensitive search. Adding this field will cause compiler errors because we aren’t initializing this field anywhere yet:
 
+==== Calling either search or search_case_insensitive based on the value in config.case_sensitive
+
 [source,diff]
+.src/lib.rs
 ----
 @@ -4,6 +4,7 @@ use std::fs;
  pub struct Config {
@@ -1145,5 +1148,57 @@ First, we’ll add a configuration option to the Config struct to switch between
 
 Note that we added the case_sensitive field that holds a Boolean. Next, we need the run function to check the case_sensitive field’s value and use that to decide whether to call the search function or the search_case_insensitive function, as shown in Listing 12-22. Note this still won’t compile yet.
 
+==== Checking for an environment variable named `CASE_INSENSITIVE`
+
+[source,diff]
+.src/lib.rs
 ----
+@@ -1,3 +1,4 @@
++use std::env;
+ use std::error::Error;
+ use std::fs;
+
+@@ -16,7 +17,13 @@ impl Config {
+         let query = args[1].clone();
+         let filename = args[2].clone();
+
+-        Ok(Config { query, filename })
++        let case_sensitive = env::var("CASE_INSENSITIVE").is_err();
++
++        Ok(Config {
++            query,
++            filename,
++            case_sensitive,
++        })
+     }
+ }
+----
+
+Let’s give it a try! First, we’ll run our program without the environment variable set and with the query to, which should match any line that contains the word “to” in all lowercase:
+
+[source,console]
+----
+minigrep$ cargo run to poem.txt
+   Compiling minigrep v0.1.0 (<path-to-project>/minigrep)
+    Finished dev [unoptimized + debuginfo] target(s) in 3.94s
+     Running `target/debug/minigrep to poem.txt`
+Searching for to
+In file poem.txt
+Are you nobody, too?
+How dreary to be somebody!
+----
+
+We should get lines that contain “to” that might have uppercase letters:
+
+[source,console]
+----
+minigrep$ CASE_INSENSITIVE=1 cargo run to poem.txt
+    Finished dev [unoptimized + debuginfo] target(s) in 0.02s
+     Running `target/debug/minigrep to poem.txt`
+Searching for to
+In file poem.txt
+Are you nobody, too?
+How dreary to be somebody!
+To tell your name the livelong day
+To an admiring bog!
 ----
