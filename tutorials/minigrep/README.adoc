@@ -1,0 +1,34 @@
+== Accepting Command Line Arguments
+
+* https://doc.rust-lang.org/book/ch12-01-accepting-command-line-arguments.html[Accepting Command Line Arguments - The Rust Programming Language^]
+
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --bin minigrep
+     Created binary (application) `minigrep` package
+$ cd minigrep/
+----
+
+=== Reading the Argument Values
+
+[source,rust]
+----
+use std::env;
+
+fn main() {
+    let args: Vec<String> = env::args().collect();
+    println!("{:?}", args);
+}
+----
+
+[source,console]
+----
+minigrep$ cargo run example-filename.txt
+   Compiling minigrep v0.1.0 (<path-to-project>/minigrep)
+    Finished dev [unoptimized + debuginfo] target(s) in 1.92s
+     Running `target/debug/minigrep example-filename.txt`
+["target/debug/minigrep", "example-filename.txt"]
+----
