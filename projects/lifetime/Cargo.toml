@@ -1,0 +1,11 @@
+[package]
+name = "lifetime"
+version = "0.1.0"
+authors = ["unmyr <56982541+unmyr@users.noreply.github.com>"]
+edition = "2018"
+
+[[bin]]
+name = "first_str"
+path = "src/first_str.rs"
+
+[dependencies]
