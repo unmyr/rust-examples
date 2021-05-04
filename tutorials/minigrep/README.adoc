@@ -724,3 +724,119 @@ Pick three.";
     }
 }
 ----
+
+=== Using the search Function in the run Function
+
+[source,diff]
+.src/lib.rs
+----
+@@ -22,6 +22,10 @@ impl Config {
+ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
+     let contents = fs::read_to_string(config.filename)?;
+
++    for line in search(&config.query, &contents) {
++        println!("{}", line);
++    }
++
+     Ok(())
+ }
+----
+
+[source,rust]
+.src/lib.rs
+----
+use std::error::Error;
+use std::fs;
+
+pub struct Config {
+    pub query: String,
+    pub filename: String,
+}
+
+impl Config {
+    pub fn new(args: &[String]) -> Result<Config, &str> {
+        if args.len() < 3 {
+            return Err("not enough arguments");
+        }
+
+        let query = args[1].clone();
+        let filename = args[2].clone();
+
+        Ok(Config { query, filename })
+    }
+}
+
+pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
+    let contents = fs::read_to_string(config.filename)?;
+
+    for line in search(&config.query, &contents) {
+        println!("{}", line);
+    }
+
+    Ok(())
+}
+
+pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+    let mut results = Vec::new();
+
+    for line in contents.lines() {
+        if line.contains(query) {
+            results.push(line);
+        }
+    }
+
+    results
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn one_result() {
+        let query = "duct";
+        let contents = "\
+Rust:
+safe, fast, productive.
+Pick three.";
+
+        assert_eq!(vec!["safe, fast, productive."], search(query, contents));
+    }
+}
+----
+
+[source,console]
+----
+minigrep$ cargo test
+   Compiling minigrep v0.1.0 (/home/guest/tmp_rust/rust-examples/tutorials/minigrep)
+    Finished test [unoptimized + debuginfo] target(s) in 3.70s
+     Running target/debug/deps/minigrep-09d17e604a45060d
+
+running 1 test
+test tests::one_result ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running target/debug/deps/minigrep-a3e23f1dbde38500
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests minigrep
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+----
+
+[source,console]
+----
+minigrep$ cargo run frog poem.txt
+   Compiling minigrep v0.1.0 (/home/guest/tmp_rust/rust-examples/tutorials/minigrep)
+    Finished dev [unoptimized + debuginfo] target(s) in 1.72s
+     Running `target/debug/minigrep frog poem.txt`
+Searching for frog
+In file poem.txt
+How public, like a frog
+----
