@@ -15,6 +15,7 @@ $ cd minigrep/
 === Reading the Argument Values
 
 [source,rust]
+.src/main.rs
 ----
 use std::env;
 
@@ -35,6 +36,7 @@ minigrep$ cargo run example-filename.txt
 
 === Saving the Argument Values in Variables
 [source,rust]
+.src/main.rs
 ----
 use std::env;
 
@@ -87,6 +89,7 @@ endif::[]
 
 === Reading the contents of the file specified by the second argument
 [source,diff]
+.src/main.rs
 ----
 @@ -1,4 +1,5 @@
  use std::env;
@@ -128,3 +131,52 @@ To an admiring bog!
 
 == Refactoring to Improve Modularity and Error Handling
 * https://doc.rust-lang.org/book/ch12-03-improving-error-handling-and-modularity.html[Refactoring to Improve Modularity and Error Handling - The Rust Programming Language^]
+
+
+=== Extracting the Argument Parser
+
+==== Extracting a `parse_config` function from `main`
+[source,diff]
+.src/main.rs
+----
+@@ -4,8 +4,7 @@ use std::fs;
+ fn main() {
+     let args: Vec<String> = env::args().collect();
+
+-    let query = &args[1];
+-    let filename = &args[2];
++    let (query, filename) = parse_config(&args);
+
+     println!("Searching for {}", query);
+     println!("In file {}", filename);
+@@ -15,3 +14,10 @@ fn main() {
+
+     println!("With text:\n{}", contents);
+ }
++
++fn parse_config(args: &[String]) -> (&str, &str) {
++    let query = &args[1];
++    let filename = &args[2];
++
++    (query, filename)
++}
+----
+
+[source,console]
+----
+minigrep$ cargo run test poem.txt
+    Finished dev [unoptimized + debuginfo] target(s) in 0.02s
+     Running `target/debug/minigrep test poem.txt`
+Searching for test
+In file poem.txt
+With text:
+I'm nobody! Who are you?
+Are you nobody, too?
+Then there's a pair of us - don't tell!
+They'd banish us, you know.
+
+How dreary to be somebody!
+How public, like a frog
+To tell your name the livelong day
+To an admiring bog!
+----
