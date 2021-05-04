@@ -808,7 +808,7 @@ Pick three.";
 [source,console]
 ----
 minigrep$ cargo test
-   Compiling minigrep v0.1.0 (/home/guest/tmp_rust/rust-examples/tutorials/minigrep)
+   Compiling minigrep v0.1.0 (<path-to-project>/minigrep)
     Finished test [unoptimized + debuginfo] target(s) in 3.70s
      Running target/debug/deps/minigrep-09d17e604a45060d
 
@@ -833,7 +833,7 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 [source,console]
 ----
 minigrep$ cargo run frog poem.txt
-   Compiling minigrep v0.1.0 (/home/guest/tmp_rust/rust-examples/tutorials/minigrep)
+   Compiling minigrep v0.1.0 (<path-to-project>/minigrep)
     Finished dev [unoptimized + debuginfo] target(s) in 1.72s
      Running `target/debug/minigrep frog poem.txt`
 Searching for frog
@@ -1092,7 +1092,7 @@ Trust me.";
 [source,console]
 ----
 minigrep$ cargo test
-   Compiling minigrep v0.1.0 (/home/guest/tmp_rust/rust-examples/tutorials/minigrep)
+   Compiling minigrep v0.1.0 (<path-to-project>/minigrep)
     Finished test [unoptimized + debuginfo] target(s) in 3.72s
      Running target/debug/deps/minigrep-09d17e604a45060d
 
