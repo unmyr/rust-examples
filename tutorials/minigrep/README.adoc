@@ -63,9 +63,9 @@ In file sample.txt
 * https://doc.rust-lang.org/book/ch12-02-reading-a-file.html[Reading a File - The Rust Programming Language^]
 
 ifdef::env-github,backend-html5[]
-  <<poem.txt, poem.txt>>
+<<poem.txt, poem.txt>>
 endif::[]
-// includes for AsciiDoc processing
+
 ifndef::env-github,backend-html5[]
 .poem.txt
 ----
