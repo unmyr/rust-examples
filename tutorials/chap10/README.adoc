@@ -394,3 +394,49 @@ error: could not compile `chap10`
 
 To learn more, run the command again with --verbose.
 ----
+
+==== Generic Type Parameters, Trait Bounds, and Lifetimes Together
+
+[source,rust]
+.src/longest_with_an_announcement.rs
+----
+fn main() {
+    let string1 = String::from("abcd");
+    let string2 = "xyz";
+
+    let result = longest_with_an_announcement(
+        string1.as_str(),
+        string2,
+        "Today is someone's birthday!",
+    );
+    println!("The longest string is {}", result);
+}
+
+use std::fmt::Display;
+
+fn longest_with_an_announcement<'a, T>(
+    x: &'a str,
+    y: &'a str,
+    ann: T,
+) -> &'a str
+where
+    T: Display,
+{
+    println!("Announcement! {}", ann);
+    if x.len() > y.len() {
+        x
+    } else {
+        y
+    }
+}
+----
+
+[source,console]
+----
+chap10$ cargo run --bin="longest_with_an_announcement"
+   Compiling chap10 v0.1.0 (<path-of-project>chap10)
+    Finished dev [unoptimized + debuginfo] target(s) in 2.25s
+     Running `target/debug/longest_with_an_announcement`
+Announcement! Today is someone's birthday!
+The longest string is abcd
+----

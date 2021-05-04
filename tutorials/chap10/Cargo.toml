@@ -24,4 +24,8 @@ path = "src/longest_str.rs"
 name = "different_lifetimes"
 path = "src/different_lifetimes.rs"
 
+[[bin]]
+name = "longest_with_an_announcement"
+path = "src/longest_with_an_announcement.rs"
+
 [dependencies]
