@@ -21,7 +21,7 @@ fn main() {
     println!("The first string is {}", result);
 }
 
-fn first_str(x: &str, y: &str) -> &str{
+fn first_str(x: &str, _: &str) -> &str{
     x
 }
 ----
@@ -33,13 +33,13 @@ $ cargo run --bin=first_str
 error[E0106]: missing lifetime specifier
  --> src/first_str.rs:9:35
   |
-9 | fn first_str(x: &str, y: &str) -> &str{
+9 | fn first_str(x: &str, _: &str) -> &str{
   |                 ----     ----     ^ expected named lifetime parameter
   |
-  = help: this function's return type contains a borrowed value, but the signature does not say whether it is borrowed from `x` or `y`
+  = help: this function's return type contains a borrowed value, but the signature does not say whether it is borrowed from `x` or argument 2
 help: consider introducing a named lifetime parameter
   |
-9 | fn first_str<'a>(x: &'a str, y: &'a str) -> &'a str{
+9 | fn first_str<'a>(x: &'a str, _: &'a str) -> &'a str{
   |             ^^^^    ^^^^^^^     ^^^^^^^     ^^^
 
 error: aborting due to previous error
