@@ -1,0 +1,34 @@
+== Recoverable Errors with Result
+
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --bin tutorials/chap13
+     Created binary (application) `tutorials/chap13` package
+$ cd tutorials/chap13/
+----
+
+=== Closures: Anonymous Functions that Can Capture Their Environment
+
+* https://doc.rust-lang.org/book/ch13-01-closures.html[Closures: Anonymous Functions that Can Capture Their Environment - The Rust Programming Language^]
+
+==== Creating an Abstraction of Behavior with Closures
+
+===== Listing 13-1: A function to stand in for a hypothetical calculation that takes about 2 seconds to run
+
+[source,rust]
+.src/main.rs
+----
+use std::thread;
+use std::time::Duration;
+
+fn simulated_expensive_calculation(intensity: u32) -> u32 {
+    println!("calculating slowly...");
+    thread::sleep(Duration::from_secs(2));
+    intensity
+}
+
+fn main() {}
+----
