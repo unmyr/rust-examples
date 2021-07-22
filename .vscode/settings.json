@@ -6,6 +6,7 @@
     "**/target/**": true
   },
   "cSpell.words": [
+    "Cacher",
     "accum",
     "backtrace",
     "clippy",
