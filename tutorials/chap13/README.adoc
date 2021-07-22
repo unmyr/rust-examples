@@ -108,7 +108,7 @@ fn main() {
 ===== Listing 13-4: Extracting the calls to simulated_expensive_calculation to one place and storing the result in the expensive_result variable
 
 [source,diff]
-.git diff tutorials/chap13/src/main.rs
+.git diff src/main.rs
 ----
 @@ -8,23 +8,16 @@ fn simulated_expensive_calculation(intensity: u32) -> u32 {
  }
@@ -146,6 +146,7 @@ fn main() {
 ===== Listing 13-5: Defining a closure and storing it in the expensive_closure variable
 
 [source,diff]
+.git diff src/main.rs
 ----
 diff --git a/tutorials/chap13/src/main.rs b/tutorials/chap13/src/main.rs
 index 514bfee..38d04bd 100644
@@ -189,6 +190,7 @@ index 514bfee..38d04bd 100644
 ----
 
 [source,rust]
+.src/main.rs
 ----
 use std::thread;
 use std::time::Duration;
@@ -221,4 +223,22 @@ fn main() {
 
     generate_workout(simulated_user_specified_value, simulated_random_number);
 }
+----
+
+==== Closure Type Inference and Annotation
+
+===== Listing 13-7: Adding optional type annotations of the parameter and return value types in the closure
+
+[source,diff]
+.git diff src/main.rs
+----
+@@ -2,7 +2,7 @@ use std::thread;
+ use std::time::Duration;
+ 
+ fn generate_workout(intensity: u32, random_number: u32) {
+-    let expensive_closure = |num| {
++    let expensive_closure = |num: u32| -> u32 {
+         println!("calculating slowly...");
+         thread::sleep(Duration::from_secs(2));
+         num
 ----
