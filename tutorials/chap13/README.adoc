@@ -19,7 +19,7 @@ $ cd tutorials/chap13/
 ===== Listing 13-1: A function to stand in for a hypothetical calculation that takes about 2 seconds to run
 
 [source,rust]
-.src/main.rs
+.src/chap13_1.rs
 ----
 use std::thread;
 use std::time::Duration;
@@ -36,7 +36,7 @@ fn main() {}
 ===== Listing 13-2: A main function with hardcoded values to simulate user input and random number generation
 
 [source,rust]
-.src/main.rs
+.src/chap13_1.rs
 ----
 use std::thread;
 use std::time::Duration;
@@ -62,7 +62,7 @@ fn main() {
 [%collapsible]
 ====
 [source,rust]
-.src/main.rs
+.src/chap13_1.rs
 ----
 use std::thread;
 use std::time::Duration;
@@ -111,7 +111,7 @@ fn main() {
 ===== Listing 13-4: Extracting the calls to simulated_expensive_calculation to one place and storing the result in the expensive_result variable
 
 [source,diff]
-.git diff src/main.rs
+.git diff src/chap13_1.rs
 ----
 @@ -8,23 +8,16 @@ fn simulated_expensive_calculation(intensity: u32) -> u32 {
  }
@@ -149,12 +149,8 @@ fn main() {
 ===== Listing 13-5: Defining a closure and storing it in the expensive_closure variable
 
 [source,diff]
-.git diff src/main.rs
+.git diff src/chap13_1.rs
 ----
-diff --git a/tutorials/chap13/src/main.rs b/tutorials/chap13/src/main.rs
-index 514bfee..38d04bd 100644
---- a/tutorials/chap13/src/main.rs
-+++ b/tutorials/chap13/src/main.rs
 @@ -1,23 +1,24 @@
  use std::thread;
  use std::time::Duration;
@@ -195,7 +191,7 @@ index 514bfee..38d04bd 100644
 [%collapsible]
 ====
 [source,rust]
-.src/main.rs
+.src/chap13_1.rs
 ----
 use std::thread;
 use std::time::Duration;
@@ -236,7 +232,7 @@ fn main() {
 ===== Listing 13-7: Adding optional type annotations of the parameter and return value types in the closure
 
 [source,diff]
-.git diff src/main.rs
+.git diff src/chap13_1.rs
 ----
 @@ -2,7 +2,7 @@ use std::thread;
  use std::time::Duration;
@@ -255,7 +251,7 @@ fn main() {
 ===== Listing 13-11: Using Cacher in the generate_workout function to abstract away the caching logic
 
 [source,diff]
-.git diff src/main.rs
+.git diff src/chap13_1.rs
 ----
 @@ -1,23 +1,54 @@
  use std::thread;
@@ -319,7 +315,7 @@ fn main() {
      }
 ----
 
-.src/main.rs
+.src/chap13_1.rs
 [%collapsible]
 ====
 [source,rust]
