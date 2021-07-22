@@ -10,4 +10,8 @@ edition = "2018"
 name = "chap13_1"
 path = "src/chap13_1.rs"
 
+[[test]]
+name = "cacher"
+path = "src/cacher_lib.rs"
+
 [dependencies]
