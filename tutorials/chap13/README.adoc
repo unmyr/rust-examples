@@ -388,3 +388,13 @@ fn main() {
 }
 ----
 ====
+
+[source,console]
+----
+$ cargo run --bin chap13_1
+    Finished dev [unoptimized + debuginfo] target(s) in 0.04s
+     Running `target/debug/chap13_1`
+calculating slowly...
+Today, do 10 pushups!
+Next, do 10 situps!
+----
