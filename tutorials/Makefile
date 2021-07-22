@@ -1,0 +1,11 @@
+clean:
+	(cd chap09 && cargo clean)
+	(cd chap10 && cargo clean)
+	(cd chap13 && cargo clean)
+	(cd guessing_game && cargo clean)
+	(cd minigrep && cargo clean)
+	(cd restaurant && cargo clean)
+	(cd strings && cargo clean)
+	(cd structs && cargo clean)
+	(cd variables && cargo clean)
+	(cd vectors && cargo clean)
