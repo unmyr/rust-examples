@@ -1,0 +1,9 @@
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --bin equal-to-x
+     Created binary (application) `equal-to-x` package
+$ cd equal-to-x/
+----
