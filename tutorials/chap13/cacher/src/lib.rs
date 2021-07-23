@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+#[allow(dead_code)]
 struct Cacher<T>
 where
     T: Fn(u32) -> u32,
@@ -12,6 +13,7 @@ impl<T> Cacher<T>
 where
     T: Fn(u32) -> u32,
 {
+    #[allow(dead_code)]
     fn new(calculation: T) -> Cacher<T> {
         Cacher {
             calculation,
@@ -19,6 +21,7 @@ where
         }
     }
 
+    #[allow(dead_code)]
     fn value(&mut self, arg: u32) -> u32 {
         match self.value.get(&arg) {
             Some(v) => *v,

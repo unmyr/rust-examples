@@ -1,7 +1,7 @@
 clean:
 	(cd chap09 && cargo clean)
 	(cd chap10 && cargo clean)
-	(cd chap13 && cargo clean)
+	(cd chap13 && make clean)
 	(cd guessing_game && cargo clean)
 	(cd minigrep && cargo clean)
 	(cd restaurant && cargo clean)

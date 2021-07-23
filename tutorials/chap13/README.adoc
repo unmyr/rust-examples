@@ -7,4 +7,4 @@
 * https://doc.rust-lang.org/book/ch13-01-closures.html[Closures: Anonymous Functions that Can Capture Their Environment - The Rust Programming Language^]
 
 * <<chap13-01/README.adoc#,chap13-01>>
-* <<chap13-01/README.cacher.adoc#,chap13-01 (Cacher)>>
+* <<cacher/README.adoc#,Cacher (chap13-01)>>
