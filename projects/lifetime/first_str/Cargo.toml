@@ -6,6 +6,6 @@ edition = "2018"
 
 [[bin]]
 name = "first_str"
-path = "src/first_str.rs"
+path = "src/main.rs"
 
 [dependencies]
