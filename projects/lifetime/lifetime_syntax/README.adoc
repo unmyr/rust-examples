@@ -1,0 +1,25 @@
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --lib lifetime_syntax
+     Created library `lifetime_syntax` package
+$ cd lifetime_syntax/
+----
+
+=== Run tests
+
+[source,console]
+.Results
+----
+$ cargo test
+    Finished test [unoptimized + debuginfo] target(s) in 0.03s
+     Running target/debug/deps/lifetime_syntax-81cbfb44aaec6edd
+
+running 4 tests
+test tests::test_lifetime_with_fn_different_block ... ok
+test tests::test_lifetime_with_fn_different_static ... ok
+test tests::test_lifetime_with_fn_same ... ok
+test tests::test_lifetime_with_struct ... ok
+----
