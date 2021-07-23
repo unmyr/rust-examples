@@ -1,0 +1,14 @@
+== Accepting Command Line Arguments
+
+* https://doc.rust-lang.org/book/ch13-03-improving-our-io-project.html[Improving Our I/O Project - The Rust Programming Language^]
+* <<../../chap12/minigrep/README.adoc#,minigrep (chap12)>>
+
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --bin minigrep
+     Created binary (application) `minigrep` package
+$ cd minigrep/
+----
