@@ -3,15 +3,15 @@
 +
 [source,console]
 ----
-$ cargo new --bin lifetime
-     Created binary (application) `lifetime` package
-$ cd lifetime/
+$ cargo new --bin first_str
+     Created binary (application) `first_str` package
+$ cd first_str/
 ----
 
 === first_str
 
 [source,rust]
-.src/first_str.rs
+.src/main.rs
 ----
 fn main() {
     let string1 = String::from("abcd");
@@ -29,7 +29,7 @@ fn first_str(x: &str, _: &str) -> &str{
 .Build error
 ----
 $ cargo run --bin=first_str
-   Compiling lifetime v0.1.0 (<path-to-project>/lifetime)
+   Compiling first_str v0.1.0 (<path-to-project>/first_str)
 error[E0106]: missing lifetime specifier
  --> src/first_str.rs:9:35
   |
@@ -45,7 +45,7 @@ help: consider introducing a named lifetime parameter
 error: aborting due to previous error
 
 For more information about this error, try `rustc --explain E0106`.
-error: could not compile `lifetime`
+error: could not compile `first_str`
 
 To learn more, run the command again with --verbose.
 ----
@@ -66,8 +66,8 @@ To learn more, run the command again with --verbose.
 [source,console]
 .Results
 ----
-lifetime$ cargo run --bin=first_str
-   Compiling lifetime v0.1.0 (<path-to-project>/lifetime)
+first_str$ cargo run --bin=first_str
+   Compiling first_str v0.1.0 (<path-to-project>/first_str)
     Finished dev [unoptimized + debuginfo] target(s) in 1.45s
      Running `target/debug/first_str`
 The first string is abcd
