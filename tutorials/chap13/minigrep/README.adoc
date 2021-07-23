@@ -12,3 +12,14 @@ $ cargo new --bin minigrep
      Created binary (application) `minigrep` package
 $ cd minigrep/
 ----
+
+=== Run
+
+[source,console]
+----
+$ cargo run to poem.txt
+    Finished dev [unoptimized + debuginfo] target(s) in 0.02s
+     Running `target/debug/minigrep to poem.txt`
+Are you nobody, too?
+How dreary to be somebody!
+----
