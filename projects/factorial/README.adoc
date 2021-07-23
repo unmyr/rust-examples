@@ -28,7 +28,7 @@ pub fn factorial_recursive_if_else(n: u32) -> u32 {
 [source,console]
 ----
 $ cargo test
-   Compiling factorial v0.1.0 (.../factorial)
+   Compiling factorial v0.1.0 (<path-to-project>/factorial)
     Finished test [unoptimized + debuginfo] target(s) in 3.31s
      Running target/debug/deps/factorial-dce89ce7b27bbcc1
 

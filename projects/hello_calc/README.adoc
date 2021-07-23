@@ -26,7 +26,7 @@ mod tests {
 [source,console]
 ----
 $ cargo test
-   Compiling hello_calc v0.1.0 (.../hello_calc)
+   Compiling hello_calc v0.1.0 (<path-to-project>/hello_calc)
     Finished test [unoptimized + debuginfo] target(s) in 5.31s
      Running target/debug/deps/hello_calc-04955faba5f03ba0
 
