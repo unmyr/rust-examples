@@ -1,0 +1,27 @@
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --bin ownership
+     Created binary (application) `ownership` package
+$ cd ownership/
+----
+
+=== Run tests
+
+[source,console]
+.Results
+----
+$ cargo test
+    Finished test [unoptimized + debuginfo] target(s) in 0.03s
+     Running target/debug/deps/ownership-25ee2f3d7b3861b5
+
+running 4 tests
+test tests::test_immutable_slice ... ok
+test tests::test_immutable_string ... ok
+test tests::test_mutable_string ... ok
+test tests::test_move_owner_string ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+----
