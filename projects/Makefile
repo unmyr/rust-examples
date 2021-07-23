@@ -4,4 +4,5 @@ clean:
 	(cd factorial && cargo clean)
 	(cd hello_calc && cargo clean)
 	(cd hello_world && cargo clean)
+	(cd iterator/iterator-vec-demo && cargo clean)
 	(cd lifetime && cargo clean)
