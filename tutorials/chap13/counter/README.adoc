@@ -1,0 +1,51 @@
+== Description
+
+* https://doc.rust-lang.org/book/ch13-02-iterators.html#creating-our-own-iterators-with-the-iterator-trait[Creating Our Own Iterators with the Iterator Trait^]
+
+=== Create
+
+. Let’s create a new library project called `counter`
++
+[source,console]
+----
+$ cargo new --lib counter
+     Created library `counter` package
+$ cd counter/
+----
++
+[source,rust]
+.The contents of the src/lib.rs file
+----
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_works() {
+        assert_eq!(2 + 2, 4);
+    }
+}
+----
+
+. The cargo test command runs all tests in our project.
++
+[source,console]
+----
+$ cargo test
+   Compiling counter v0.1.0 (<path-to-project>
+/counter)
+    Finished test [unoptimized + debuginfo] target(s) in 3.47s
+     Running target/debug/deps/counter-8d50a4af7ddb95b1
+
+running 3 tests
+test tests::calling_next_directly ... ok
+test tests::using_other_iterator_trait_methods ... ok
+test tests::using_zip ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests counter
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+----
