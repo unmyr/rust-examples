@@ -1,0 +1,14 @@
+== Description
+
+* https://doc.rust-lang.org/book/ch15-01-box.html[Using Box<T> to Point to Data on the Heap - The Rust Programming Language^]
+
+=== Create
+
+. Let’s create a new library project called `cons_list`
++
+[source,console]
+----
+$ cargo new --bin cons_list
+     Created binary (application) `cons_list` package
+$ cd cons_list/
+----
