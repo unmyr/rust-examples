@@ -1,0 +1,31 @@
+== Point
+
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --bin point
+     Created binary (application) `point` package
+$ cd point/
+----
+
+=== In Struct Definitions
+
+* https://doc.rust-lang.org/book/ch10-01-syntax.html#in-struct-definitions[In Struct Definitions^]
+
+==== Listing 10-6: A Point<T> struct that holds x and y values of type T
+
+[source,rust]
+.Filename: src/main.rs
+----
+struct Point<T> {
+    x: T,
+    y: T,
+}
+
+fn main() {
+    let integer = Point { x: 5, y: 10 };
+    let float = Point { x: 1.0, y: 4.0 };
+}
+----
