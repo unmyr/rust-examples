@@ -8,3 +8,12 @@
 
 * <<chap13-01/README.adoc#,chap13-01>>
 * <<cacher/README.adoc#,Cacher (chap13-01)>>
+== Chapter 13
+
+* https://doc.rust-lang.org/book/ch13-00-functional-features.html[Functional Language Features: Iterators and Closures - The Rust Programming Language^]
+
+.Apps
+* <<cacher/README.adoc#,cacher>>
+* <<counter/README.adoc#,counter>>
+* <<exercise_workout/README.adoc#,exercise_workout>>
+* <<minigrep/README.adoc#,minigrep>>

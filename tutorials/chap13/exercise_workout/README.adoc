@@ -5,9 +5,9 @@
 +
 [source,console]
 ----
-$ cargo new --bin tutorials/chap13
-     Created binary (application) `tutorials/chap13` package
-$ cd tutorials/chap13/
+$ cargo new --bin exercise_workout
+     Created binary (application) `exercise_workout` package
+$ cd exercise_workout/
 ----
 
 === Closures: Anonymous Functions that Can Capture Their Environment
@@ -387,9 +387,9 @@ fn main() {
 
 [source,console]
 ----
-$ cargo run --bin chap13_1
+$ cargo run --bin workout
     Finished dev [unoptimized + debuginfo] target(s) in 0.04s
-     Running `target/debug/chap13_1`
+     Running `target/debug/workout`
 calculating slowly...
 Today, do 10 pushups!
 Next, do 10 situps!
