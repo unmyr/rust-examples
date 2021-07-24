@@ -8,6 +8,11 @@ struct TupleGenericPairSameType<T> (T, T);
 
 impl<T> TupleGenericPairSameType<T> {
     #[allow(dead_code)]
+    fn new(x: T, y: T) -> TupleGenericPairSameType<T> {
+        TupleGenericPairSameType(x, y)
+    }
+
+    #[allow(dead_code)]
     fn first(&self) -> &T {
         &self.0
     }
@@ -40,6 +45,11 @@ struct PointDifferentType<U, V> {
 
 impl<U, V> PointDifferentType<U, V> {
     #[allow(dead_code)]
+    fn new(u: U, v: V) -> PointDifferentType<U, V> {
+        PointDifferentType {x: u, y: v}
+    }
+
+    #[allow(dead_code)]
     fn x(&self) -> &U {
         &self.x
     }
@@ -68,6 +78,10 @@ mod tests {
         assert_eq!(p_both_int.1, 3);
         assert_eq!(p_both_int.first(), &5);
         assert_eq!(p_both_int.second(), &3);
+
+        let p_both_float = TupleGenericPairSameType::new(1.1, 2.1);
+        assert_eq!(p_both_float.0, 1.1);
+        assert_eq!(p_both_float.1, 2.1);
     }
 
     #[test]
@@ -85,9 +99,13 @@ mod tests {
 
     #[test]
     fn test_named_different_types() {
-        let p_both_int = PointDifferentType { x: 5, y: 3.14 };
-        assert_eq!(p_both_int.x, 5);
-        assert_eq!(p_both_int.y, 3.14);
+        let pair_int_float = PointDifferentType { x: 5, y: 3.14 };
+        assert_eq!(pair_int_float.x, 5);
+        assert_eq!(pair_int_float.y, 3.14);
+
+        let pair_char_int = PointDifferentType::new('a', 3);
+        assert_eq!(pair_char_int.x, 'a');
+        assert_eq!(pair_char_int.y, 3);
 
         let pair_str_char = PointDifferentType { x: "Hello", y: 'c' };
         assert_eq!(pair_str_char.x, "Hello");
