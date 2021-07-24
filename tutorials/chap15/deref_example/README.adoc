@@ -13,44 +13,54 @@ $ cargo new --bin deref_example
 $ cd deref_example/
 ----
 
-=== Using Box<T> to Point to Data on the Heap
+=== Defining Our Own Smart Pointer
 
-==== More Information About the Cons List
-
-===== Listing 15-2: The first attempt at defining an enum to represent a cons list data structure of i32 values
+==== Listing 15-8: Defining a MyBox<T> type
 
 [source,rust]
 .Filename: src/main.rs
 ----
-enum List {
-    Cons(i32, List),
-    Nil,
+struct MyBox<T>(T);
+
+impl<T> MyBox<T> {
+    fn new(x: T) -> MyBox<T> {
+        MyBox(x)
+    }
 }
 
 fn main() {}
 ----
 
-----
-recursive type `List` has infinite size
+=== Treating a Type Like a Reference by Implementing the Deref Trait
 
-recursive type has infinite size
-----
-
-==== Using Box<T> to Get a Recursive Type with a Known Size
-
-===== Listing 15-5: Definition of List that uses Box<T> in order to have a known size
+==== Listing 15-10: Implementing Deref on MyBox<T>
 
 [source,rust]
 .Filename: src/main.rs
 ----
-enum List {
-    Cons(i32, Box<List>),
-    Nil,
+use std::ops::Deref;
+
+impl<T> Deref for MyBox<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 
-use crate::List::{Cons, Nil};
+struct MyBox<T>(T);
+
+impl<T> MyBox<T> {
+    fn new(x: T) -> MyBox<T> {
+        MyBox(x)
+    }
+}
 
 fn main() {
-    let list = Cons(1, Box::new(Cons(2, Box::new(Cons(3, Box::new(Nil))))));
+    let x = 5;
+    let y = MyBox::new(x);
+
+    assert_eq!(5, x);
+    assert_eq!(5, *y);
 }
 ----
