@@ -1,0 +1,19 @@
+=== Numbers
+
+==== Float to Integer / Integer to Float
+
+[source,rust]
+----
+fn double_u32(num: u32) -> u32 {
+    num * num
+}
+
+fn double_f32(num: f32) -> f32 {
+    num * num
+}
+
+fn main() {
+    assert_eq!(double_u32(3.14 as u32), 9);
+    assert_eq!(double_f32(0.5 as f32), 0.25);
+}
+----
