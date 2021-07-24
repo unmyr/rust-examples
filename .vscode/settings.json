@@ -11,6 +11,7 @@
     "backtrace",
     "clippy",
     "debuginfo",
+    "deref",
     "eprintln",
     "hosting",
     "ifdef",

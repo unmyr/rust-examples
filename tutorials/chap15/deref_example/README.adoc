@@ -1,0 +1,56 @@
+== Description
+
+* https://doc.rust-lang.org/book/ch15-02-deref.html#defining-our-own-smart-pointer[Defining Our Own Smart Pointer - The Rust Programming Language^]
+
+=== Create
+
+. Let’s create a new library project called `deref_example`
++
+[source,console]
+----
+$ cargo new --bin deref_example
+     Created binary (application) `deref_example` package
+$ cd deref_example/
+----
+
+=== Using Box<T> to Point to Data on the Heap
+
+==== More Information About the Cons List
+
+===== Listing 15-2: The first attempt at defining an enum to represent a cons list data structure of i32 values
+
+[source,rust]
+.Filename: src/main.rs
+----
+enum List {
+    Cons(i32, List),
+    Nil,
+}
+
+fn main() {}
+----
+
+----
+recursive type `List` has infinite size
+
+recursive type has infinite size
+----
+
+==== Using Box<T> to Get a Recursive Type with a Known Size
+
+===== Listing 15-5: Definition of List that uses Box<T> in order to have a known size
+
+[source,rust]
+.Filename: src/main.rs
+----
+enum List {
+    Cons(i32, Box<List>),
+    Nil,
+}
+
+use crate::List::{Cons, Nil};
+
+fn main() {
+    let list = Cons(1, Box::new(Cons(2, Box::new(Cons(3, Box::new(Nil))))));
+}
+----

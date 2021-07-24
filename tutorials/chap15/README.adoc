@@ -3,4 +3,5 @@
 * https://doc.rust-lang.org/book/ch15-00-smart-pointers.html[Smart Pointers - The Rust Programming Language^]
 
 .Apps
-* <<cons_list/README.adoc#,cons_list>>
+* <<cons_list/README.adoc#,cons_list (chap 15.1)>>
+* <<deref_example/README.adoc#,deref_example (chap 15.2)>>
