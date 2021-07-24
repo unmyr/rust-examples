@@ -1,0 +1,11 @@
+== Point
+
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --bin point
+     Created binary (application) `point` package
+$ cd point/
+----

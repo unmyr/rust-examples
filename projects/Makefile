@@ -2,6 +2,7 @@ clean:
 	(cd closures/equal-to-x && cargo clean)
 	(cd digits_sum_has_nth_roots && cargo clean)
 	(cd factorial && cargo clean)
+	(cd generics/point && cargo clean)
 	(cd hello_calc && cargo clean)
 	(cd hello_world && cargo clean)
 	(cd iterator/iterator-vec-demo && cargo clean)
