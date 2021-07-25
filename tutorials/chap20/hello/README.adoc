@@ -139,7 +139,6 @@ curl: (52) Empty reply from server
 
 ===== Listing 20-3: Writing a tiny successful HTTP response to the stream
 
-
 [source,diff]
 .git diff src/main.rs
 ----
@@ -229,6 +228,7 @@ $ curl --verbose 127.0.0.1:7878
   </body>
 </html>
 ----
+
 
 ===== Listing 20-5: Sending the contents of hello.html as the body of the response
 
@@ -323,4 +323,101 @@ $ curl 127.0.0.1:7878
     <p>Hi from Rust</p>
   </body>
 </html>
+----
+
+
+==== Validating the Request and Selectively Responding
+
+===== Listing 20-6: Matching the request and handling requests to / differently from other requests
+
+[source,diff]
+.git diff src/main.rs
+----
+@@ -17,14 +17,20 @@ fn handle_connection(mut stream: TcpStream) {
+     let mut buffer = [0; 1024];
+     stream.read(&mut buffer).unwrap();
+
+-    let contents = fs::read_to_string("hello.html").unwrap();
++    let get = b"GET / HTTP/1.1\r\n";
+
+-    let response = format!(
+-        "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
+-        contents.len(),
+-        contents
+-    );
++    if buffer.starts_with(get) {
++        let contents = fs::read_to_string("hello.html").unwrap();
+
+-    stream.write(response.as_bytes()).unwrap();
+-    stream.flush().unwrap();
++        let response = format!(
++            "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
++            contents.len(),
++            contents
++        );
++
++        stream.write(response.as_bytes()).unwrap();
++        stream.flush().unwrap();
++    } else {
++        // some other request
++    }
+ }
+----
+
+[source,rust]
+.Filename: src/main.rs
+----
+// --snip--
+
+fn handle_connection(mut stream: TcpStream) {
+    let mut buffer = [0; 1024];
+    stream.read(&mut buffer).unwrap();
+
+    let get = b"GET / HTTP/1.1\r\n";
+
+    if buffer.starts_with(get) {
+        let contents = fs::read_to_string("hello.html").unwrap();
+
+        let response = format!(
+            "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
+            contents.len(),
+            contents
+        );
+
+        stream.write(response.as_bytes()).unwrap();
+        stream.flush().unwrap();
+    } else {
+        // some other request
+    }
+}
+----
+
+[source,console]
+----
+$ cargo run
+    Finished dev [unoptimized + debuginfo] target(s) in 0.02s
+     Running `target/debug/hello`
+^C
+----
+
+[source,console]
+----
+$ curl 127.0.0.1:7878
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Hello!</title>
+  </head>
+  <body>
+    <h1>Hello!</h1>
+    <p>Hi from Rust</p>
+  </body>
+</html>
+----
+
+[source,console]
+----
+$ curl 127.0.0.1:7878/foo
+curl: (52) Empty reply from server
 ----
