@@ -627,3 +627,112 @@ $ curl 127.0.0.1:7878/
   </body>
 </html>
 ----
+
+=== Turning Our Single-Threaded Server into a Multithreaded Server
+
+* https://doc.rust-lang.org/book/ch20-02-multithreaded.html[Turning Our Single-Threaded Server into a Multithreaded Server - The Rust Programming Language^]
+
+==== Simulating a Slow Request in the Current Server Implementation
+
+===== Listing 20-10: Simulating a slow request by recognizing /sleep and sleeping for 5 seconds
+[source,diff]
+.git diff src/main.rs
+----
+@@ -2,6 +2,8 @@ use std::fs;
+ use std::io::prelude::*;
+ use std::net::TcpListener;
+ use std::net::TcpStream;
++use std::thread;
++use std::time::Duration;
+
+ fn main() {
+     let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
+@@ -18,12 +20,17 @@ fn handle_connection(mut stream: TcpStream) {
+     stream.read(&mut buffer).unwrap();
+
+     let get = b"GET / HTTP/1.1\r\n";
++    let sleep = b"GET /sleep HTTP/1.1\r\n";
+
+     let (status_line, filename) = if buffer.starts_with(get) {
+         ("HTTP/1.1 200 OK", "hello.html")
++    } else if buffer.starts_with(sleep) {
++        thread::sleep(Duration::from_secs(5));
++        ("HTTP/1.1 200 OK", "hello.html")
+     } else {
+         ("HTTP/1.1 404 NOT FOUND", "404.html")
+     };
++
+     let contents = fs::read_to_string(filename).unwrap();
+
+     let response = format!(
+----
+
+[source,rust]
+.Filename: src/main.rs
+----
+use std::fs;
+use std::io::prelude::*;
+use std::net::TcpListener;
+use std::net::TcpStream;
+use std::thread;
+use std::time::Duration;
+// --snip--
+
+fn handle_connection(mut stream: TcpStream) {
+    // --snip--
+
+    let mut buffer = [0; 1024];
+    stream.read(&mut buffer).unwrap();
+
+    let get = b"GET / HTTP/1.1\r\n";
+    let sleep = b"GET /sleep HTTP/1.1\r\n";
+
+    let (status_line, filename) = if buffer.starts_with(get) {
+        ("HTTP/1.1 200 OK", "hello.html")
+    } else if buffer.starts_with(sleep) {
+        thread::sleep(Duration::from_secs(5));
+        ("HTTP/1.1 200 OK", "hello.html")
+    } else {
+        ("HTTP/1.1 404 NOT FOUND", "404.html")
+    };
+
+    // --snip--
+}
+----
+
+[source,console]
+----
+$ time curl 127.0.0.1:7878/sleep & (sleep 1; time curl 127.0.0.1:7878/sleep) & wait
+[1] 15880
+[2] 15881
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Hello!</title>
+  </head>
+  <body>
+    <h1>Hello!</h1>
+    <p>Hi from Rust</p>
+  </body>
+</html>
+real    0m5.079s
+user    0m0.000s
+sys     0m0.047s
+[1]-  Done                    time curl 127.0.0.1:7878/sleep
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Hello!</title>
+  </head>
+  <body>
+    <h1>Hello!</h1>
+    <p>Hi from Rust</p>
+  </body>
+</html>
+real    0m9.073s
+user    0m0.016s
+sys     0m0.063s
+[2]+  Done                    ( sleep 1; time curl 127.0.0.1:7878/sleep )
+----
