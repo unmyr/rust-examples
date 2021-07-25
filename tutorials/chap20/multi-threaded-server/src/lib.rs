@@ -1,9 +1,14 @@
 use std::thread;
+use std::sync::mpsc;
 
 pub struct ThreadPool {
     #[allow(dead_code)]
     workers: Vec<Worker>,
+    #[allow(dead_code)]
+    sender: mpsc::Sender<Job>,
 }
+
+struct Job;
 
 impl ThreadPool {
     /// Create a new ThreadPool.
@@ -16,13 +21,15 @@ impl ThreadPool {
     pub fn new(size: usize) -> ThreadPool {
         assert!(size > 0);
 
+        let (sender, _receiver) = mpsc::channel();
+
         let mut workers = Vec::with_capacity(size);
 
         for id in 0..size {
             workers.push(Worker::new(id));
         }
 
-        ThreadPool { workers }
+        ThreadPool { workers, sender }
     }
 
     #[allow(unused_variables)]

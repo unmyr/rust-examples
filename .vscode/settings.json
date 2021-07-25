@@ -18,6 +18,7 @@
     "hosting",
     "ifdef",
     "minigrep",
+    "mpsc",
     "println",
     "rustc",
     "rustup",
