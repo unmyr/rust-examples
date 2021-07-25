@@ -19,6 +19,7 @@ $ cd multi-threaded-server/
 ==== Simulating a Slow Request in the Current Server Implementation
 
 ===== Listing 20-10: Simulating a slow request by recognizing /sleep and sleeping for 5 seconds
+
 [source,diff]
 .git diff src/main.rs
 ----
@@ -118,5 +119,77 @@ sys     0m0.047s
 real    0m9.073s
 user    0m0.016s
 sys     0m0.063s
+[2]+  Done                    ( sleep 1; time curl 127.0.0.1:7878/sleep )
+----
+
+==== Code Structure If We Could Spawn a Thread for Each Request
+
+===== Listing 20-11: Spawning a new thread for each stream
+
+[source,diff]
+.git diff src/main.rs
+----
+@@ -11,7 +11,9 @@ fn main() {
+     for stream in listener.incoming() {
+         let stream = stream.unwrap();
+
+-        handle_connection(stream);
++        thread::spawn(|| {
++            handle_connection(stream);
++        });
+     }
+ }
+----
+
+[source,rust]
+.Filename: src/main.rs
+----
+fn main() {
+    let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
+
+    for stream in listener.incoming() {
+        let stream = stream.unwrap();
+
+        thread::spawn(|| {
+            handle_connection(stream);
+        });
+    }
+}
+----
+
+[source,console]
+----
+$ time curl 127.0.0.1:7878/sleep & (sleep 1; time curl 127.0.0.1:7878/sleep) & wait
+[1] 17923
+[2] 17925
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Hello!</title>
+  </head>
+  <body>
+    <h1>Hello!</h1>
+    <p>Hi from Rust</p>
+  </body>
+</html>
+real    0m5.069s
+user    0m0.000s
+sys     0m0.031s
+[1]-  Done                    time curl 127.0.0.1:7878/sleep
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Hello!</title>
+  </head>
+  <body>
+    <h1>Hello!</h1>
+    <p>Hi from Rust</p>
+  </body>
+</html>
+real    0m5.088s
+user    0m0.016s
+sys     0m0.047s
 [2]+  Done                    ( sleep 1; time curl 127.0.0.1:7878/sleep )
 ----
