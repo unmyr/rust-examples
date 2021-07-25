@@ -6,11 +6,10 @@ use std::sync::Mutex;
 pub struct ThreadPool {
     #[allow(dead_code)]
     workers: Vec<Worker>,
-    #[allow(dead_code)]
     sender: mpsc::Sender<Job>,
 }
 
-struct Job;
+type Job = Box<dyn FnOnce() + Send + 'static>;
 
 impl ThreadPool {
     /// Create a new ThreadPool.
@@ -36,12 +35,13 @@ impl ThreadPool {
         ThreadPool { workers, sender }
     }
 
-    #[allow(unused_variables)]
     pub fn execute<F>(&self, f: F)
-        where
-            F: FnOnce() + Send + 'static
+    where
+        F: FnOnce() + Send + 'static,
     {
+        let job = Box::new(f);
 
+        self.sender.send(job).unwrap();
     }
 }
 
@@ -54,8 +54,12 @@ struct Worker {
 
 impl Worker {
     fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>) -> Worker {
-        let thread = thread::spawn(|| {
-            receiver;
+        let thread = thread::spawn(move || loop {
+            let job = receiver.lock().unwrap().recv().unwrap();
+
+            println!("Worker {} got a job; executing.", id);
+
+            job();
         });
 
         Worker { id, thread }

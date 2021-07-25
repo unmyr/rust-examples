@@ -723,3 +723,177 @@ warning: 1 warning emitted
 
     Finished dev [unoptimized + debuginfo] target(s) in 5.74s
 ----
+
+==== Implementing the execute Method
+
+===== Listing 20-19: Creating a Job type alias for a Box that holds each closure and then sending the job down the channel
+
+[source,diff]
+.git diff src/lib.rs
+----
+@@ -6,11 +6,10 @@ use std::sync::Mutex;
+ pub struct ThreadPool {
+     #[allow(dead_code)]
+     workers: Vec<Worker>,
+-    #[allow(dead_code)]
+     sender: mpsc::Sender<Job>,
+ }
+
+-struct Job;
++type Job = Box<dyn FnOnce() + Send + 'static>;
+
+ impl ThreadPool {
+     /// Create a new ThreadPool.
+@@ -36,12 +35,13 @@ impl ThreadPool {
+         ThreadPool { workers, sender }
+     }
+
+-    #[allow(unused_variables)]
+     pub fn execute<F>(&self, f: F)
+-        where
+-            F: FnOnce() + Send + 'static
++    where
++        F: FnOnce() + Send + 'static,
+     {
++        let job = Box::new(f);
+
++        self.sender.send(job).unwrap();
+     }
+ }
+
+----
+
+[source,rust]
+.Filename: src/lib.rs
+----
+// --snip--
+
+type Job = Box<dyn FnOnce() + Send + 'static>;
+
+impl ThreadPool {
+    // --snip--
+
+    pub fn execute<F>(&self, f: F)
+    where
+        F: FnOnce() + Send + 'static,
+    {
+        let job = Box::new(f);
+
+        self.sender.send(job).unwrap();
+    }
+}
+
+// --snip--
+----
+
+[source,console]
+----
+$ cargo build
+   Compiling multi-threaded-server v0.1.0 (<path-to-project>/multi-threaded-server)
+warning: path statement drops value
+  --> src/lib.rs:58:13
+   |
+58 |             receiver;
+   |             ^^^^^^^^^ help: use `drop` to clarify the intent: `drop(receiver);`
+   |
+   = note: `#[warn(path_statements)]` on by default
+
+warning: 1 warning emitted
+
+    Finished dev [unoptimized + debuginfo] target(s) in 6.52s
+----
+
+===== Listing 20-20: Receiving and executing the jobs in the worker’s thread
+
+[source,diff]
+.git diff src/lib.rs
+----
+@@ -54,8 +54,12 @@ struct Worker {
+
+ impl Worker {
+     fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>) -> Worker {
+-        let thread = thread::spawn(|| {
+-            receiver;
++        let thread = thread::spawn(move || loop {
++            let job = receiver.lock().unwrap().recv().unwrap();
++
++            println!("Worker {} got a job; executing.", id);
++
++            job();
+         });
+
+         Worker { id, thread }
+----
+
+[source,rust]
+.Filename: src/lib.rs
+----
+// --snip--
+
+impl Worker {
+    fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>) -> Worker {
+        let thread = thread::spawn(move || loop {
+            let job = receiver.lock().unwrap().recv().unwrap();
+
+            println!("Worker {} got a job; executing.", id);
+
+            job();
+        });
+
+        Worker { id, thread }
+    }
+}
+----
+
+[source,console]
+----
+$ cargo build
+   Compiling multi-threaded-server v0.1.0 (<path-to-project>/multi-threaded-server)
+    Finished dev [unoptimized + debuginfo] target(s) in 6.47s
+----
+
+[source,console]
+----
+$ cargo run
+    Finished dev [unoptimized + debuginfo] target(s) in 0.02s
+     Running `target/debug/multi-threaded-server`
+Worker 0 got a job; executing.
+Worker 2 got a job; executing.
+----
+
+[source,console]
+----
+$ time curl 127.0.0.1:7878/sleep & (sleep 1; time curl 127.0.0.1:7878/sleep) & wait
+[1] 28972
+[2] 28974
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Hello!</title>
+  </head>
+  <body>
+    <h1>Hello!</h1>
+    <p>Hi from Rust</p>
+  </body>
+</html>
+real    0m5.061s
+user    0m0.000s
+sys     0m0.047s
+[1]-  Done                    time curl 127.0.0.1:7878/sleep
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Hello!</title>
+  </head>
+  <body>
+    <h1>Hello!</h1>
+    <p>Hi from Rust</p>
+  </body>
+</html>
+real    0m5.092s
+user    0m0.016s
+sys     0m0.063s
+[2]+  Done                    ( sleep 1; time curl 127.0.0.1:7878/sleep )
+----
