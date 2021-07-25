@@ -421,3 +421,91 @@ $ curl 127.0.0.1:7878
 $ curl 127.0.0.1:7878/foo
 curl: (52) Empty reply from server
 ----
+
+===== Listing 20-7: Responding with status code 404 and an error page if anything other than / was requested
+
+[source,diff]
+.git diff src/main.rs
+----
+@@ -31,6 +31,17 @@ fn handle_connection(mut stream: TcpStream) {
+         stream.write(response.as_bytes()).unwrap();
+         stream.flush().unwrap();
+     } else {
+-        // some other request
++        let status_line = "HTTP/1.1 404 NOT FOUND";
++        let contents = fs::read_to_string("404.html").unwrap();
++
++        let response = format!(
++            "{}\r\nContent-Length: {}\r\n\r\n{}",
++            status_line,
++            contents.len(),
++            contents
++        );
++
++        stream.write(response.as_bytes()).unwrap();
++        stream.flush().unwrap();
+     }
+ }
+----
+
+[source,rust]
+.Filename: src/main.rs
+----
+    // --snip--
+    } else {
+        let status_line = "HTTP/1.1 404 NOT FOUND";
+        let contents = fs::read_to_string("404.html").unwrap();
+
+        let response = format!(
+            "{}\r\nContent-Length: {}\r\n\r\n{}",
+            status_line,
+            contents.len(),
+            contents
+        );
+
+        stream.write(response.as_bytes()).unwrap();
+        stream.flush().unwrap();
+    }
+----
+
+===== Listing 20-8: Sample content for the page to send back with any 404 response
+
+[source,html]
+.Filename: 404.html
+----
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Hello!</title>
+  </head>
+  <body>
+    <h1>Oops!</h1>
+    <p>Sorry, I don't know what you're asking for.</p>
+  </body>
+</html>
+----
+
+[source,console]
+----
+$ cargo run
+    Finished dev [unoptimized + debuginfo] target(s) in 0.02s
+     Running `target/debug/hello`
+^C
+----
+
+[source,console]
+----
+$ curl 127.0.0.1:7878/foo
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Hello!</title>
+  </head>
+  <body>
+    <h1>Oops!</h1>
+    <p>Sorry, I don't know what you're asking for.</p>
+  </body>
+</html>
+----
