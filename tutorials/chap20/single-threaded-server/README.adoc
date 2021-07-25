@@ -4,13 +4,13 @@
 
 === Create
 
-. Let’s create a new library project called `deref_example`
+. Let’s create a new library project called `single-threaded-server`
 +
 [source,console]
 ----
-$ cargo new hello
-     Created binary (application) `hello` project
-$ cd hello/
+$ cargo new single-threaded-server
+     Created binary (application) `single-threaded-server` project
+$ cd single-threaded-server/
 ----
 
 === Building a Single-Threaded Web Server
@@ -39,9 +39,9 @@ fn main() {
 [source,console]
 ----
 $ cargo run
-   Compiling hello v0.1.0 (<path-to-project>/hello)
+   Compiling single-threaded-server v0.1.0 (<path-to-project>/single-threaded-server)
     Finished dev [unoptimized + debuginfo] target(s) in 3.34s
-     Running `target/debug/hello`
+     Running `target/debug/single-threaded-server`
 Connection established!
 Connection established!
 ^C
@@ -119,7 +119,7 @@ fn handle_connection(mut stream: TcpStream) {
 ----
 $ cargo run
     Finished dev [unoptimized + debuginfo] target(s) in 0.02s
-     Running `target/debug/hello`
+     Running `target/debug/single-threaded-server`
 Request: GET / HTTP/1.1
 Host: 127.0.0.1:7878
 User-Agent: curl/7.58.0
@@ -187,7 +187,7 @@ fn handle_connection(mut stream: TcpStream) {
 ----
 $ cargo run
     Finished dev [unoptimized + debuginfo] target(s) in 0.02s
-     Running `target/debug/hello`
+     Running `target/debug/single-threaded-server`
 ^C
 ----
 
@@ -305,7 +305,7 @@ fn handle_connection(mut stream: TcpStream) {
 ----
 $ cargo run
     Finished dev [unoptimized + debuginfo] target(s) in 0.02s
-     Running `target/debug/hello`
+     Running `target/debug/single-threaded-server`
 ^C
 ----
 
@@ -396,7 +396,7 @@ fn handle_connection(mut stream: TcpStream) {
 ----
 $ cargo run
     Finished dev [unoptimized + debuginfo] target(s) in 0.02s
-     Running `target/debug/hello`
+     Running `target/debug/single-threaded-server`
 ^C
 ----
 
@@ -490,7 +490,7 @@ curl: (52) Empty reply from server
 ----
 $ cargo run
     Finished dev [unoptimized + debuginfo] target(s) in 0.02s
-     Running `target/debug/hello`
+     Running `target/debug/single-threaded-server`
 ^C
 ----
 
@@ -596,7 +596,7 @@ fn handle_connection(mut stream: TcpStream) {
 ----
 $ cargo run
     Finished dev [unoptimized + debuginfo] target(s) in 0.02s
-     Running `target/debug/hello`
+     Running `target/debug/single-threaded-server`
 ^C
 ----
 
