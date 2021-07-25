@@ -1,0 +1,55 @@
+== Description
+
+* https://doc.rust-lang.org/book/ch20-01-single-threaded.html[Building a Single-Threaded Web Server - The Rust Programming Language^]
+
+=== Create
+
+. Let’s create a new library project called `deref_example`
++
+[source,console]
+----
+$ cargo new hello
+     Created binary (application) `hello` project
+$ cd hello/
+----
+
+=== Building a Single-Threaded Web Server
+
+==== Listening to the TCP Connection
+
+===== Listing 20-1: Listening for incoming streams and printing a message when we receive a stream
+
+[source,rust]
+.Filename: src/main.rs
+----
+use std::net::TcpListener;
+
+fn main() {
+    let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
+
+    for stream in listener.incoming() {
+        #[allow(unused_variables)]
+        let stream = stream.unwrap();
+
+        println!("Connection established!");
+    }
+}
+----
+
+[source,console]
+----
+$ cargo run
+   Compiling hello v0.1.0 (<path-to-project>/hello)
+    Finished dev [unoptimized + debuginfo] target(s) in 3.34s
+     Running `target/debug/hello`
+Connection established!
+Connection established!
+----
+
+[source,console]
+----
+$ curl 127.0.0.1:7878
+curl: (52) Empty reply from server
+$ curl 127.0.0.1:7878
+curl: (52) Empty reply from server
+----
