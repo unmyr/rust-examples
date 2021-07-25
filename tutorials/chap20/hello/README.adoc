@@ -44,12 +44,93 @@ $ cargo run
      Running `target/debug/hello`
 Connection established!
 Connection established!
+^C
 ----
 
 [source,console]
 ----
 $ curl 127.0.0.1:7878
 curl: (52) Empty reply from server
+$ curl 127.0.0.1:7878
+curl: (52) Empty reply from server
+----
+
+==== Reading the Request
+
+===== Listing 20-2: Reading from the TcpStream and printing the data
+
+[source,diff]
+.git diff src/main.rs
+----
+@@ -1,12 +1,21 @@
++use std::io::prelude::*;
+ use std::net::TcpListener;
++use std::net::TcpStream;
+
+ fn main() {
+     let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
+
+     for stream in listener.incoming() {
+-        #[allow(unused_variables)]
+         let stream = stream.unwrap();
+
+-        println!("Connection established!");
++        handle_connection(stream);
+     }
+ }
++
++fn handle_connection(mut stream: TcpStream) {
++    let mut buffer = [0; 1024];
++
++    stream.read(&mut buffer).unwrap();
++
++    println!("Request: {}", String::from_utf8_lossy(&buffer[..]));
++}
+----
+
+[source,rust]
+.Filename: src/main.rs
+----
+use std::io::prelude::*; // <1>
+use std::net::TcpListener;
+use std::net::TcpStream;
+
+fn main() {
+    let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
+
+    for stream in listener.incoming() {
+        let stream = stream.unwrap();
+
+        handle_connection(stream);
+    }
+}
+
+fn handle_connection(mut stream: TcpStream) {
+    let mut buffer = [0; 1024];
+
+    stream.read(&mut buffer).unwrap();
+
+    println!("Request: {}", String::from_utf8_lossy(&buffer[..]));
+}
+----
+<1> We bring std::io::prelude into scope to get access to certain traits that let us read from and write to the stream.
+
+[source,console]
+----
+$ cargo run
+    Finished dev [unoptimized + debuginfo] target(s) in 0.02s
+     Running `target/debug/hello`
+Request: GET / HTTP/1.1
+Host: 127.0.0.1:7878
+User-Agent: curl/7.58.0
+Accept: */*
+
+
+
+----
+
+[source,console]
+----
 $ curl 127.0.0.1:7878
 curl: (52) Empty reply from server
 ----
