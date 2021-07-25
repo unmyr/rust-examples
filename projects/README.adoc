@@ -17,3 +17,141 @@ fn main() {
     assert_eq!(double_f32(0.5 as f32), 0.25);
 }
 ----
+
+=== Refutable and irrefutable
+
+[source,rust]
+----
+fn main() {
+    let some_option_value: Option<i32> = Some(5);
+    if let Some(x) = some_option_value {
+        println!("{}", x);
+    }
+
+    let none_option_value: Option<i32> = None;
+    if let Some(x) = none_option_value {
+        println!("{}", x);
+    } else {
+        println!("none_option_value is None");
+    }
+}
+----
+
+=== Match
+
+[source,rust]
+----
+fn main() {
+    let x = 1;
+    
+    match x {
+        1 => println!("one"),  // match
+        2 => println!("two"),
+        3 => println!("three"),
+        _ => println!("anything"),
+    }
+}
+----
+
+[source,rust]
+----
+fn main() {
+    let x = 1;
+    
+    match x {
+        1 => println!("one"),  // match
+        2 => println!("two"),
+        3 => println!("three"),
+        _ => println!("anything"),
+    }
+}
+----
+
+[source,rust]
+----
+fn main() {
+    let x = 1;
+    
+    match x {
+        1 | 2 => println!("one or two"),  // match
+        3 => println!("three"),
+        _ => println!("anything"),
+    }
+}
+----
+
+[source,rust]
+----
+fn main() {
+    let x = 5;
+    
+    match x {
+        1 ..= 5 => println!("one through five"),  // match
+        _ => println!("something else"),
+    }
+}
+----
+
+[source,rust]
+----
+fn main() {
+    let x = 'c';
+
+    match x {
+        'a'..='j' => println!("early ASCII letter"),  // match
+        'k'..='z' => println!("late ASCII letter"),
+        _ => println!("something else"),
+    }
+}
+----
+
+[source,rust]
+----
+fn main() {
+    let numbers = (2, 4, 8, 16, 32);
+
+    match numbers {
+        (first, .., last) => {
+            println!("Some numbers: {}, {}", first, last);
+            // => Some numbers: 2, 32
+        },
+    }
+}
+----
+
+[source,rust]
+----
+fn main() {
+    let robot_name = Some(String::from("Bors"));
+    
+    match robot_name {
+        Some(ref name) => println!("Found a name: {}", name),
+        None => (),
+    }
+    
+    println!("robot_name is: {:?}", robot_name);
+}
+----
+
+----
+Found a name: Bors
+robot_name is: Some("Bors")
+----
+
+[source,rust]
+----
+fn main() {
+    let mut robot_name = Some(String::from("Bors"));
+    
+    match robot_name {
+        Some(ref mut name) => *name = String::from("Another name"),
+        None => (),
+    }
+    
+    println!("robot_name is: {:?}", robot_name);
+}
+----
+
+----
+robot_name is: Some("Another name")
+----

@@ -1,0 +1,18 @@
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --lib pattern-syntax
+     Created library `pattern-syntax` package
+$ cd pattern-syntax/
+----
+
+=== Run tests
+
+[source,console]
+.Results
+----
+$ cargo test
+...
+----
