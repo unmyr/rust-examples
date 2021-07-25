@@ -261,3 +261,30 @@ user    0m0.000s
 sys     0m0.047s
 [2]+  Exit 52                 ( sleep 1; time curl 127.0.0.1:7878/sleep )
 ----
+
+==== Validating the Number of Threads in new
+
+===== Listing 20-13: Implementing ThreadPool::new to panic if size is zero
+
+[source,diff]
+.git diff src/lib.rs
+----
+@@ -1,8 +1,17 @@
+ pub struct ThreadPool;
+
+ impl ThreadPool {
++    /// Create a new ThreadPool.
++    ///
++    /// The size is the number of threads in the pool.
++    ///
++    /// # Panics
++    ///
++    /// The `new` function will panic if the size is zero.
+     #[allow(unused_variables)]
+     pub fn new(size: usize) -> ThreadPool {
++        assert!(size > 0);
++
+         ThreadPool
+     }
+
+----
