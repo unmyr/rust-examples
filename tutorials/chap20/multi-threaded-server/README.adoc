@@ -527,3 +527,199 @@ impl ThreadPool {
     // --snip--
 }
 ----
+
+===== Listing 20-17: Passing the receiving end of the channel to the workers
+
+[source,diff]
+.git diff src/lib.rs
+----
+@@ -21,12 +21,12 @@ impl ThreadPool {
+     pub fn new(size: usize) -> ThreadPool {
+         assert!(size > 0);
+
+-        let (sender, _receiver) = mpsc::channel();
++        let (sender, receiver) = mpsc::channel();
+
+         let mut workers = Vec::with_capacity(size);
+
+         for id in 0..size {
+-            workers.push(Worker::new(id));
++            workers.push(Worker::new(id, receiver));
+         }
+
+         ThreadPool { workers, sender }
+@@ -42,15 +42,15 @@ impl ThreadPool {
+ }
+
+ struct Worker {
+-    #[allow(dead_code)]
+     id: usize,
+-    #[allow(dead_code)]
+     thread: thread::JoinHandle<()>,
+ }
+
+ impl Worker {
+-    fn new(id: usize) -> Worker {
+-        let thread = thread::spawn(|| {});
++    fn new(id: usize, receiver: mpsc::Receiver<Job>) -> Worker {
++        let thread = thread::spawn(|| {
++            receiver;
++        });
+
+         Worker { id, thread }
+     }
+----
+
+[source,rust]
+.Filename: src/lib.rs
+----
+impl ThreadPool {
+    // --snip--
+    pub fn new(size: usize) -> ThreadPool {
+        assert!(size > 0);
+
+        let (sender, receiver) = mpsc::channel();
+
+        let mut workers = Vec::with_capacity(size);
+
+        for id in 0..size {
+            workers.push(Worker::new(id, receiver));
+        }
+
+        ThreadPool { workers, sender }
+    }
+    // --snip--
+}
+
+// --snip--
+
+impl Worker {
+    fn new(id: usize, receiver: mpsc::Receiver<Job>) -> Worker {
+        let thread = thread::spawn(|| {
+            receiver;
+        });
+
+        Worker { id, thread }
+    }
+}
+----
+
+[source,console]
+----
+$ cargo build
+   Compiling multi-threaded-server v0.1.0 (<path-to-project>/multi-threaded-server)
+error[E0382]: use of moved value: `receiver`
+  --> src/lib.rs:29:42
+   |
+24 |         let (sender, receiver) = mpsc::channel();
+   |                      -------- move occurs because `receiver` has type `std::sync::mpsc::Receiver<Job>`, which does not implement the `Copy` trait
+...
+29 |             workers.push(Worker::new(id, receiver));
+   |                                          ^^^^^^^^ value moved here, in previous iteration of loop
+
+error: aborting due to previous error
+
+For more information about this error, try `rustc --explain E0382`.
+error: could not compile `multi-threaded-server`
+
+To learn more, run the command again with --verbose.
+----
+
+===== Listing 20-18: Sharing the receiving end of the channel among the workers using Arc and Mutex
+
+[source,diff]
+.git diff src/lib.rs
+----
+@@ -1,5 +1,7 @@
+ use std::thread;
+ use std::sync::mpsc;
++use std::sync::Arc;
++use std::sync::Mutex;
+
+ pub struct ThreadPool {
+     #[allow(dead_code)]
+@@ -23,10 +25,12 @@ impl ThreadPool {
+
+         let (sender, receiver) = mpsc::channel();
+
++        let receiver = Arc::new(Mutex::new(receiver));
++
+         let mut workers = Vec::with_capacity(size);
+
+         for id in 0..size {
+-            workers.push(Worker::new(id, receiver));
++            workers.push(Worker::new(id, Arc::clone(&receiver)));
+         }
+
+         ThreadPool { workers, sender }
+@@ -42,12 +46,14 @@ impl ThreadPool {
+ }
+
+ struct Worker {
++    #[allow(dead_code)]
+     id: usize,
++    #[allow(dead_code)]
+     thread: thread::JoinHandle<()>,
+ }
+
+ impl Worker {
+-    fn new(id: usize, receiver: mpsc::Receiver<Job>) -> Worker {
++    fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>) -> Worker {
+         let thread = thread::spawn(|| {
+             receiver;
+         });
+----
+
+[source,rust]
+.Filename: src/lib.rs
+----
+use std::sync::Arc;
+use std::sync::Mutex;
+// --snip--
+
+impl ThreadPool {
+    // --snip--
+    pub fn new(size: usize) -> ThreadPool {
+        assert!(size > 0);
+
+        let (sender, receiver) = mpsc::channel();
+
+        let receiver = Arc::new(Mutex::new(receiver));
+
+        let mut workers = Vec::with_capacity(size);
+
+        for id in 0..size {
+            workers.push(Worker::new(id, Arc::clone(&receiver)));
+        }
+
+        ThreadPool { workers, sender }
+    }
+
+    // --snip--
+}
+
+// --snip--
+
+impl Worker {
+    fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>) -> Worker {
+        // --snip--
+    }
+}
+----
+
+[source,console]
+----
+$ cargo build
+   Compiling multi-threaded-server v0.1.0 (<path-to-project>/multi-threaded-server)
+warning: path statement drops value
+  --> src/lib.rs:58:13
+   |
+58 |             receiver;
+   |             ^^^^^^^^^ help: use `drop` to clarify the intent: `drop(receiver);`
+   |
+   = note: `#[warn(path_statements)]` on by default
+
+warning: 1 warning emitted
+
+    Finished dev [unoptimized + debuginfo] target(s) in 5.74s
+----

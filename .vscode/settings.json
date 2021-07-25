@@ -8,6 +8,7 @@
   "cSpell.words": [
     "Cacher",
     "Multithreaded",
+    "Mutex",
     "NODELAY",
     "accum",
     "backtrace",
