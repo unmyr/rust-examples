@@ -355,3 +355,98 @@ impl ThreadPool {
     // --snip--
 }
 ----
+
+==== A Worker Struct Responsible for Sending Code from the ThreadPool to a Thread
+
+===== Listing 20-15: Modifying ThreadPool to hold Worker instances instead of holding threads directly
+
+[source,diff]
+.git diff src/lib.rs
+----
+@@ -2,7 +2,7 @@ use std::thread;
+
+ pub struct ThreadPool {
+     #[allow(dead_code)]
+-    threads: Vec<thread::JoinHandle<()>>,
++    workers: Vec<Worker>,
+ }
+
+ impl ThreadPool {
+@@ -16,14 +16,13 @@ impl ThreadPool {
+     pub fn new(size: usize) -> ThreadPool {
+         assert!(size > 0);
+
+-        #[allow(unused_mut)]
+-        let mut threads = Vec::with_capacity(size);
++        let mut workers = Vec::with_capacity(size);
+
+-        for _ in 0..size {
+-            // create some threads and store them in the vector
++        for id in 0..size {
++            workers.push(Worker::new(id));
+         }
+
+-        ThreadPool { threads }
++        ThreadPool { workers }
+     }
+
+     #[allow(unused_variables)]
+@@ -34,3 +33,18 @@ impl ThreadPool {
+
+     }
+ }
++
++struct Worker {
++    #[allow(dead_code)]
++    id: usize,
++    #[allow(dead_code)]
++    thread: thread::JoinHandle<()>,
++}
++
++impl Worker {
++    fn new(id: usize) -> Worker {
++        let thread = thread::spawn(|| {});
++
++        Worker { id, thread }
++    }
++}
+----
+
+[source,rust]
+.Filename: src/lib.rs
+----
+use std::thread;
+
+pub struct ThreadPool {
+    workers: Vec<Worker>,
+}
+
+impl ThreadPool {
+    // --snip--
+    pub fn new(size: usize) -> ThreadPool {
+        assert!(size > 0);
+
+        let mut workers = Vec::with_capacity(size);
+
+        for id in 0..size {
+            workers.push(Worker::new(id));
+        }
+
+        ThreadPool { workers }
+    }
+    // --snip--
+}
+
+struct Worker {
+    id: usize,
+    thread: thread::JoinHandle<()>,
+}
+
+impl Worker {
+    fn new(id: usize) -> Worker {
+        let thread = thread::spawn(|| {});
+
+        Worker { id, thread }
+    }
+}
+----
