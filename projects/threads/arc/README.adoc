@@ -1,0 +1,25 @@
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --lib arc
+     Created library `arc` package
+$ cd arc/
+----
+
+=== Run tests
+
+[source,console]
+.Results
+----
+$ cargo test
+...
+----
+
+=== References
+
+* https://doc.rust-lang.org/rust-by-example/std_misc/threads.html[Threads - Rust By Example^] +
+  rust thread::spawn join vec - Google Search
+* https://doc.rust-lang.org/rust-by-example/std/arc.html[Arc - Rust By Example^] +
+  rust example arc - Google Search
