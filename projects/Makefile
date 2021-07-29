@@ -10,5 +10,6 @@ clean:
 	(cd lifetime && make clean)
 	(cd ownership && cargo clean)
 	(cd pattern-syntax && cargo clean)
+	(cd singly-linked-list && cargo clean)
 	(cd threads && make clean)
 	(cd unwrap && cargo clean)
