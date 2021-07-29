@@ -1,0 +1,23 @@
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --bin thread-spawn-and-join
+     Created binary (application) `thread-spawn-and-join` package
+$ cd thread-spawn-and-join/
+----
+
+=== Run tests
+
+[source,console]
+.Results
+----
+$ cargo run
+...
+----
+
+=== References
+
+* https://doc.rust-lang.org/rust-by-example/std_misc/threads.html[Threads - Rust By Example^] +
+  rust thread::spawn join vec - Google Search
