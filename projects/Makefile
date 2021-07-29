@@ -5,6 +5,7 @@ clean:
 	(cd generics/point && cargo clean)
 	(cd hello_calc && cargo clean)
 	(cd hello_world && cargo clean)
+	(cd interior-mutability && cargo clean)
 	(cd iterator/iterator-vec-demo && cargo clean)
 	(cd lifetime && make clean)
 	(cd ownership && cargo clean)
