@@ -3,9 +3,9 @@
 +
 [source,console]
 ----
-$ cargo new --bin arc
-     Created binary (application) `arc` package
-$ cd arc/
+$ cargo new --bin thread-spawn-share-immutable
+     Created binary (application) `thread-spawn-share-immutable` package
+$ cd thread-spawn-share-immutable/
 ----
 
 === Run tests
