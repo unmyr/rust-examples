@@ -5,6 +5,21 @@ struct MyBucket {
     count: Mutex<i32>,
 }
 
+impl MyBucket {
+    fn increment(&self) -> i32{
+        let mut ref_count = self.count.lock().unwrap();
+        *ref_count += 1;
+        *ref_count
+    }
+
+    #[allow(dead_code)]
+    fn decrement(&self) -> i32{
+        let mut ref_count = self.count.lock().unwrap();
+        *ref_count -= 1;
+        *ref_count
+    }
+}
+
 fn main() {
     use std::sync::Arc;
     use std::thread;
@@ -28,11 +43,7 @@ fn main() {
             // As Arc was used, threads can be spawned using the value allocated
             // in the Arc variable pointer's location.
             let mut local_count: i32;
-            {
-                let mut count = my_bucket.count.lock().unwrap();
-                *count += 1;
-                local_count = *count
-            }
+            local_count = my_bucket.increment();
             println!("{:02}: {:?} {:2}", i, my_bucket.data, local_count);
 
             thread::sleep(Duration::from_secs(2));
