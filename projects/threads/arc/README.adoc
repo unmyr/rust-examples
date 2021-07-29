@@ -3,8 +3,8 @@
 +
 [source,console]
 ----
-$ cargo new --lib arc
-     Created library `arc` package
+$ cargo new --bin arc
+     Created binary (application) `arc` package
 $ cd arc/
 ----
 
@@ -13,7 +13,7 @@ $ cd arc/
 [source,console]
 .Results
 ----
-$ cargo test
+$ cargo run
 ...
 ----
 
