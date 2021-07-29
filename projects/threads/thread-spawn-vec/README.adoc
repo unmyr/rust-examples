@@ -1,0 +1,20 @@
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --bin thread-spawn-vec
+     Created binary (application) `thread-spawn-vec` package
+$ cd thread-spawn-vec/
+----
+
+=== Run tests
+
+[source,console]
+.Results
+----
+$ cargo run
+...
+----
+
+=== References
