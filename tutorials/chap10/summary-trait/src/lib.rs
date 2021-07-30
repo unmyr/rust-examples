@@ -45,7 +45,25 @@ mod tests {
 
         assert_eq!(
             tweet.summarize(),
-            "1 new tweet: horse_ebooks: of course, as you probably already know, people"
+            "horse_ebooks: of course, as you probably already know, people"
+        );
+    }
+
+    #[test]
+    fn test_news_article() {
+        let article = NewsArticle {
+            headline: String::from("Penguins win the Stanley Cup Championship!"),
+            location: String::from("Pittsburgh, PA, USA"),
+            author: String::from("Iceburgh"),
+            content: String::from(
+                "The Pittsburgh Penguins once again are the best \
+                 hockey team in the NHL.",
+            ),
+        };
+
+        assert_eq!(
+            article.summarize(),
+            "Penguins win the Stanley Cup Championship!, by Iceburgh (Pittsburgh, PA, USA)"
         );
     }
 }

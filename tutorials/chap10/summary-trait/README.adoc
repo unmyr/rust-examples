@@ -8,6 +8,19 @@ $ cargo new --lib summary-trait
 $ cd summary-trait/
 ----
 
+=== Run binary
+
+[source,console]
+----
+$ cargo run --bin tweet
+----
+
+[source,console]
+----
+$ cargo run --bin article
+----
+
+
 === Run tests
 
 [source,console]
