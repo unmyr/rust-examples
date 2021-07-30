@@ -30,10 +30,11 @@ impl Summary for Tweet {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn test_tweet() {
+        use crate::Summary;
+        use crate::Tweet;
+
         let tweet = Tweet {
             username: String::from("horse_ebooks"),
             content: String::from(
@@ -51,6 +52,9 @@ mod tests {
 
     #[test]
     fn test_news_article() {
+        use crate::Summary;
+        use crate::NewsArticle;
+
         let article = NewsArticle {
             headline: String::from("Penguins win the Stanley Cup Championship!"),
             location: String::from("Pittsburgh, PA, USA"),
