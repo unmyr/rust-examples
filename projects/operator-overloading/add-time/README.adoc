@@ -1,0 +1,18 @@
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --lib add-time
+     Created library `add-time` package
+$ cd add-point/
+----
+
+=== Run tests
+
+[source,console]
+.Results
+----
+$ cargo test
+...
+----
