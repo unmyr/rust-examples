@@ -1,0 +1,23 @@
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --lib summary-trait
+     Created library `summary-trait` package
+$ cd summary-trait/
+----
+
+=== Run tests
+
+[source,console]
+.Results
+----
+$ cargo test
+...
+----
+
+=== References
+
+* https://doc.rust-lang.org/book/ch10-02-traits.html[Traits: Defining Shared Behavior - The Rust Programming Language^] +
+  rust struct mut field - Google Search
