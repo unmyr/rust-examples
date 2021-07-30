@@ -1,0 +1,15 @@
+[package]
+name = "largest"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[[bin]]
+name = "largest_i32_char"
+path = "src/largest_i32_char.rs"
+
+[[bin]]
+name = "largest_gen"
+path = "src/largest_gen.rs"
+
+[dependencies]
