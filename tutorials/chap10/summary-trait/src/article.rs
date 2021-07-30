@@ -1,4 +1,4 @@
-use summary_trait::{self, NewsArticle, Summary};
+use summary_trait::{self, NewsArticle, Summary, notify};
 
 fn main() {
     let article = NewsArticle {
@@ -12,4 +12,6 @@ fn main() {
     };
 
     println!("New article available! {}", article.summarize());
+
+    notify(&article);
 }

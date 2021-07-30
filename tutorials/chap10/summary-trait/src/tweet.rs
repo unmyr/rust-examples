@@ -1,4 +1,4 @@
-use summary_trait::{self, Summary, Tweet};
+use summary_trait::{self, Summary, Tweet, notify};
 
 fn main() {
     let tweet = Tweet {
@@ -11,4 +11,6 @@ fn main() {
     };
 
     println!("1 new tweet: {}", tweet.summarize());
+
+    notify(&tweet);
 }

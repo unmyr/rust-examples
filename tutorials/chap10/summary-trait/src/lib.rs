@@ -28,6 +28,44 @@ impl Summary for Tweet {
     }
 }
 
+// pub fn notify(item: &impl Summary) {
+//     println!("Breaking news! {}", item.summarize());
+// }
+
+// pub fn notify(item: &(impl Summary + Display)) {
+pub fn notify<T: Summary>(item: &T) {
+    println!("Breaking news! {}", item.summarize());
+}
+
+pub fn returns_summarizable(switch: bool) -> Box<dyn Summary> {
+    if switch {
+        Box::new(
+            NewsArticle {
+                headline: String::from(
+                    "Penguins win the Stanley Cup Championship!",
+                ),
+                location: String::from("Pittsburgh, PA, USA"),
+                author: String::from("Iceburgh"),
+                content: String::from(
+                    "The Pittsburgh Penguins once again are the best \
+                     hockey team in the NHL.",
+                ),
+            }
+        )
+    } else {
+        Box::new(
+            Tweet {
+                username: String::from("horse_ebooks"),
+                content: String::from(
+                    "of course, as you probably already know, people",
+                ),
+                reply: false,
+                retweet: false,
+            }
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -68,6 +106,22 @@ mod tests {
         assert_eq!(
             article.summarize(),
             "Penguins win the Stanley Cup Championship!, by Iceburgh (Pittsburgh, PA, USA)"
+        );
+    }
+
+    #[test]
+    fn test_multiple_return_types() {
+        use crate::returns_summarizable;
+        let summary = returns_summarizable(true);
+        assert_eq!(
+            summary.summarize(),
+            "Penguins win the Stanley Cup Championship!, by Iceburgh (Pittsburgh, PA, USA)"
+        );
+
+        let summary = returns_summarizable(false);
+        assert_eq!(
+            summary.summarize(),
+            "horse_ebooks: of course, as you probably already know, people"
         );
     }
 }
