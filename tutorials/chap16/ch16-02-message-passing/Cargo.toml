@@ -13,4 +13,9 @@ path = "src/send_a_single_message.rs"
 name = "send_multiple_messages"
 path = "src/send_multiple_messages.rs"
 
+[[bin]]
+name = "creating_multiple_producers"
+path = "src/creating_multiple_producers.rs"
+
+
 [dependencies]

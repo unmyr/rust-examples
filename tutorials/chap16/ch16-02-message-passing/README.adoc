@@ -13,11 +13,32 @@ $ cd ch16-02-message-passing/
 [source,console]
 ----
 $ cargo run --bin send_a_single_message
+--snip--
+Got: hi
 ----
 
 [source,console]
 ----
 $ cargo run --bin send_multiple_messages
+--snip--
+Got: hi
+Got: from
+Got: the
+Got: thread
+----
+
+[source,console]
+----
+$ cargo run --bin creating_multiple_producers
+--snip--
+Got: hi
+Got: more
+Got: messages
+Got: from
+Got: the
+Got: for
+Got: you
+Got: thread
 ----
 
 
