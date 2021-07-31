@@ -1,0 +1,24 @@
+== Recoverable Errors with Result
+
+* https://doc.rust-lang.org/book/ch17-02-trait-objects.html[Using Trait Objects That Allow for Values of Different Types - The Rust Programming Language^]
+
+
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --lib ch17-02-trait-objects
+     Created library `ch17-02-trait-objects` package
+$ cd ch17-02-trait-objects/
+----
+
+
+=== Run tests
+
+[source,console]
+.Results
+----
+$ cargo test
+...
+----
