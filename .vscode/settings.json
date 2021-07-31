@@ -19,6 +19,7 @@
     "eprintln",
     "hosting",
     "ifdef",
+    "immut",
     "minigrep",
     "mpsc",
     "println",

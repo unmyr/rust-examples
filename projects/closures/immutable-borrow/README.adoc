@@ -1,0 +1,18 @@
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --lib immutable-borrow
+     Created library `immutable-borrow` package
+$ cd immutable-borrow/
+----
+
+=== Run tests
+
+[source,console]
+.Results
+----
+$ cargo test
+...
+----
