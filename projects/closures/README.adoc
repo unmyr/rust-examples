@@ -1,22 +1,4 @@
-=== Set up a new project
-. Set up a new project, and go to the projects directory.
-+
-[source,console]
-----
-$ cargo new --lib capture-values
-     Created library `capture-values` package
-$ cd capture-values/
-----
-
-=== Run tests
-
-[source,console]
-.Results
-----
-$ cargo test
-...
-----
-
+== Closures
 
 === References
 * https://doc.rust-lang.org/book/ch13-01-closures.html[Closures: Anonymous Functions that Can Capture Their Environment - The Rust Programming Language^]
