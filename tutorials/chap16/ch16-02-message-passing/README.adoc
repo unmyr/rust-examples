@@ -15,6 +15,11 @@ $ cd ch16-02-message-passing/
 $ cargo run --bin send_a_single_message
 ----
 
+[source,console]
+----
+$ cargo run --bin send_multiple_messages
+----
+
 
 === References
 * https://doc.rust-lang.org/book/ch16-02-message-passing.html[Using Message Passing to Transfer Data Between Threads - The Rust Programming Language^]
