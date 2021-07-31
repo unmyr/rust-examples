@@ -8,13 +8,11 @@ $ cargo new --bin ch16-02-message-passing
 $ cd ch16-02-message-passing/
 ----
 
-=== Run tests
+=== Run binary
 
 [source,console]
-.Results
 ----
-$ cargo test
-...
+$ cargo run --bin send_a_single_message
 ----
 
 
