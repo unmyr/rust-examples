@@ -1,0 +1,24 @@
+== Recoverable Errors with Result
+
+* https://doc.rust-lang.org/book/ch17-03-oo-design-patterns.html[Implementing an Object-Oriented Design Pattern - The Rust Programming Language^]
+
+
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --lib ch17-03-oo-design-patterns
+     Created library `ch17-03-oo-design-patterns` package
+$ cd ch17-03-oo-design-patterns/
+----
+
+
+=== Run tests
+
+[source,console]
+.Results
+----
+$ cargo test
+...
+----
