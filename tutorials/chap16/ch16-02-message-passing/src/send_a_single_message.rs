@@ -1,5 +1,5 @@
-use std::thread;
 use std::sync::mpsc;
+use std::thread;
 
 fn main() {
     let (tx, rx) = mpsc::channel();
@@ -10,6 +10,5 @@ fn main() {
     });
 
     let received = rx.recv().unwrap();
-    // 値は{}です
     println!("Got: {}", received);
 }
