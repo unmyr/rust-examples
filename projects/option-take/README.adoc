@@ -1,0 +1,23 @@
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --lib option-take
+     Created library `option-take` package
+$ cd option-take/
+----
+
+=== Run tests
+
+[source,console]
+.Results
+----
+$ cargo test
+...
+----
+
+=== References
+
+* https://doc.rust-lang.org/stable/std/option/enum.Option.html[Option in std::option - Rust^] +
+  rust some option take - Google Search
