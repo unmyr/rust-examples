@@ -1,0 +1,22 @@
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --bin ch16-02-message-passing
+     Created binary (application) `ch16-02-message-passing` package
+$ cd ch16-02-message-passing/
+----
+
+=== Run tests
+
+[source,console]
+.Results
+----
+$ cargo test
+...
+----
+
+
+=== References
+* https://doc.rust-lang.org/book/ch16-02-message-passing.html[Using Message Passing to Transfer Data Between Threads - The Rust Programming Language^]
