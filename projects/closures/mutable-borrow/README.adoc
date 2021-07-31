@@ -1,0 +1,23 @@
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --lib immutable-borrow
+     Created library `immutable-borrow` package
+$ cd immutable-borrow/
+----
+
+=== Run tests
+
+[source,console]
+.Results
+----
+$ cargo test
+...
+----
+
+=== References
+
+* https://zhauniarovich.com/post/2020/2020-12-closures-in-rust/[Closures in Rust | Yury Zhauniarovich^] +
+  rust call FnMut example - Google Search
