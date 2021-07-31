@@ -1,8 +1,11 @@
 use gui::Draw;
 
 struct SelectBox {
+    #[allow(dead_code)]
     width: u32,
+    #[allow(dead_code)]
     height: u32,
+    #[allow(dead_code)]
     options: Vec<String>,
 }
 
