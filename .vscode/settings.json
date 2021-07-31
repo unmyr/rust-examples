@@ -20,6 +20,7 @@
     "deref",
     "eprintln",
     "fnmut",
+    "fnonce",
     "hosting",
     "ifdef",
     "immut",
