@@ -1,5 +1,5 @@
 clean:
-	(cd closures/equal-to-x && cargo clean)
+	(cd closures && make clean)
 	(cd digits_sum_has_nth_roots && cargo clean)
 	(cd factorial && cargo clean)
 	(cd generics/point && cargo clean)
