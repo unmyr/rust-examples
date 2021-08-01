@@ -37,7 +37,6 @@ pub fn get_counter(initial_value: i32) -> impl FnMut() -> i32 {
     }
 }
 
-// Rust 1.26 later.
 /// # Examples
 /// 
 /// ```
