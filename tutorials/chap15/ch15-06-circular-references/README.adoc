@@ -1,0 +1,24 @@
+== Recoverable Errors with Result
+
+* https://doc.rust-lang.org/book/ch15-06-reference-cycles.html[Reference Cycles Can Leak Memory - The Rust Programming Language^]
+
+
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --bin ch15-06-circular-references
+     Created binary (application) `ch15-06-circular-references` package
+$ cd ch15-06-circular-references/
+----
+
+
+=== Run tests
+
+[source,console]
+.Results
+----
+$ cargo test
+...
+----
