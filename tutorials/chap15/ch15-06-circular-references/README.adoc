@@ -14,11 +14,20 @@ $ cd ch15-06-circular-references/
 ----
 
 
-=== Run tests
+=== Run
 
 [source,console]
 .Results
 ----
-$ cargo test
-...
+$ cargo run
+   Compiling ch15-06-circular-references v0.1.0 (<path-to-project>/ch15-06-circular-references)
+    Finished dev [unoptimized + debuginfo] target(s) in 3.23s
+     Running `target/debug/ch15-06-circular-references`
+a initial rc count = 1
+a next item = Some(RefCell { value: Nil })
+a rc count after b creation = 2
+b initial rc count = 1
+b next item = Some(RefCell { value: Cons(5, RefCell { value: Nil }) })
+b rc count after changing a = 2
+a rc count after changing a = 2
 ----
