@@ -1,0 +1,18 @@
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --lib get-closures-mut
+     Created library `get-closures-mut` package
+$ cd get-closures-mut/
+----
+
+=== Run tests
+
+[source,console]
+.Results
+----
+$ cargo test
+...
+----
