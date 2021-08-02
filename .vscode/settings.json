@@ -29,6 +29,7 @@
     "println",
     "rustc",
     "rustup",
+    "strlen",
     "struct",
     "structs",
     "summarizable",
