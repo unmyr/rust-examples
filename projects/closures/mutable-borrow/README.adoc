@@ -3,9 +3,9 @@
 +
 [source,console]
 ----
-$ cargo new --lib immutable-borrow
-     Created library `immutable-borrow` package
-$ cd immutable-borrow/
+$ cargo new --lib mutable-borrow
+     Created library `mutable-borrow` package
+$ cd mutable-borrow/
 ----
 
 === Run tests
