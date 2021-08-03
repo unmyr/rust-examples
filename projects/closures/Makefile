@@ -6,3 +6,4 @@ clean:
 	(cd immutable-borrow && cargo clean)
 	(cd joint-capturing && cargo clean)
 	(cd mutable-borrow && cargo clean)
+	(cd return-a-reference && cargo clean)

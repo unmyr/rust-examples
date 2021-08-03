@@ -1,0 +1,23 @@
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --lib return-a-reference
+     Created library `return-a-reference` package
+$ cd return-a-reference/
+----
+
+=== Run tests
+
+[source,console]
+.Results
+----
+$ cargo test
+...
+----
+
+=== References
+
+* https://stackoverflow.com/questions/60897823/how-to-return-a-reference-in-rust-closure[How to return a reference in Rust Closure - Stack Overflow^] +
+  rust return str reference closure - Google Search
