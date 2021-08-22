@@ -1,0 +1,58 @@
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --bin simple-server
+     Created binary (application) `simple-server` package
+$ cd simple-server/
+----
+
+=== Build
+
+[source,console]
+----
+[00:31:56] simple-server$ cargo build
+   Compiling proc-macro2 v1.0.28
+   Compiling unicode-xid v0.2.2
+   Compiling syn v1.0.75
+   Compiling libc v0.2.100
+   ...
+   Compiling awc v2.0.3
+   Compiling actix-web v3.3.2
+   Compiling simple-server v0.1.0 (<path-to-project>/simple-server)
+    Finished dev [unoptimized + debuginfo] target(s) in 4m 18s
+[00:36:18] simple-server$ 
+----
+
+=== Run server
+
+[source,console]
+----
+$ cargo run
+    Finished dev [unoptimized + debuginfo] target(s) in 1.95s
+     Running `target/debug/simple-server`
+----
+
+[source,console]
+----
+$ curl --verbose -X GET http://localhost:8080/1234/john.doe/index.html
+Note: Unnecessary use of -X or --request, GET is already inferred.
+*   Trying 127.0.0.1...
+* TCP_NODELAY set
+* Connected to localhost (127.0.0.1) port 8080 (#0)
+> GET /1234/john.doe/index.html HTTP/1.1
+> Host: localhost:8080
+> User-Agent: curl/7.58.0
+> Accept: */*
+>
+< HTTP/1.1 200 OK
+< content-length: 23
+< content-type: text/plain; charset=utf-8
+< date: Sat, 21 Aug 2021 15:56:51 GMT
+<
+* Connection #0 to host localhost left intact
+Hello john.doe! id:1234
+----
+
+=== References
