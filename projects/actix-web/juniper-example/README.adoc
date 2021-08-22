@@ -19,7 +19,7 @@ $ cd juniper-example/
    ...snip
    Compiling actix-web v3.3.2
    Compiling actix-cors v0.4.1
-   Compiling juniper-example v0.1.0 (/home/guest/tmp_rust/rust-examples/projects/actix-web/juniper-example)
+   Compiling juniper-example v0.1.0 (<path-to-project>/juniper-example)
     Finished dev [unoptimized + debuginfo] target(s) in 5m 17s
 [21:37:18] juniper-example$ 
 ----
