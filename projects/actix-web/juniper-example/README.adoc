@@ -1,0 +1,67 @@
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --bin juniper-example
+     Created binary (application) `juniper-example` package
+$ cd juniper-example/
+----
+
+=== Build
+
+[source,console]
+----
+[21:31:58] juniper-example$ cargo build
+   Compiling proc-macro2 v1.0.28
+   Compiling unicode-xid v0.2.2
+   Compiling syn v1.0.75
+   ...snip
+   Compiling actix-web v3.3.2
+   Compiling actix-cors v0.4.1
+   Compiling juniper-example v0.1.0 (/home/guest/tmp_rust/rust-examples/projects/actix-web/juniper-example)
+    Finished dev [unoptimized + debuginfo] target(s) in 5m 17s
+[21:37:18] juniper-example$ 
+----
+
+=== Run server
+
+[source,console]
+----
+$ cargo run
+    Finished dev [unoptimized + debuginfo] target(s) in 1.95s
+     Running `target/debug/simple-server`
+----
+
+[source,graphql]
+----
+{
+  human(id: "1234") {
+    name
+    appearsIn
+    homePlanet
+  }
+}
+----
+
+[source,console]
+----
+$ curl -X POST -H "Content-Type: application/json" -d '{"query": "{human(id: \"1234\") {name appearsIn homePlanet}}"}' http://127.0.0.1:8080/graphql | jq
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   141  100    79  100    62   4647   3647 --:--:-- --:--:-- --:--:--  8294
+{
+  "data": {
+    "human": {
+      "name": "Luke",
+      "appearsIn": [
+        "NEW_HOPE"
+      ],
+      "homePlanet": "Mars"
+    }
+  }
+}
+----
+
+=== References
+* https://github.com/actix/examples/tree/master/graphql/juniper[examples/graphql/juniper at master · actix/examples^]

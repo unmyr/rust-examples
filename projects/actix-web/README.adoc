@@ -1,8 +1,11 @@
 == Actix Web
 
 * <<simple-server/README.adoc#,simple server>>
+* <<juniper-example/README.adoc#,Juniper example>>
 
 === References
 * https://actix.rs/docs/[Documentation^]
 * https://github.com/actix/actix-web[Actix Web is a powerful - GitHub^] +
   actix-web - Google Search
+* https://github.com/graphql-rust/juniper[juniper: GraphQL server library for Rust - GitHub^] +
+  rust graphql Juniper - Google Search
