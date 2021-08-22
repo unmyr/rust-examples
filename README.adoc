@@ -1,4 +1,4 @@
-
+:icons: font
 
 == Rust examples
 
