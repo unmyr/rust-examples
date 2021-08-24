@@ -25,6 +25,7 @@
     "hosting",
     "ifdef",
     "immut",
+    "libc",
     "minigrep",
     "mpsc",
     "println",
