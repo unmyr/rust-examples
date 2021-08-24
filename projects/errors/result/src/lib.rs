@@ -4,7 +4,7 @@
 /// ```
 /// use result::halves_if_even;
 /// halves_if_even(2);
-/// halves_if_even(3).err();
+/// halves_if_even(3).err().expect("Not even.");
 /// ```
 pub fn halves_if_even(i: i32) -> Result<i32, &'static str> {
     if i % 2 == 0 {
@@ -21,7 +21,7 @@ pub fn halves_if_even(i: i32) -> Result<i32, &'static str> {
 /// ```
 /// use result::halves_number_to_odd;
 /// halves_number_to_odd(2);
-/// halves_number_to_odd(3).err();
+/// halves_number_to_odd(3).err().expect("Not even.");
 /// ```
 pub fn halves_number_to_odd(i: i32) -> Result<i32, &'static str> {
     let mut result = halves_if_even(i)?;

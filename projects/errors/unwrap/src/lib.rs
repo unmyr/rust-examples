@@ -3,8 +3,9 @@
 /// # Examples
 /// 
 /// ```
-/// use unwrap::{give_adult};
-/// give_adult(Some("water"));
+/// use unwrap::give_adult;
+/// let result = give_adult(Some("water"));
+/// assert_eq!(result, "water? How nice.");
 /// ```
 pub fn give_adult(drink: Option<&str>) -> String {
     // Specify a course of action for each case.
@@ -21,12 +22,13 @@ pub fn give_adult(drink: Option<&str>) -> String {
 /// # Examples
 /// 
 /// ```
-/// use unwrap::{drink};
-/// drink(Some("water"));
+/// use unwrap::drink;
+/// let result = drink(Some("water"));
+/// assert_eq!(result, "I love water!!!!!");
 /// ```
 /// 
 /// ```should_panic
-/// use unwrap::{drink};
+/// use unwrap::drink;
 /// drink(Some("lemonade"));
 /// ```
 pub fn drink(drink: Option<&str>) -> String {
