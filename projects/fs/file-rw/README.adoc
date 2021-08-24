@@ -19,5 +19,9 @@ $ cargo test
 
 === References
 
+* https://doc.rust-lang.org/std/fs/struct.File.html[File in std::fs - Rust^] +
+  rust write file - Google Search
 * https://users.rust-lang.org/t/whats-the-rust-way-to-unit-test-for-an-error/23677[What's the Rust way to unit test for an error? - help - The Rust Programming Language Forum^] +
   rust test err - Google Search
+* https://stackoverflow.com/questions/31192956/whats-the-de-facto-way-of-reading-and-writing-files-in-rust-1-x[What's the de-facto way of reading and writing files in Rust 1.x? - Stack Overflow^] +
+  rust write file - Google Search
