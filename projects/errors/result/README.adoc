@@ -1,0 +1,22 @@
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --lib result
+     Created library `result` package
+$ cd result/
+----
+
+=== Run tests
+
+[source,console]
+.Results
+----
+$ cargo test
+...
+----
+
+=== References
+
+* https://doc.rust-lang.org/std/result/enum.Result.html[Result in std::result - Rust^]
