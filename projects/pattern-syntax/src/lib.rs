@@ -23,9 +23,10 @@ pub fn get_message_str(msg: &Message) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     #[test]
     fn test_get_message_str() {
+        use crate::{Message, get_message_str};
+
         let msg = Message::Hello { id: 5 };
         assert_eq!(get_message_str(&msg), "Found an id in range: 5");
 
