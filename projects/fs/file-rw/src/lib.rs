@@ -72,4 +72,18 @@ mod tests {
             Err(String::from("Problem opening the file: path=\"404.txt\" error=Os { code: 2, kind: NotFound, message: \"No such file or directory\" }"))
         )
      }
+
+     #[test]
+     fn test_write_string() {
+        let path = std::path::Path::new("test_write_string.txt");
+
+        let s = String::from("こんにちは世界");
+        let write_size = write_to_file(path, s.as_bytes());
+        assert_eq!(write_size, 21);
+        let (read_size, contents) = read_from_file(path).unwrap();
+        assert_eq!(read_size, 21);
+        assert_eq!(contents, "こんにちは世界");
+
+        std::fs::remove_file(path).unwrap();
+      }
 }
