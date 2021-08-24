@@ -1,0 +1,23 @@
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --bin file-rw
+     Created binary (application) `file-rw` package
+$ cd file-rw/
+----
+
+=== Run tests
+
+[source,console]
+.Results
+----
+$ cargo test
+...
+----
+
+=== References
+
+* https://users.rust-lang.org/t/whats-the-rust-way-to-unit-test-for-an-error/23677[What's the Rust way to unit test for an error? - help - The Rust Programming Language Forum^] +
+  rust test err - Google Search
