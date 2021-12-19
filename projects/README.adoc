@@ -1,4 +1,12 @@
-=== Numbers
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+:icons: font
+endif::[]
+
+== Code examples
+
+=== Types
 
 ==== Float to Integer / Integer to Float
 
@@ -18,26 +26,822 @@ fn main() {
 }
 ----
 
-=== Refutable and irrefutable
+==== Strings
 
+===== Concatenate vector of chars into single string
+
+* `Vec<char>`
++
 [source,rust]
 ----
 fn main() {
-    let some_option_value: Option<i32> = Some(5);
-    if let Some(x) = some_option_value {
-        println!("{}", x);
+    let chars = vec!['a', 'b', 'c'];
+    let string = chars.iter().collect::<String>();
+    println!("vec: {:?}, string: {:?}", chars, string);
+}
+----
++
+[source,javascript]
+.Results
+----
+vec: ['a', 'b', 'c'], string: "abc"
+----
+
+* `[char]`
++
+[source,rust]
+----
+fn main() {
+    let chars = ['a', 'b', 'c'];
+    let string = chars.iter().collect::<String>();
+    println!("array: {:?}, string: {:?}", chars, string);
+}
+----
++
+[source,javascript]
+.Results
+----
+array: ['a', 'b', 'c'], string: "abc"
+----
+
+* `&[char]`
++
+[source,rust]
+----
+fn main() {
+    let chars = vec!['a', 'b', 'c'];
+    let slice_chars = &chars[..];
+
+    let string = slice_chars.iter().collect::<String>();
+    println!("slice: {:?}, string: {:?}", slice_chars, string);
+}
+----
++
+[source,javascript]
+.Results
+----
+slice: ['a', 'b', 'c'], string: "abc"
+----
+
+===== Concatenate vector of strings into single string
+
+* `Vec<&str>`
++
+[source,rust]
+----
+fn main() {
+    let strings = vec!["abc", "123", "cdf"];
+    let string = strings.concat();
+    println!("strings: {:?}, string: {:?}", strings, string);
+}
+----
++
+[source,javascript]
+.Results
+----
+strings: ["abc", "123", "cdf"], string: "abc123cdf"
+----
+
+* `[&str]`
++
+[source,rust]
+----
+fn main() {
+    let strings = ["abc", "123", "cdf"];
+    let string = strings.concat();
+    println!("strings: {:?}, string: {:?}", strings, string);
+}
+----
++
+[source,javascript]
+.Results
+----
+strings: ["abc", "123", "cdf"], string: "abc123cdf"
+----
+
+* `Vec<char>`
++
+[source,rust]
+----
+fn main() {
+    let strings = ["abc", "123", "cdf"];
+    let string = &strings[..].concat();
+    println!("strings: {:?}, string: {:?}", strings, string);
+}
+----
++
+[source,javascript]
+.Results
+----
+strings: ["abc", "123", "cdf"], string: "abc123cdf"
+----
+
+===== Join strings with a delimiter
+
+* `Vec<&str>`
++
+[source,rust]
+----
+fn main() {
+    let strings = ["John", "Due"];
+    let joined_str = strings.join(", ");
+    println!("strings: {:?}, joined_str: {:?}", strings, joined_str);
+}
+----
++
+[source,javascript]
+.Results
+----
+strings: ["John", "Due"], joined_str: "John, Due"
+----
+
+.References
+* https://cumsum.wordpress.com/2019/11/28/how-to-do-string-join-in-rust/[How to do string join in Rust? – Cumulative Sum^] +
+  rust vector string join - Google 検索
+
+==== Composite Types
+
+===== Struct
+
+[source,rust]
+.structs.rs
+----
+#[derive(Debug)]
+struct Vertex {
+    #[allow(dead_code)]
+    x: u32,
+    #[allow(dead_code)]
+    y: u32,
+}
+
+fn main() {
+    println!("{:?}", Vertex { x: 1, y: 2 });
+}
+----
+
+.Results
+----
+Vertex { x: 1, y: 2 }
+----
+
+===== Struct Fields
+
+[source,rust]
+.structs_fields.rs
+----
+struct Vertex {
+    x: u32,
+    #[allow(dead_code)]
+    y: u32,
+}
+
+fn main() {
+    let mut v = Vertex { x: 1, y: 2 };
+    v.x = 4;
+    println!("{:?}", v.x);
+}
+----
+
+----
+4
+----
+
+===== Pointers to structs
+
+[source,rust]
+.structs_pointer.rs
+----
+#[derive(Debug)]
+struct Vertex {
+    x: u32,
+    #[allow(dead_code)]
+    y: u32,
+}
+
+fn main() {
+    let mut v = Vertex { x: 1, y: 2 };
+    let mut p = &mut v;
+    p.x = 10_u32.pow(9);
+    println!("{:?}", v);
+}
+----
+
+----
+Vertex { x: 1000000000, y: 2 }
+----
+
+==== Enum
+
+[source,rust]
+----
+#[derive(Debug)]
+enum Fruit { Apple, Orange, Kiwi }
+
+fn talk<'a>(fruit: &Fruit) -> &'a str {
+	match fruit {
+		Fruit::Apple => "I like apples.",
+		Fruit::Orange => "I like oranges.",
+		Fruit::Kiwi => "I like kiwis."
+	}
+}
+
+fn main() {
+	for fruit in [Fruit::Apple, Fruit::Orange, Fruit::Kiwi] {
+		println!("Fruit({:?}): {}", fruit, talk(&fruit));
+	}
+}
+----
+
+.Results
+----
+Fruit(Apple): I like apples.
+Fruit(Orange): I like oranges.
+Fruit(Kiwi): I like kiwis.
+----
+
+===== Option
+
+* Some and None
++
+[source,rust]
+----
+fn main() {
+    if let Some(x) = Some(5 as u32) {
+        println!("x={}", x);
     }
 
-    let none_option_value: Option<i32> = None;
-    if let Some(x) = none_option_value {
-        println!("{}", x);
+    if let Some(x) = None::<u32> {
+        println!("x={}", x);
     } else {
-        println!("none_option_value is None");
+        println!("x is None");
+    }
+}
+----
++
+.Results
+----
+x=5
+x is None
+----
+
+* using Option
++
+[source,rust]
+----
+fn main() {
+    let some_option_value: Option<u32> = Some(5);
+    if let Some(x) = some_option_value {
+        println!("x={}", x);
+    }
+
+    let none_option_value: Option<u32> = None;
+    if let Some(x) = none_option_value {
+        println!("x={}", x);
+    } else {
+        println!("x is None");
+    }
+}
+----
++
+.Results
+----
+x=5
+x is None
+----
+
+* Options and match
++
+[source,rust]
+----
+fn print_typename<T>(_: T) {
+    println!("{}", std::any::type_name::<T>());
+}
+
+fn main() {
+    let some_values: [Option<u32>; 2] = [
+        Some(5),
+        None
+    ];
+    print_typename(some_values);
+    for some_value in some_values {
+        match some_value {
+            Some(x) => println!("Some value is a {}.", x),
+            None => println!("Some value is None.")
+        }
+    }
+}
+----
++
+.Results
+----
+[core::option::Option<u32>; 2]
+Some value is a 5.
+Some value is None.
+----
+
+==== Arrays
+
+* https://doc.rust-lang.org/std/primitive.array.html[array - Rust^] +
+  rust array - Google Search
+* https://qiita.com/osanshouo/items/f7cb3a0181d37241d114[[Rust\] [T; N], Vec<T>, &[T] のメモリレイアウト - Qiita^] +
+  rust vec stack or heap - Google 検索
+
+===== Initialize an array
+
+.Immutable
+* 型推論に任せた書き方
++
+[source,rust]
+.array.rs
+----
+fn main() {
+    let a = ["Hello", "World"];
+    println!("{:?}", a);
+    let primes = [2, 3, 5, 7, 11, 13];
+    println!("{:?}", primes);
+}
+----
+
+* Explicitly specify the type (明示的に型を指定する)
++
+[source,rust]
+.array.rs
+----
+fn main() {
+    let a: [&str; 2] = ["Hello", "World"];
+    println!("{:?}", a);
+    let primes: [u32; 6] = [2, 3, 5, 7, 11, 13];
+    println!("{:?}", primes);
+}
+----
+
+.Results
+----
+Hello World
+[2, 3, 5, 7, 11, 13]
+----
+
+Primitive型以外は Copy trait は通常実装されていない。
+String型も例外ではなく、それ故に `[String::from(""); 2]` のような初期化は行えない。
+ただ、 clone() は大抵は実装されているので `vec!` マクロならば空文字列で初期化することができる。
+
+* Initialize with `vec!`
++
+[source,rust]
+.array.rs
+----
+fn main() {
+    let mut a: Vec<String> = vec![String::from(""); 2];
+    a[0] = String::from("Hello");
+    a[1] = String::from("World");
+    println!("{:?}", a);
+    let primes: [u32; 6] = [2, 3, 5, 7, 11, 13];
+    println!("{:?}", primes);
+}
+----
+
+* Initialize with an array of strings
++
+[source,rust]
+.array.rs
+----
+fn main() {
+    let mut a: [String; 2] = [String::from(""), String::from("")];
+    a[0] = String::from("Hello");
+    a[1] = String::from("World");
+    println!("{} {}", a[0], a[1]);
+    let primes: [u32; 6] = [2, 3, 5, 7, 11, 13];
+    println!("{:?}", primes);
+}
+----
++
+[NOTE]
+.String型は一括で初期化はできない
+====
+[source,rust]
+.array.rs
+----
+fn main() {
+    let mut a: [String; 2] = [String::from(""); 2];
+    a[0] = String::from("Hello");
+    a[1] = String::from("World");
+    println!("{:?}", a);
+    let primes: [u32; 6] = [2, 3, 5, 7, 11, 13];
+    println!("{:?}", primes);
+}
+----
+
+----
+error[E0277]: the trait bound `String: Copy` is not satisfied
+ --> src/main.rs:2:30
+  |
+2 |     let mut a: [String; 2] = [String::from(""); 2];
+  |                              ^^^^^^^^^^^^^^^^^^^^^ the trait `Copy` is not implemented for `String`
+  |
+  = note: the `Copy` trait is required because the repeated element will be copied
+----
+====
+
+.References
+* https://doc.rust-lang.org/std/macro.vec.html[vec in std - Rust^] +
+  rust vec macro - Google 検索
+* https://teratail.com/questions/253918[Rust - RustのCloneとCopyについての素朴な疑問｜teratail^] +
+  rust string copy trait - Google 検索
+
+===== Slices
+
+[source,rust]
+.slices.rs
+----
+fn main() {
+    let primes = [2, 3, 5, 7, 11, 13];
+    println!("{:?}", &primes[1..4]);
+}
+----
+
+----
+[3, 5, 7]
+----
+
+===== Slices are like references to arrays
+
+* Failed by immutable borrow
++
+[source,rust]
+.slice_pointers.rs
+----
+fn main() {
+    let mut names = [
+        String::from("John"),
+        String::from("Paul"),
+        String::from("George"),
+        String::from("Ringo")
+    ];
+    println!("{:?}", names);
+
+    let a = &names[0..2];
+    let b = &mut names[1..3];
+    println!("{:?} {:?}", a, b);
+
+    b[0] = String::from("XXX");
+    println!("{:?} {:?}", a, b);
+    println!("{:?}", names);
+}
+----
++
+----
+error[E0502]: cannot borrow `names` as mutable because it is also borrowed as immutable
+  --> src/main.rs:11:18
+   |
+10 |     let a = &names[0..2];
+   |              ----- immutable borrow occurs here
+11 |     let b = &mut names[1..3];
+   |                  ^^^^^ mutable borrow occurs here
+12 |     println!("{:?} {:?}", a, b);
+   |                           - immutable borrow later used here
+
+For more information about this error, try `rustc --explain E0502`.
+error: could not compile `playground` due to previous error
+----
+
+* Success
++
+[source,rust]
+.slice_pointers.rs
+----
+fn main() {
+    let mut names = [
+        String::from("John"),
+        String::from("Paul"),
+        String::from("George"),
+        String::from("Ringo")
+    ];
+    println!("names={:?}", names);
+
+    let b = &mut names[1..3];
+    b[0] = String::from("XXX");
+    println!("b={:?}", b);
+    drop(b);
+
+    let a = &names[0..2];
+    let b = &names[1..3];
+    println!("a={:?}, b={:?}", a, b);
+    println!("names={:?}", names);
+}
+----
++
+----
+names=["John", "Paul", "George", "Ringo"]
+b=["XXX", "George"]
+a=["John", "XXX"], b=["XXX", "George"]
+names=["John", "XXX", "George", "Ringo"]
+----
+
+.References
+* https://stackoverflow.com/questions/24872634/how-do-i-create-two-new-mutable-slices-from-one-slice[rust - How do I create two new mutable slices from one slice? - Stack Overflow^] +
+  rust slice mutable - Google 検索
+
+===== Slice literals
+
+[source,rust]
+.slices_literals.rs
+----
+#[derive(Debug)]
+struct PB {
+    #[allow(dead_code)]
+    n: u32,
+    #[allow(dead_code)]
+    b: bool,
+}
+
+fn main() {
+    let q = [2, 3, 5, 7, 11, 13];
+    println!("{:?}", q);
+
+    let r = [true, false, true, true, false, true];
+    println!("{:?}", r);
+
+    let s = [
+        PB { n: 2, b: true },
+        PB { n: 3, b: false },
+        PB { n: 5, b: true },
+        PB { n: 7, b: true },
+        PB { n: 11, b: false },
+        PB { n: 13, b: true },
+    ];
+    println!("{:?}", s);
+}
+----
+
+----
+[2, 3, 5, 7, 11, 13]
+[true, false, true, true, false, true]
+[PB { n: 2, b: true }, PB { n: 3, b: false }, PB { n: 5, b: true }, PB { n: 7, b: true }, PB { n: 11, b: false }, PB { n: 13, b: true }]
+----
+
+.References
+* https://stackoverflow.com/questions/38739088/is-it-possible-to-declare-arrays-without-an-explicit-length[rust - Is it possible to declare arrays without an explicit length? - Stack Overflow^] +
+  rust initialize array omit size - Google 検索
+
+===== Slice defaults
+
+[source,rust]
+.slice_bounds.rs
+----
+fn main() {
+    let s = [2, 3, 5, 7, 11, 13];
+
+    let s = &s[1..4];
+    println!("{:?}", s);
+
+    let s = &s[..2];
+    println!("{:?}", s);
+
+    let s = &s[1..];
+    println!("{:?}", s);
+}
+----
+
+----
+[3, 5, 7]
+[3, 5]
+[5]
+----
+
+===== Slices of slices
+
+[source,rust]
+.slices_of_slice.rs
+----
+fn main() {
+    let mut board = vec![vec![String::from("_"); 3]; 3];
+
+    board[0][0] = String::from("X");
+    board[2][2] = String::from("O");
+    board[1][2] = String::from("X");
+    board[1][0] = String::from("O");
+    board[0][2] = String::from("X");
+
+    for row in board {
+        println!("{}", row.join(" "));
     }
 }
 ----
 
-=== Match
+[source,rust]
+.slices_of_slice.rs
+----
+    // ...
+
+    for row in board {
+        println!("{:?}", row);
+        for cell in row {
+            print!("{} ", cell);
+        }
+        println!();
+    }
+----
+
+----
+X _ X
+O _ X
+_ _ O
+----
+
+=== Flow control statements
+
+==== Loop using range
+
+A loop with an incrementing counter.
+
+* `while`
++
+[source,rust]
+----
+fn main() {
+    let mut i = 1;
+    while i <= 5 {
+        println!("{}", i);
+        i += 1;
+    }
+}
+----
++
+.Results
+----
+1
+2
+3
+4
+5
+----
+
+* `for`
++
+[source,rust]
+----
+fn main() {
+    for i in 1..(5+1) {
+        println!("{}", i);
+    }
+}
+----
++
+.Results
+----
+1
+2
+3
+4
+5
+----
+
+==== Loop using array
+
+* Iterate over an array of integers.
++
+[source,rust]
+----
+fn main() {
+    for i in [1, 4, 0].iter() {
+        println!("{}", i);
+    }
+}
+----
++
+.Results
+----
+1
+4
+0
+----
+
+* Iterate over an array of immutable strings.
++
+[source,rust]
+----
+fn main() {
+    for s in ["foo", "bar", "baz"] {
+        println!("{}", s);
+    }
+}
+----
++
+[source,rust]
+----
+fn main() {
+    for s in ["foo", "bar", "baz"].iter() {
+        println!("{}", s);
+    }
+}
+----
++
+.Results
+----
+foo
+bar
+baz
+----
+
+* Iterate an array with the indexed position.
++
+[source,rust]
+----
+fn main() {
+    for (i, v) in ["foo", "bar", "baz"].iter().enumerate() {
+        println!("pos={}, v={}", i, v);
+    }
+}
+----
++
+----
+pos=0, v=foo
+pos=1, v=bar
+pos=2, v=baz
+----
+
+* Iterate over an array of mutable strings.
++
+[source,rust]
+----
+fn main() {
+    let mut names = [
+        String::from("foo"),
+        String::from("bar"),
+        String::from("baz")
+    ];
+
+    for name in &mut names {
+        name.push_str(":1");
+        println!("{}", name);
+    }
+
+    println!("{:?}", names);
+}
+----
++
+.Results
+----
+foo:1
+bar:1
+baz:1
+["foo:1", "bar:1", "baz:1"]
+----
+
+==== Returning Values from Loops
+
+* loop / continue / break
++
+[source,rust]
+----
+fn main() {
+    let mut counter = -3;
+
+    let result = loop {
+        counter += 1;
+
+        if counter < 0 {
+            continue;
+        }
+        if counter == 10 {
+            break counter * 2;
+        }
+    };
+
+    println!("The result is {}", result);
+}
+----
++
+.Results
+----
+20
+----
+
+.References
+* https://doc.rust-lang.org/book/ch03-05-control-flow.html[^]
+
+==== Refutable and irrefutable
+
+*  irrefutable patterns (論駁不可能・反論することが不可能なパターン)
++
+[source,rust]
+----
+if let _ = 123 {
+    println!("always runs!");
+}
+----
++
+----
+warning: irrefutable `if let` pattern
+----
++
+.Results
+----
+always runs!
+----
+
+
+==== Match
 
 [source,rust]
 ----
@@ -155,3 +959,555 @@ fn main() {
 ----
 robot_name is: Some("Another name")
 ----
+
+==== ROT-13 decoder
+
+バッファは固定で確保している。可変とする場合はもう少し面倒。
+char型(4byte)は `+` や `-` の演算が未定義なので `u8` として処理する。
+
+* using `iter()`
++
+[source,rust]
+----
+fn rot13_decoder(s: &str) -> String {
+    s.as_bytes().iter().map(
+        |&c| match c {
+            b'a' ..= b'z' => b'a' + (c - b'a' + 13) % 26,
+            b'A' ..= b'Z' => b'A' + (c - b'A' + 13) % 26,
+            _ => c
+        } as char
+    ).collect::<String>()
+}
+
+fn main() {
+    println!("{}", rot13_decoder("Lbh penpxrq gur pbqr!"));
+    assert_eq!(rot13_decoder("Lbh penpxrq gur pbqr!"), "You cracked the code!");
+}
+----
++
+.Results
+----
+You cracked the code!
+----
+
+* using `[char]`
++
+[source,rust]
+----
+fn rot13_decoder(s: &str) -> String {
+    let mut buf: [char; 1024] = ['\0'; 1024];
+    let mut buf_len = 0;
+
+    for c in s.as_bytes() {
+        buf[buf_len] = match c {
+            b'a' ..= b'z' => b'a' + (*c - b'a' + 13) % 26,
+            b'A' ..= b'Z' => b'A' + (*c - b'A' + 13) % 26,
+            _ => *c
+        } as char;
+        buf_len += 1;
+    }
+
+    buf[0..buf_len].iter().collect()
+}
+
+fn main() {
+    println!("{}", rot13_decoder("Lbh penpxrq gur pbqr!"));
+}
+----
++
+.Results
+----
+You cracked the code!
+----
+
+* using `[u8]`
++
+[source,rust]
+----
+fn rot13_decoder(s: &str) -> String {
+    let mut buf: [u8; 1024] = [b'\0'; 1024];
+    let mut buf_len = 0;
+
+    for c in s.as_bytes() {
+        buf[buf_len] = match c {
+            b'a' ..= b'z' => b'a' + (*c - b'a' + 13) % 26,
+            b'A' ..= b'Z' => b'A' + (*c - b'A' + 13) % 26,
+            _ => *c
+        };
+        buf_len += 1;
+    }
+
+    std::str::from_utf8(&buf[0..buf_len]).unwrap().to_string()
+}
+
+fn main() {
+    println!("{}", rot13_decoder("Lbh penpxrq gur pbqr!"));
+}
+----
++
+.Results
+----
+You cracked the code!
+----
+
+.References
+* docs.rs
+** https://doc.rust-jp.rs/the-rust-programming-language-ja/1.6/std/primitive.char.html[std::char - Rust^] +
+  rust u8 to char - Google 検索
+** https://docs.rs/bytes/latest/bytes/[bytes - Rust^] +
+  rust bytes - Google 検索
+* https://qiita.com/4hiziri/items/dd9800ad7be42c395082[Rustでバイト列から文字列へ - Qiita^] +
+  rust u8 to string - Google 検索
+* https://gist.github.com/jimmychu0807/9a89355e642afad0d2aeda52e6ad2424[Conversion between String, str, Vec<u8>, Vec<char> in Rust^] +
+  rust u8 to char - Google 検索
+* https://keens.github.io/blog/2016/12/01/rustdebaitoretsuwoatsukautokinotips/[Rustでバイト列を扱う時のtips | κeenのHappy Hacκing Blog^] +
+  rust bytes - Google 検索
+* Allocate
+** https://mmi.hatenablog.com/entry/2017/08/06/230823[rustで動的にバッファを確保する方法 - 睡分不足^] +
+  rust box bytes - Google 検索
+** https://stackoverflow.com/questions/32414567/allocating-a-buffer-on-the-heap-at-runtime[memory management - Allocating a buffer on the heap at runtime - Stack Overflow^] +
+   rust bytes allocate - Google 検索
+** http://www.nct9.ne.jp/m_hiroi/linux/rustabc02.html[Linux Programming / お気楽 Rust プログラミング超入門^] +
+   rust box bytes - Google 検索
+* https://rosettacode.org/wiki/Rot-13[Rot-13 - Rosetta Code^] +
+  julia rot13 - Google 検索
+
+
+=== Functions
+
+==== Single results
+
+* implement using function
++
+[source,rust]
+.functions.rs
+----
+fn add(x: i32, y: i32) -> i32 {
+    x + y
+}
+
+fn main() {
+    println!("{}", add(42, 13));
+}
+----
++
+.Results
+----
+55
+----
+
+* implement using closure
++
+[source,rust]
+.functions.rs
+----
+fn main() {
+    let add = |x, y| x + y;
+    println!("{}", add(42, 13));
+}
+----
++
+.Results
+----
+55
+----
+
+==== Multiple results
+
+* implement using function
++
+[source,rust]
+.multiple_results.rs
+----
+fn swap<'a>(a: &'a str, b: &'a str) -> (&'a str, &'a str) {
+    (b, a)
+}
+
+fn main() {
+    let (a, b) = swap("hello", "world");
+    println!("{} {}", a, b);
+}
+----
++
+.Results
+----
+world hello
+----
+
+* implement using closure
++
+[source,rust]
+----
+fn main() {
+    let swap = |a, b| (b, a);
+    let (a, b) = swap("hello", "world");
+    println!("{} {}", a, b);
+}
+----
++
+.Results
+----
+world hello
+----
+
+[NOTE]
+====
+* missing lifetime specifier
++
+[source,rust]
+.multiple_results.rs
+----
+fn swap<'a>(a: &'a str, b: &'a str) -> (&'a str, &'a str) {
+    (b, a)
+}
+
+fn main() {
+    let (a, b) = swap("hello", "world");
+    println!("{} {}", a, b);
+}
+----
++
+----
+error[E0106]: missing lifetime specifier
+ --> src/main.rs:1:31
+  |
+1 | fn swap(a: &str, b: &str) -> (&str, &str) {
+  |            ----     ----      ^ expected named lifetime parameter
+  |
+  = help: this function's return type contains a borrowed value, but the signature does not say whether it is borrowed from `a` or `b`
+help: consider introducing a named lifetime parameter
+  |
+1 | fn swap<'a>(a: &'a str, b: &'a str) -> (&'a str, &str) {
+  |        ++++     ++          ++           ++
+
+error[E0106]: missing lifetime specifier
+ --> src/main.rs:1:37
+  |
+1 | fn swap(a: &str, b: &str) -> (&str, &str) {
+  |            ----     ----            ^ expected named lifetime parameter
+  |
+  = help: this function's return type contains a borrowed value, but the signature does not say whether it is borrowed from `a` or `b`
+help: consider introducing a named lifetime parameter
+  |
+1 | fn swap<'a>(a: &'a str, b: &'a str) -> (&str, &'a str) {
+  |        ++++     ++          ++                 ++
+
+For more information about this error, try `rustc --explain E0106`.
+error: could not compile `playground` due to 2 previous errors
+----
+
+====
+
+==== Function values
+
+* using `fn` (function pointer)
++
+[source,rust]
+.function_values.rs
+----
+fn compute(f: fn(f64, f64) -> f64) -> f64{
+    return f(3 as f64, 4 as f64);
+}
+
+fn main() {
+    let hypot = |x: f64, y: f64| {(x*x + y*y).sqrt()};
+    println!("hypot(5, 12)={}", hypot(5 as f64, 12 as f64));
+    println!("hypot(3, 4)={}", compute(hypot));
+    println!("my_pow(3, 4)={}", compute(|x: f64, y: f64| {x.powf(y)}));
+}
+----
+
+* using `Fn` (`Fn` closure trait)
++
+[source,rust]
+.function_values.rs
+----
+fn compute(f: impl Fn(f64, f64) -> f64) -> f64{
+    return f(3 as f64, 4 as f64);
+}
+
+fn main() {
+    let hypot = |x: f64, y: f64| {(x*x + y*y).sqrt()};
+    println!("hypot(5, 12)={}", hypot(5 as f64, 12 as f64));
+    println!("hypot(3, 4)={}", compute(hypot));
+    println!("my_pow(3, 4)={}", compute(|x: f64, y: f64| {x.powf(y)}));
+}
+----
+
+* using `&dyn Fn`
++
+[source,rust]
+.function_values.rs
+----
+fn compute(f: &dyn Fn(f64, f64) -> f64) -> f64{
+    return f(3 as f64, 4 as f64);
+}
+
+fn main() {
+    let hypot = |x: f64, y: f64| {(x*x + y*y).sqrt()};
+    println!("hypot(5, 12)={}", hypot(5 as f64, 12 as f64));
+    println!("hypot(3, 4)={}", compute(&hypot));
+    println!("my_pow(3, 4)={}", compute(&|x: f64, y: f64| {x.powf(y)}));
+}
+----
+
+.Results
+----
+hypot(5, 12)=13
+hypot(3, 4)=5
+my_pow(3, 4)=81
+----
+
+==== Function pointer
+
+[source,rust]
+----
+fn main() {
+    fn add(x: i32, y: i32) -> i32 {
+        x + y
+    }
+
+    let x = add(5, 7);
+    println!("{}", x);
+    drop(x);
+
+    type Binop = fn(i32, i32) -> i32;
+    let bo: Binop = add;
+    let x = bo(5,7);
+    println!("{}", x);
+}
+----
+
+.Results
+----
+12
+12
+----
+
+.References
+* https://doc.rust-lang.org/reference/types/function-pointer.html[Function pointer types - The Rust Reference^]
+* https://doc.rust-lang.org/book/ch19-05-advanced-functions-and-closures.html[Advanced Functions and Closures - The Rust Programming Language^] +
+  rust function pointer - Google 検索 +
+  Rust fn argument - Google 検索
+* https://qnighy.hatenablog.com/entry/2018/02/11/220000[Rustの関数ポインタの落とし穴 - 簡潔なQ^] +
+  rust function pointer - Google 検索
+
+==== Function closures
+
+* Implement using closure
++
+[source,rust]
+.function_closures.rs
+----
+pub fn get_adder() -> impl FnMut(i32) -> i32 {
+    let mut sum = 0;
+    move |step| {
+        sum += step;
+        return sum;
+    }
+}
+
+fn main() {
+    let mut pos = get_adder();
+    let mut neg = get_adder();
+    for i in 1..10 {
+        println!(
+            "pos({})={:2}, neg({})={:3}",
+            i, pos(i), i, neg(-2*i)
+        )
+    }
+}
+----
++
+[source,rust]
+.function_closures.rs
+----
+fn main() {
+    let mut pos_sum = 0;
+    let mut neg_sum = 0;
+    let mut pos_adder = |n: i32| { pos_sum += n; return pos_sum; };
+    let mut neg_adder = |n: i32| { neg_sum += n; return neg_sum; };
+    for i in 1..10 {
+        println!(
+            "pos({})={:2}, neg({})={:3}",
+            i, pos_adder(i), i, neg_adder(-2*i)
+        )
+    }
+}
+----
++
+.Results
+----
+pos(1)= 1, neg(1)= -2
+pos(2)= 3, neg(2)= -6
+pos(3)= 6, neg(3)=-12
+pos(4)=10, neg(4)=-20
+pos(5)=15, neg(5)=-30
+pos(6)=21, neg(6)=-42
+pos(7)=28, neg(7)=-56
+pos(8)=36, neg(8)=-72
+pos(9)=45, neg(9)=-90
+----
+
+* Implement using impl
++
+[source,rust]
+.function_closures.rs
+----
+pub struct Adder {
+    pub sum: i32,
+}
+
+impl Adder {
+    pub fn new() -> Adder {
+        Adder {sum: 0}
+    }
+    pub fn adder(&mut self, step: i32) -> i32 {
+        self.sum += step;
+        return self.sum
+    }
+}
+
+fn main() {
+    let mut pos = Adder::new();
+    let mut neg = Adder::new();
+    for i in 1..10 {
+        println!(
+            "pos({})={:2}, neg({})={:3}",
+            i, pos.adder(i), i, neg.adder(-2*i)
+        )
+    }
+}
+----
++
+.Results
+----
+pos(1)= 1, neg(1)= -2
+pos(2)= 3, neg(2)= -6
+pos(3)= 6, neg(3)=-12
+pos(4)=10, neg(4)=-20
+pos(5)=15, neg(5)=-30
+pos(6)=21, neg(6)=-42
+pos(7)=28, neg(7)=-56
+pos(8)=36, neg(8)=-72
+pos(9)=45, neg(9)=-90
+----
+
+.References
+* https://doc.rust-lang.org/std/ops/trait.Fn.html[Fn in std::ops - Rust^]
+* https://doc.rust-lang.org/std/ops/trait.FnMut.html[FnMut in std::ops - Rust^]
+* https://doc.rust-lang.org/std/ops/trait.FnOnce.html[FnOnce in std::ops - Rust^]
+* https://doc.rust-lang.org/rust-by-example/fn/closures/input_parameters.html[As input parameters - Rust By Example^]
+** `Fn`: the closure captures by reference (`&T`)
+** `FnMut`: the closure captures by mutable reference (`&mut T`)
+** `FnOnce`: the closure captures by value (`T`)
+* https://zenn.dev/garasubo/articles/97f794cfd469b9d51c7b[Rustにおける関数ポインタやクロージャ - Zenn^] +
+  rust function pointer - Google 検索
+
+==== Concurrency
+
+===== Thread
+
+[source,rust]
+----
+use std::thread;
+use std::time::Duration;
+
+fn say(s: &str) {
+    for _ in 0..5 {
+        thread::sleep(Duration::from_millis(100));
+        println!("{}", s);
+    }
+}
+
+fn main() {
+    thread::spawn(|| { say("world") });
+    say("hello")
+}
+----
+
+.Results
+----
+hello
+world
+hello
+world
+hello
+world
+hello
+world
+hello
+----
+
+===== Channels
+
+* using function
++
+[source,rust]
+----
+use std::sync::mpsc;
+use std::thread;
+
+fn sum(s: &[i32], sender: &mpsc::Sender<i32>) {
+    sender.send(s.iter().sum()).unwrap();
+}
+
+fn main() {
+    let s = [7, 2, 8, -9, 4, 0];
+    let (sender1, receiver) = mpsc::channel();
+    let sender2 = sender1.clone();
+
+    thread::spawn(move || { sum(&s[..(s.len()/2)], &sender1) });
+    thread::spawn(move || { sum(&s[(s.len()/2)..], &sender2) });
+
+    let x = receiver.recv().unwrap();
+    let y = receiver.recv().unwrap();
+    println!("x={} y={} x+y={}", x, y, x + y);
+}
+----
++
+.Results
+----
+x=17 y=-5 x+y=12
+----
+
+* using only closure
++
+[source,rust]
+----
+use std::sync::mpsc::{Sender, Receiver};
+use std::sync::mpsc;
+use std::thread;
+
+fn main() {
+    let s = [7, 2, 8, -9, 4, 0];
+    let (sender1, receiver): (Sender<i32>, Receiver<i32>) = mpsc::channel();
+    let sender2 = sender1.clone();
+
+    thread::spawn(move || {
+        let sum = s[..(s.len()/2)].iter().sum();
+        sender1.send(sum).unwrap();
+    });
+    thread::spawn(move || {
+        let sum = s[(s.len()/2)..].iter().sum();
+        sender2.send(sum).unwrap();
+    });
+ 
+    let x = receiver.recv().unwrap();
+    let y = receiver.recv().unwrap();
+    println!("x={} y={} x+y={}", x, y, x + y);
+}
+----
++
+.Results
+----
+x=-5 y=17 x+y=12
+----
+
+.References
+* https://doc.rust-lang.org/std/sync/mpsc/fn.channel.html[channel in std::sync::mpsc - Rust^]
+* https://doc.rust-lang.org/book/ch16-02-message-passing.html[Using Message Passing to Transfer Data Between Threads - The Rust Programming Language^]
+* https://doc.rust-lang.org/rust-by-example/std_misc/channels.html[Channels - Rust By Example^] +
+  rust channel sender infer type - Google 検索
+* https://stackoverflow.com/questions/23100534/how-to-sum-the-values-in-an-array-slice-or-vec-in-rust[How to sum the values in an array, slice, or Vec in Rust? - Stack Overflow^] +
+  rust sum array - Google 検索
