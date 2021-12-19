@@ -1,0 +1,77 @@
+=== create a new binary project
+
+. Let’s create a new binary project called `hello_calc`
++
+[source,console]
+----
+$ cargo new loop-1million --bin
+     Created binary (application) `loop-1million` package
+----
++
+[source,console]
+----
+$ cd loop-1million/
+----
+
+=== Codes
+
+ifdef::env-github[]
+[source,rust]
+.src/main.rs
+----
+use std::time::Instant;
+
+fn main() {
+    let start = Instant::now();
+    let mut total = 0;
+    for _ in 0..(10i64.pow(6)) {
+        total += 1;
+    }
+    let duration = start.elapsed();
+
+    println!(
+        "Total: {}, Duration: {:?}",
+        total, duration
+    );
+}
+----
+endif::[]
+ifndef::env-github[]
+[source,rust]
+.src/main.rs
+----
+include::src/main.rs[]
+----
+endif::[]
+
+
+=== Build and Run
+
+* Run the debug build
++
+[source,console]
+----
+$ cargo run
+    Finished dev [unoptimized + debuginfo] target(s) in 0.02s
+     Running `target/debug/loop-1million`
+Total: 1000000, Duration: 32.8544ms
+----
+
+* Run the release build
++
+Build optimized artifacts with the release profile.
++
+[source,console]
+----
+$ cargo build --release
+   Compiling loop-1million v0.1.0 (.../rust-examples/projects/loop-1million)
+    Finished release [optimized] target(s) in 3.20s
+----
++
+[source,console]
+----
+$ cargo run --release
+    Finished release [optimized] target(s) in 4.64s
+     Running `target/release/loop-1million`
+Total: 1000000, Duration: 1.9µs
+----

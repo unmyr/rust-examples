@@ -11,6 +11,7 @@ clean:
 	(cd interior-mutability && cargo clean)
 	(cd iterator/iterator-vec-demo && cargo clean)
 	(cd lifetime && make clean)
+	(cd loop-1million && make clean)
 	(cd operator-overloading && make clean)
 	(cd option-take && cargo clean)
 	(cd ownership && cargo clean)
