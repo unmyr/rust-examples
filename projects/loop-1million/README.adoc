@@ -1,6 +1,6 @@
 === create a new binary project
 
-. Let’s create a new binary project called `hello_calc`
+. Let’s create a new binary project called `loop-1million`
 +
 [source,console]
 ----
