@@ -27,6 +27,7 @@
     "Mutex",
     "mutmal",
     "nalgebra",
+    "ndarray",
     "NODELAY",
     "println",
     "rustc",

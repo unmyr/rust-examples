@@ -1,0 +1,54 @@
+=== create a new binary project
+
+. Let’s create a new binary project called `ndarray-example-mutmal`
++
+[source,console]
+----
+$ cargo new ndarray-example-mutmal --bin
+     Created binary (application) `ndarray-example-mutmal` package
+----
++
+[source,console]
+----
+$ cd ndarray-example-mutmal/
+----
+
+=== Codes
+
+* Using `arr2`
++
+[source,rust]
+----
+use ndarray::arr2;
+
+fn main() {
+    let a = arr2(&[
+        [1, 2, 1],
+        [0, 1, 1]
+    ]);
+    let b = arr2(&[
+        [1, 0],
+        [0, 1],
+        [1, 1]
+    ]);
+    let c = a.dot(&b);
+    println!("{}", c);
+    println!(
+        "{} {}\n{} {}",
+        c[(0, 0)], c[(0, 1)], c[(1, 0)], c[(1, 1)]
+    );
+    assert_eq!(c, arr2(&[[2, 3], [1, 2]]));
+}
+----
+.Results
+----
+[[2, 3],
+ [1, 2]]
+2 3
+1 2
+----
+
+=== References
+
+* https://rust-lang-nursery.github.io/rust-cookbook/science/mathematics/linear_algebra.html[Linear Algebra - Rust Cookbook^] +
+  rust ndarray matrix multiplication - Google Search
