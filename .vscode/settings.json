@@ -6,16 +6,10 @@
     "**/target/**": true
   },
   "cSpell.words": [
-    "Actix",
-    "Cacher",
-    "Iceburgh",
-    "Multithreaded",
-    "Mutex",
-    "NODELAY",
-    "Yury",
-    "Zhauniarovich",
     "accum",
+    "Actix",
     "backtrace",
+    "Cacher",
     "clippy",
     "debuginfo",
     "deref",
@@ -23,11 +17,17 @@
     "fnmut",
     "fnonce",
     "hosting",
+    "Iceburgh",
     "ifdef",
     "immut",
     "libc",
     "minigrep",
     "mpsc",
+    "Multithreaded",
+    "Mutex",
+    "mutmal",
+    "nalgebra",
+    "NODELAY",
     "println",
     "rustc",
     "rustup",
@@ -40,6 +40,8 @@
     "unoptimized",
     "usize",
     "vals",
-    "waitlist"
+    "waitlist",
+    "Yury",
+    "Zhauniarovich"
   ]
 }

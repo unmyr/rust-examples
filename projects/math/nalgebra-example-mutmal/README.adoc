@@ -1,0 +1,82 @@
+=== create a new binary project
+
+. Let’s create a new binary project called `nalgebra-example-mutmal`
++
+[source,console]
+----
+$ cargo new nalgebra-example-mutmal --bin
+     Created binary (application) `nalgebra-example-mutmal` package
+----
++
+[source,console]
+----
+$ cd nalgebra-example-mutmal/
+----
+
+=== Codes
+
+* Using predefined types
++
+[source,rust]
+----
+extern crate nalgebra as na;
+
+fn main() {
+    let a = na::Matrix2x3::new(
+        1, 2, 1,
+        0, 1, 1
+    );
+    let b = na::Matrix3x2::new(
+        1, 0,
+        0, 1,
+        1, 1
+    );
+    let c = a * b;
+    println!("{:?}", c);
+    println!(
+        "{} {}\n{} {}",
+        c[(0, 0)], c[(0, 1)], c[(1, 0)], c[(1, 1)]
+    );
+    assert_eq!(c, na::Matrix2::new(2, 3, 1, 2));
+}
+----
+.Results
+----
+Matrix { data: [[2, 1], [3, 2]] }
+2 3
+1 2
+----
+
+* using `SMatrix`
++
+[source,rust]
+----
+extern crate nalgebra as na;
+
+fn main() {
+    let a = na::SMatrix::<u32, 2, 3>::new(
+        1, 2, 1,
+        0, 1, 1
+    );
+    let b = na::SMatrix::<u32, 3, 2>::new(
+        1, 0,
+        0, 1,
+        1, 1
+    );
+    let c = a * b;
+    println!("{:?}", c);
+    println!(
+        "{} {}\n{} {}",
+        c[(0, 0)], c[(0, 1)], c[(1, 0)], c[(1, 1)]
+    );
+    assert_eq!(c, na::SMatrix::<u32, 2, 2>::new(2, 3, 1, 2));
+}
+----
++
+.Results
+----
+Matrix { data: [[2, 1], [3, 2]] }
+2 3
+1 2
+----
+
