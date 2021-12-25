@@ -1,9 +1,7 @@
 clean:
 	(cd actix-web && make clean)
 	(cd closures && make clean)
-	(cd digits_sum_has_nth_roots && cargo clean)
 	(cd errors && cargo clean)
-	(cd factorial && cargo clean)
 	(cd fs && make clean)
 	(cd generics/point && cargo clean)
 	(cd hello_calc && cargo clean)
