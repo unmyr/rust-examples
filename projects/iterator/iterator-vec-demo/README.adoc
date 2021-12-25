@@ -1,6 +1,6 @@
 === Create
 
-. Let’s create a new library project called `iterator-vec-demo`
+. Let's create a new library project called `iterator-vec-demo`
 +
 [source,console]
 ----
@@ -38,4 +38,117 @@ test tests::iterator_demonstration ... ok
 
 test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
+----
+
+=== Run commands
+
+==== for demo
+
+ifdef::env-github[]
+[source,rust]
+.src/for_demo.rs
+----
+fn main() {
+    let v1 = vec![1, 2, 3];
+
+    let v1_iter = v1.iter();
+
+    for val in v1_iter {
+        println!("Got: {}", val);
+    }
+}
+----
+endif::[]
+ifndef::env-github[]
+[source,rust]
+.src/for_demo.rs
+----
+include::src/for_demo.rs[]
+----
+endif::[]
+
+[source,console]
+.Results
+----
+$ cargo run --bin for_demo
+    Finished dev [unoptimized + debuginfo] target(s) in 0.04s
+     Running `target/debug/for_demo`
+Got: 1
+Got: 2
+Got: 3
+----
+
+
+==== find demo
+
+ifdef::env-github[]
+[source,rust]
+.src/iter_find.rs
+----
+fn main() {
+    let strings = vec!["one", "two", "three"];
+
+    let item = strings.iter().find(|&r| *r == "two");
+    println!("item={:?}, strings={:?}", item, strings);
+    assert_eq!(item, Some(&"two"));
+
+    let item = strings.into_iter().find(|&r| r == "two");
+    println!("item={:?}, strings=n/a(moved)", item);
+    assert_eq!(item, Some("two"));
+}
+----
+endif::[]
+ifndef::env-github[]
+[source,rust]
+.src/iter_find.rs
+----
+include::src/iter_find.rs[]
+----
+endif::[]
+
+[source,console]
+.Results
+----
+$ cargo run --bin iter_find
+    Finished dev [unoptimized + debuginfo] target(s) in 0.03s
+     Running `target/debug/iter_find`
+item=Some("two"), strings=["one", "two", "three"]
+item=Some("two"), strings=n/a(moved)
+----
+
+==== position demo
+
+ifdef::env-github[]
+[source,rust]
+.src/iter_position.rs
+----
+fn main() {
+    let strings = vec!["one", "two", "three"];
+
+    let some_index = strings.iter().position(|&r| r == "two");
+    println!("index={:?}, strings={:?}", some_index, strings);
+    assert_eq!(some_index, Some(1));
+
+    let some_index = strings.into_iter().position(|r| r == "two");
+    println!("index={:?}, strings=n/a(moved)", some_index);
+    assert_eq!(some_index, Some(1));
+}
+----
+endif::[]
+ifndef::env-github[]
+[source,rust]
+.src/iter_position.rs
+----
+include::src/iter_position.rs[]
+----
+endif::[]
+
+[source,console]
+.Results
+----
+$ cargo run --bin iter_position
+    Finished dev [unoptimized + debuginfo] target(s) in 0.03s
+     Running `target/debug/iter_position`
+index=Some(1), strings=["one", "two", "three"]
+index=Some(1), strings=n/a(moved)
 ----
