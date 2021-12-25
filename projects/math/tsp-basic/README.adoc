@@ -1,0 +1,48 @@
+=== create a new binary project
+
+. Let's create a new binary project called `tsp-basic`
++
+[source,console]
+----
+$ cargo new tsp-basic --bin
+     Created binary (application) `tsp-basic` package
+----
++
+[source,console]
+----
+$ cd tsp-basic/
+----
+
+=== Codes
+
+ifdef::env-github[]
+[source,rust]
+.src/main.rs
+----
+use std::time::Instant;
+
+fn main() {
+    let start = Instant::now();
+    let mut total = 0;
+    for _ in 0..(10i64.pow(6)) {
+        total += 1;
+    }
+    let duration = start.elapsed();
+
+    println!(
+        "Total: {}, Duration: {:?}",
+        total, duration
+    );
+}
+----
+endif::[]
+ifndef::env-github[]
+[source,rust]
+.src/main.rs
+----
+include::src/main.rs[]
+----
+endif::[]
+
+
+=== References
