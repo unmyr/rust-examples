@@ -3,4 +3,5 @@ clean:
 	(cd factorial && cargo clean)
 	(cd nalgebra-example-mutmal && cargo clean)
 	(cd ndarray-example-mutmal && cargo clean)
+	(cd permutation && cargo clean)
 	(cd tsp-basic && make clean)

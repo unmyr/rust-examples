@@ -1,0 +1,209 @@
+=== create a new binary project
+
+. Let's create a new binary project called `permutation`
++
+[source,console]
+----
+$ cargo new permutation --lib
+     Created library `permutation` package
+----
++
+[source,console]
+----
+$ cd permutation/
+----
+
+=== Benchmark
+
+. Set nightly
++
+[source,console]
+----
+$ rustup override set nightly
+----
+
+. Install nightly
++
+[source,console]
+----
+$ rustup install nightly
+----
+
+. Check version
++
+[source,console]
+----
+$ cargo -V
+cargo 1.59.0-nightly (fcef61230 2021-12-17)
+----
+
+==== Benchmark results
+
+Swap implementation is faster.
+
+[source,console]
+----
+$ cargo bench
+   Compiling permutation v0.1.0 (.../projects/math/permutation)
+    Finished bench [optimized] target(s) in 4.57s
+     Running unittests (target/release/deps/permutation-a8a03217a213bc5a)
+
+running 10 tests
+test tests::test_perm_iterative_no_gen ... ignored
+test tests::test_perm_iterative_ordered_gen ... ignored
+test tests::test_perm_tmp_vec_u32 ... ignored
+test tests::test_perm_with_swap_gen ... ignored
+test tests::test_perm_with_swap_u32 ... ignored
+test tests::bench_perm_iterative_no_gen      ... bench:     721,800 ns/iter (+/- 252,102)
+test tests::bench_perm_iterative_ordered_gen ... bench:   2,510,677 ns/iter (+/- 217,588)
+test tests::bench_perm_tmp_vec_u32           ... bench:   5,281,755 ns/iter (+/- 992,021)
+test tests::bench_perm_with_swap_gen         ... bench:   2,727,402 ns/iter (+/- 182,668)
+test tests::bench_perm_with_swap_u32         ... bench:   2,699,400 ns/iter (+/- 152,745)
+
+test result: ok. 0 pass
+----
+
+=== Codes
+
+* Using temporary `Vec`.
++
+[source,rust]
+.src/lib.rs
+----
+pub fn perm_tmp_vec_u32(v1: Vec<u32>, v2: &mut Vec<u32>, out: &mut Vec<Vec<u32>>)
+{
+    match v1.len() {
+        0 => (),
+        1 => {
+            v2.push(v1[0]);
+            out.push(v2.to_vec());
+        },
+        _ => {
+            for some_x in &v1 {
+                let mut vc1 = v1.clone();
+                let mut vc2 = v2.clone();
+                vc1.retain(|&cur| cur != *some_x);
+                vc2.push(*some_x);
+                perm_tmp_vec_u32(vc1, &mut vc2, out);
+            }
+        },
+    }
+}
+----
+
+* Swap implementation
++
+[source,rust]
+.src/lib.rs
+----
+pub fn perm_with_swap_u32(v1: Vec<u32>, m: usize, out: &mut Vec<Vec<u32>>)
+{
+    if m == v1.len() {
+        out.push(v1.to_vec());
+        return;
+    }
+
+    for item in v1[m..].iter() {
+        let mut vc1 = v1.clone();
+        if vc1[m] != *item {
+            let n = m + vc1[m..].iter().position(|&r| r == *item).unwrap();
+            let tmp = vc1[m];
+            vc1[m] = vc1[n];
+            vc1[n] = tmp;
+        }
+        perm_with_swap_u32(vc1, m+1, out);
+    }
+}
+----
+
+* Generics
++
+[source,rust]
+.src/lib.rs
+----
+pub fn perm_with_swap_gen<T>(v: Vec<T>, m: usize, out: &mut Vec<Vec<T>>)
+where T: Clone + std::cmp::PartialEq
+{
+    if m == v.len() {
+        out.push(v.to_vec());
+        return;
+    }
+
+    for i in m .. v.len() {
+        let mut v_new = v.clone();
+        if i != m {
+            let tmp = v_new[m].clone();
+            v_new[m] = v_new[i].clone();
+            v_new[i] = tmp;
+        }
+        perm_with_swap_gen(v_new, m+1, out);
+    }
+}
+----
+
+* Non-recursive implementation
++
+[source,rust]
+----
+pub fn perm_iterative_no_gen<T>(v: Vec<T>)
+-> Vec<Vec<T>>
+where T: Clone + std::cmp::PartialEq
+{
+    let num_of_chars = v.len();
+    let mut result = Vec::<Vec<T>>::new();
+    // let vec_size = (1..=num_of_chars).fold(1, |acc, v| acc * v);
+    // let mut out = Vec::<Vec<T>>::with_capacity(vec_size);
+    result.push(v);
+    for n in 0 .. num_of_chars {
+        let result_len = result.len();
+        for result_idx in 0..(result_len) {
+            for i in (n+1) .. num_of_chars {
+                let mut v_new = result[result_idx].clone();
+                let tmp = v_new[n].clone();
+                v_new[n] = v_new[i].clone();
+                v_new[i] = tmp;
+                result.push(v_new);
+            }
+        }
+    }
+    result
+}
+----
+
+* Non-recursive implementation (Ordered)
++
+[source,rust]
+----
+pub fn perm_iterative_ordered_gen<T>(v: Vec<T>)
+-> Vec<Vec<T>>
+where T: Clone + std::cmp::PartialEq + std::cmp::PartialOrd
+{
+    let num_of_chars = v.len();
+    let mut result = Vec::<Vec<T>>::new();
+    result.push(v);
+    for n in 0 .. num_of_chars {
+        let result_len = result.len();
+        for result_idx in 0..(result_len) {
+            for i in (n+1) .. num_of_chars {
+                let mut v_new = result[result_idx].clone();
+                let tmp = v_new[n].clone();
+                v_new[n] = v_new[i].clone();
+                v_new[i] = tmp;
+                result.push(v_new);
+            }
+        }
+    }
+    result.sort_by(|a, b| {
+        let m = a.len() - 1;
+        for i in 0 .. m {
+            if a[i] != b[i] {
+                return a[i].partial_cmp(&b[i]).unwrap();
+            }
+        }
+        return a[m].partial_cmp(&b[m]).unwrap();
+    });
+    result
+}
+----
+
+=== References
