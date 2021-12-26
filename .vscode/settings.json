@@ -29,6 +29,8 @@
     "nalgebra",
     "ndarray",
     "NODELAY",
+    "powf",
+    "powi",
     "println",
     "rustc",
     "rustup",

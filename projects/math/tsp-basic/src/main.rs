@@ -5,6 +5,7 @@ use std::io::prelude::*;
 use regex::Regex;
 use rand::seq::SliceRandom;
 use std::cmp::{Ordering, PartialEq, PartialOrd};
+use necklace_permutations::necklace_perm;
 
 #[derive(Debug, Clone)]
 struct TspNode {
@@ -125,33 +126,6 @@ impl TspData {
     }    
 }
 
-
-pub fn necklace_perm<T>(v: Vec<T>)
--> Vec<Vec<T>>
-where T: Clone + std::cmp::PartialEq + std::cmp::PartialOrd + std::fmt::Debug
-{
-    let num_of_chars = v.len();
-    let mut result = Vec::<Vec<T>>::new();
-    result.push(v);
-    if num_of_chars <= 3 {
-        return result;
-    }
-
-    for n in 1 .. num_of_chars {
-        let result_len = result.len();
-        for result_idx in 0..(result_len) {
-            for i in (n+1) .. num_of_chars {
-                let mut v_new = result[result_idx].clone();
-                let tmp = v_new[n].clone();
-                v_new[n] = v_new[i].clone();
-                v_new[i] = tmp;
-                result.push(v_new);
-            }
-        }
-    }
-    result.into_iter().filter(|r| r[1] < r[r.len()-1]).collect()
-}
-
 fn main() {
     let tsp_path = std::path::Path::new("a280x.tsp");
     let tsp_data = TspData::load(&tsp_path).unwrap();
@@ -165,13 +139,19 @@ fn main() {
     println!("*** Random Search ***");
     let mut total_dist_min = f32::MAX;
     let mut rng = rand::thread_rng();
-    for n in 0..5 {
+    for n in 0..1814400 {
         (&mut route[1..]).shuffle(&mut rng);
         let total_dist_cur = tsp_data.calc_distance(&route);
         if total_dist_cur < total_dist_min {
             total_dist_min = total_dist_cur;
         }
-        println!("{:5}: total_dist_min={:.1}: {:?}", n + 1, total_dist_min, route);
+        if (total_dist_min - 180.90567) < 0.1 {
+            println!("{:8}: total_dist_min={:.1}: Found {:?}", n + 1, total_dist_min, route);
+            break;
+        }
+        if n % 100000 == 0 {
+            println!("{:8}: total_dist_min={:.1}: {:?}", n + 1, total_dist_min, route);
+        }
     }
     println!("total_dist_min={:?}", total_dist_min);
     route.clear();
@@ -180,6 +160,8 @@ fn main() {
     for i in 0..tsp_data.dimension {
         route.push(tsp_data.nodes[i].node_no);
     }
+    (&mut route[1..]).shuffle(&mut rng);
+
     let mut n = 0;
     for route_cur in necklace_perm(route) {
         let total_dist_cur = tsp_data.calc_distance(&route_cur);
@@ -190,7 +172,7 @@ fn main() {
             println!("{:8}: total_dist_min={:.1}: Found {:?}", n + 1, total_dist_min, route_cur);
             break;
         }
-        if n % 100 == 0 {
+        if n % 100000 == 0 {
             println!("{:8}: total_dist_min={:.1}: {:?}", n + 1, total_dist_min, route_cur);
         }
         n += 1;
