@@ -13,6 +13,16 @@ $ cargo new tsp-basic --bin
 $ cd tsp-basic/
 ----
 
+=== Data
+
+[cols="1a,>1a,1a,1a" options="autowidth"]
+|===
+| tsp      ^| City | value     | Notes
+
+| a280x.tsp |   11 | 180.90567 | 1814400 patterns +
+1, 2, 11, 3, 10, 9, 4, 5, 6, 7, 8
+|===
+
 === Codes
 
 ifdef::env-github[]
