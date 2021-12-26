@@ -1,0 +1,15 @@
+[package]
+name = "necklace-permutations"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "necklace_permutations"
+path = "src/lib.rs"
+
+
+[[bin]]
+name = "necklace-permutations"
+path = "src/main.rs"
+
+[dependencies]
