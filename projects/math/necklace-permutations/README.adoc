@@ -65,5 +65,59 @@ where T: Clone + std::cmp::PartialEq + std::cmp::PartialOrd + std::fmt::Debug
 }
 ----
 
+=== Run
+
+* np_demo_v1 (1st version; generating and sorting)
++
+[source,console]
+----
+$ cargo run --bin np_demo_v1
+    Finished dev [unoptimized + debuginfo] target(s) in 0.03s
+     Running `target/debug/np_demo_v1`
+3
+[1, 2, 4, 3]
+[1, 2, 3, 4]
+[1, 3, 2, 4]
+12
+[1, 2, 4, 5, 3]
+[1, 2, 5, 4, 3]
+[1, 2, 3, 5, 4]
+[1, 2, 5, 3, 4]
+[1, 2, 3, 4, 5]
+[1, 2, 4, 3, 5]
+[1, 3, 2, 5, 4]
+[1, 3, 5, 2, 4]
+[1, 3, 2, 4, 5]
+[1, 3, 4, 2, 5]
+[1, 4, 2, 3, 5]
+[1, 4, 3, 2, 5]
+----
+
+* np_demo_v2 (generating)
++
+[source,console]
+----
+$ cargo run --bin np_demo_v2
+    Finished dev [unoptimized + debuginfo] target(s) in 0.07s
+     Running `target/debug/np_demo_v2`
+3
+[1, 2, 4, 3]
+[1, 2, 3, 4]
+[1, 3, 2, 4]
+12
+[1, 2, 4, 5, 3]
+[1, 2, 5, 4, 3]
+[1, 2, 3, 5, 4]
+[1, 2, 5, 3, 4]
+[1, 2, 3, 4, 5]
+[1, 2, 4, 3, 5]
+[1, 3, 2, 5, 4]
+[1, 3, 5, 2, 4]
+[1, 3, 2, 4, 5]
+[1, 3, 4, 2, 5]
+[1, 4, 2, 3, 5]
+[1, 4, 3, 2, 5]
+----
+
 === References
 * https://keisan.casio.com/exec/system/15137364949473[Necklace Permutation - Keisan Online Calculator^]

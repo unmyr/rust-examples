@@ -1,4 +1,4 @@
-use necklace_permutations::necklace_perm_with_filter;
+use necklace_permutations::necklace_perm;
 
 fn main() {
     let cmp_np = |a: &Vec<u8>, b: &Vec<u8>| {
@@ -17,14 +17,14 @@ fn main() {
         return a[end].partial_cmp(&b[end]).unwrap();
     };
 
-    let mut result = necklace_perm_with_filter(vec![1, 2, 3, 4]);
+    let mut result = necklace_perm(vec![1, 2, 3, 4]);
     result.sort_by(cmp_np);
     println!("{:?}", result.len());
     for v in result {
         println!("{:?}", v);
     }
 
-    let mut result = necklace_perm_with_filter(vec![1, 2, 3, 4, 5]);
+    let mut result = necklace_perm(vec![1, 2, 3, 4, 5]);
     println!("{:?}", result.len());
     result.sort_by(cmp_np);
     for v in result {
