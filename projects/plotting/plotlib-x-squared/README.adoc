@@ -52,9 +52,13 @@ fn main() {
 [source,console]
 ----
 $ cargo run
-    Finished dev [unoptimized + debuginfo] target(s) in 0.24s
+    Finished dev [unoptimized + debuginfo] target(s) in 0.11s
      Running `target/debug/plotlib-x-squared`
 ----
 
 .Results
 image::images/0.svg[]
+
+=== References
+
+* https://github.com/milliams/plotlib[milliams/plotlib: Data plotting library for Rust | GitHub^]
