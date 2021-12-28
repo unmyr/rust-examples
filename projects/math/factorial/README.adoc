@@ -1,3 +1,5 @@
+:imagesdir: images
+
 === Create
 
 . Let's create a new library project called `factorial`
@@ -58,6 +60,8 @@ O(_n_ log(_n_))
 +
 [source,console]
 ----
+$ cargo criterion
+...
 factorial_recursive_if_else(20)
                         time:   [22.941 ns 23.075 ns 23.265 ns]
 
@@ -71,6 +75,8 @@ factorial_iterative(20) time:   [21.983 ns 22.092 ns 22.231 ns]
 +
 [source,console]
 ----
+$ cargo criterion
+...
 factorial_recursive_if_else(20)
                         time:   [42.656 ns 44.186 ns 46.075 ns]
                         change: [+83.448% +87.044% +91.432%] (p = 0.00 < 0.05)
@@ -85,3 +91,5 @@ factorial_iterative(20) time:   [21.847 ns 21.980 ns 22.160 ns]
                         change: [-1.3603% -0.0827% +1.0785%] (p = 0.90 > 0.05)
                         No change in performance detected.
 ----
+
+image::cargo-criterion-use-u64-for-all-tests.png[]
