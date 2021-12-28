@@ -1,3 +1,8 @@
+/// # Examples
+/// ```
+/// use factorial::factorial_recursive_if_else as factorial;
+/// assert_eq!(factorial(3), 6);
+/// ```
 pub fn factorial_recursive_if_else(n: u32) -> u32 {
     if n < 2 {
         1
@@ -6,6 +11,11 @@ pub fn factorial_recursive_if_else(n: u32) -> u32 {
     }
 }
 
+/// # Examples
+/// ```
+/// use factorial::factorial_recursive_use_match as factorial;
+/// assert_eq!(factorial(3), 6);
+/// ```
 pub fn factorial_recursive_use_match(num: u64) -> u64 {
     match num {
         0 | 1 => 1,
@@ -13,6 +23,11 @@ pub fn factorial_recursive_use_match(num: u64) -> u64 {
     }
 }
 
+/// # Examples
+/// ```
+/// use factorial::factorial_iterative as factorial;
+/// assert_eq!(factorial(3), 6);
+/// ```
 pub fn factorial_iterative(num: u64) -> u64 {
     // (1..=num).product()
     (1..=num).fold(1, |acc, v| acc * v)

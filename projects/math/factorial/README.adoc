@@ -1,6 +1,6 @@
 === Create
 
-. Let’s create a new library project called `factorial`
+. Let's create a new library project called `factorial`
 +
 [source,console]
 ----
@@ -28,20 +28,22 @@ pub fn factorial_recursive_if_else(n: u32) -> u32 {
 [source,console]
 ----
 $ cargo test
-   Compiling factorial v0.1.0 (<path-to-project>/factorial)
-    Finished test [unoptimized + debuginfo] target(s) in 3.31s
-     Running target/debug/deps/factorial-dce89ce7b27bbcc1
+    Finished test [unoptimized + debuginfo] target(s) in 0.04s
+     Running unittests (target/debug/deps/factorial-984d2647d5790804)
 
 running 3 tests
 test tests::test_factorial_iterative ... ok
 test tests::test_factorial_recursive_if_else ... ok
 test tests::test_factorial_recursive_use_match ... ok
 
-test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
 
    Doc-tests factorial
 
-running 0 tests
+running 3 tests
+test src/lib.rs - factorial_iterative (line 27) ... ok
+test src/lib.rs - factorial_recursive_if_else (line 2) ... ok
+test src/lib.rs - factorial_recursive_use_match (line 15) ... ok
 
-test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.90s
 ----
