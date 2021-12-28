@@ -47,3 +47,41 @@ test src/lib.rs - factorial_recursive_use_match (line 15) ... ok
 
 test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.90s
 ----
+
+=== 計算量
+
+O(_n_ log(_n_))
+
+=== Criterion Reports
+
+* Only `factorial_recursive_if_else` uses `u32`, others use `u64`.
++
+[source,console]
+----
+factorial_recursive_if_else(20)
+                        time:   [22.941 ns 23.075 ns 23.265 ns]
+
+factorial_recursive_use_match(20)
+                        time:   [41.701 ns 42.030 ns 42.381 ns]
+
+factorial_iterative(20) time:   [21.983 ns 22.092 ns 22.231 ns]
+----
+
+* Use `u64` for all tests.
++
+[source,console]
+----
+factorial_recursive_if_else(20)
+                        time:   [42.656 ns 44.186 ns 46.075 ns]
+                        change: [+83.448% +87.044% +91.432%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+
+factorial_recursive_use_match(20)
+                        time:   [40.481 ns 40.636 ns 40.818 ns]
+                        change: [-4.1826% -3.2633% -2.3409%] (p = 0.00 < 0.05)
+                        Performance has improved.
+
+factorial_iterative(20) time:   [21.847 ns 21.980 ns 22.160 ns]
+                        change: [-1.3603% -0.0827% +1.0785%] (p = 0.90 > 0.05)
+                        No change in performance detected.
+----

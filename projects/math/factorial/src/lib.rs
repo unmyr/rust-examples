@@ -3,7 +3,7 @@
 /// use factorial::factorial_recursive_if_else as factorial;
 /// assert_eq!(factorial(3), 6);
 /// ```
-pub fn factorial_recursive_if_else(n: u32) -> u32 {
+pub fn factorial_recursive_if_else(n: u64) -> u64 {
     if n < 2 {
         1
     } else {
