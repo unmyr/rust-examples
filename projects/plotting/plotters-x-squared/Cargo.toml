@@ -1,0 +1,8 @@
+[package]
+name = "plotters-x-squared"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+pathfinder_simd = { version = "0.5", features = ["pf-no-simd"] }
+plotters = "0.3"

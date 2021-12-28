@@ -15,5 +15,6 @@ clean:
 	(cd option-take && cargo clean)
 	(cd ownership && cargo clean)
 	(cd pattern-syntax && cargo clean)
+	(cd plotting && cargo clean)
 	(cd singly-linked-list && cargo clean)
 	(cd threads && make clean)

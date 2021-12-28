@@ -21,6 +21,7 @@
     "ifdef",
     "immut",
     "libc",
+    "libthread",
     "minigrep",
     "mpsc",
     "Multithreaded",
@@ -34,6 +35,9 @@
     "println",
     "rustc",
     "rustup",
+    "SIGILL",
+    "simd",
+    "stdarch",
     "strlen",
     "struct",
     "structs",
@@ -45,6 +49,7 @@
     "usize",
     "vals",
     "waitlist",
+    "webassembly",
     "Yury",
     "Zhauniarovich"
   ]
