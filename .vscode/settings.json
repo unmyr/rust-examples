@@ -30,6 +30,7 @@
     "nalgebra",
     "ndarray",
     "NODELAY",
+    "plotlib",
     "powf",
     "powi",
     "println",
