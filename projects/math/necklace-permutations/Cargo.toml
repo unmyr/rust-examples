@@ -7,9 +7,4 @@ edition = "2021"
 name = "necklace_permutations"
 path = "src/lib.rs"
 
-
-[[bin]]
-name = "necklace-permutations"
-path = "src/main.rs"
-
 [dependencies]
