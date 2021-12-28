@@ -61,4 +61,5 @@ image::images/0.svg[]
 
 === References
 
+* https://plotlib.org/[plotlib - visualise your data in Rust^]
 * https://github.com/milliams/plotlib[milliams/plotlib: Data plotting library for Rust | GitHub^]
