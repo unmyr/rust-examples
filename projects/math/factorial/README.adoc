@@ -91,5 +91,5 @@ factorial_iterative(20) time:   [21.847 ns 21.980 ns 22.160 ns]
                         change: [-1.3603% -0.0827% +1.0785%] (p = 0.90 > 0.05)
                         No change in performance detected.
 ----
-
++
 image::cargo-criterion-use-u64-for-all-tests.png[]
