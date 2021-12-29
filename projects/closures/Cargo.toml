@@ -1,0 +1,12 @@
+[workspace]
+members = [
+    "capture-by-move",
+    "capture-values",
+    "closure-in-struct.rs",
+    "get-closures-imm",
+    "get-closures-mut",
+    "immutable-borrow",
+    "joint-capturing",
+    "mutable-borrow",
+    "return-a-reference",
+]

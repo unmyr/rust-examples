@@ -1,0 +1,10 @@
+[workspace]
+members = [
+    "digits_sum_has_nth_roots",
+    "factorial",
+    "nalgebra-example-mutmal",
+    "ndarray-example-mutmal",
+    "necklace-permutations",
+    "permutation",
+    "tsp-basic",
+]

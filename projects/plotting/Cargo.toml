@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "plotlib-x-squared",
+    "plotters-x-squared",
+]

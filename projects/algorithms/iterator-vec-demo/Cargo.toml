@@ -4,18 +4,6 @@ version = "0.1.0"
 authors = ["unmyr <56982541+unmyr@users.noreply.github.com>"]
 edition = "2018"
 
-[[bin]]
-name = "for_demo"
-path = "src/for_demo.rs"
-
-[[bin]]
-name = "iter_find"
-path = "src/iter_find.rs"
-
-[[bin]]
-name = "iter_position"
-path = "src/iter_position.rs"
-
 [[test]]
 name = "all"
 path = "src/test.rs"

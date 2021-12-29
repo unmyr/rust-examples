@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    "thread-spawn-and-join",
+    "thread-spawn-share-immutable",
+    "thread-spawn-share-mutable",
+    "thread-spawn-vec",
+]

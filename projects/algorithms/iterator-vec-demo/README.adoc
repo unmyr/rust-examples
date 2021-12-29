@@ -46,7 +46,7 @@ test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 
 ifdef::env-github[]
 [source,rust]
-.src/for_demo.rs
+.src/bin/for_loop.rs
 ----
 fn main() {
     let v1 = vec![1, 2, 3];
@@ -61,18 +61,18 @@ fn main() {
 endif::[]
 ifndef::env-github[]
 [source,rust]
-.src/for_demo.rs
+.src/for_loop.rs
 ----
-include::src/for_demo.rs[]
+include::src/bin/for_loop.rs[]
 ----
 endif::[]
 
 [source,console]
 .Results
 ----
-$ cargo run --bin for_demo
+$ cargo run --bin for_loop
     Finished dev [unoptimized + debuginfo] target(s) in 0.04s
-     Running `target/debug/for_demo`
+     Running `target/debug/for_loop`
 Got: 1
 Got: 2
 Got: 3
@@ -83,7 +83,7 @@ Got: 3
 
 ifdef::env-github[]
 [source,rust]
-.src/iter_find.rs
+.src/bin/iter_find.rs
 ----
 fn main() {
     let strings = vec!["one", "two", "three"];
@@ -102,7 +102,7 @@ ifndef::env-github[]
 [source,rust]
 .src/iter_find.rs
 ----
-include::src/iter_find.rs[]
+include::src/bin/iter_find.rs[]
 ----
 endif::[]
 
@@ -120,7 +120,7 @@ item=Some("two"), strings=n/a(moved)
 
 ifdef::env-github[]
 [source,rust]
-.src/iter_position.rs
+.src/bin/iter_position.rs
 ----
 fn main() {
     let strings = vec!["one", "two", "three"];
@@ -139,7 +139,7 @@ ifndef::env-github[]
 [source,rust]
 .src/iter_position.rs
 ----
-include::src/iter_position.rs[]
+include::src/bin/iter_position.rs[]
 ----
 endif::[]
 

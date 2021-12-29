@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "juniper-example",
+    "simple-server",
+]
