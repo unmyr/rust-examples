@@ -8,3 +8,10 @@ name = "necklace_permutations"
 path = "src/lib.rs"
 
 [dependencies]
+
+[dev-dependencies]
+criterion = "0.3"
+
+[[bench]]
+name = "np_benchmark"
+harness = false

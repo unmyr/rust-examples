@@ -1,3 +1,5 @@
+:imagesdir: images
+
 === create a new binary project
 
 . Let's create a new binary project called `necklace-permutations`
@@ -118,6 +120,73 @@ $ cargo run --bin np_demo_v2
 [1, 4, 2, 3, 5]
 [1, 4, 3, 2, 5]
 ----
+
+=== Benchmark
+
+[source,console]
+----
+[20:49:28] necklace-permutations$ cargo criterion
+   Compiling necklace-permutations v0.1.0 (.../necklace-permutations)
+    Finished bench [optimized] target(s) in 12.38s
+
+running 9 tests
+test tests::test_perm1_order_2 ... ignored
+test tests::test_perm1_order_4 ... ignored
+test tests::test_perm2_order_2 ... ignored
+test tests::test_perm2_order_3 ... ignored
+test tests::test_perm2_order_4 ... ignored
+test tests::test_perm2_order_5 ... ignored
+test tests::test_perm2_order_6 ... ignored
+test tests::test_perm2_order_7 ... ignored
+test tests::test_perm2_order_8 ... ignored
+
+test result: ok. 0 passed; 0 failed; 9 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+Gnuplot not found, using plotters backend
+Benchmarking necklace_perm_with_filter(11): Warming up for 3.0000 s
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 1389.5s, or reduce sample count to 10.
+necklace_perm_with_filter(11)
+                        time:   [12.034 s 12.155 s 12.277 s]
+
+Benchmarking necklace_perm_iterative(11): Warming up for 3.0000 s
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 414.2s, or reduce sample count to 10.
+necklace_perm_iterative(11)
+                        time:   [4.9749 s 5.0027 s 5.0329 s]
+
+[21:20:26] necklace-permutations$
+----
+
+==== necklace_perm v1: necklace_perm_with_filter
+
+image::np_v1_20211229/pdf.svg[]
+
+image::np_v1_20211229/iteration_times.svg[]
+
+image::np_v1_20211229/MAD.svg[]
+
+image::np_v1_20211229/SD.svg[]
+
+image::np_v1_20211229/typical.svg[]
+
+image::np_v1_20211229/median.svg[]
+
+image::np_v1_20211229/mean.svg[]
+
+==== necklace_perm v2: necklace_perm_iterative
+
+image::np_v2_20211229/pdf.svg[]
+
+image::np_v2_20211229/iteration_times.svg[]
+
+image::np_v2_20211229/MAD.svg[]
+
+image::np_v2_20211229/SD.svg[]
+
+image::np_v2_20211229/typical.svg[]
+
+image::np_v2_20211229/median.svg[]
+
+image::np_v2_20211229/mean.svg[]
 
 === References
 * https://keisan.casio.com/exec/system/15137364949473[Necklace Permutation - Keisan Online Calculator^]
