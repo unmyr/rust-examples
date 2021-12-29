@@ -255,10 +255,10 @@ fn main() {
 v1=["hello world"], v2=["hello"], std::ptr::eq(v1, v2)=false
 ----
 
-* Get references as immutable
+* Get references each cells as immutable
 +
 [source,rust]
-.src/bin/vec_clone_ref_as_immutable.rs
+.src/bin/clone_each_cells_ref_as_immutable.rs
 ----
 use std::rc::Rc;
 
@@ -279,17 +279,46 @@ fn main() {
 [source,console]
 .Results
 ----
-$ cargo run --bin vec_clone_ref_as_immutable
+$ cargo run --bin clone_each_cells_ref_as_immutable
    ...
     Finished dev [unoptimized + debuginfo] target(s) in 3.85s
-     Running `.../target/debug/vec_clone_ref_as_immutable`
+     Running `.../target/debug/clone_each_cells_ref_as_immutable`
 v1=["hello"], v2=["hello"]
 ----
 
-* Get references as mutable
+* Get references whole `Vec` as immutable
 +
 [source,rust]
-.src/bin/vec_clone_ref_as_mut.rs
+.src/bin/clone_whole_vec_ref_as_immutable.rs
+----
+use std::rc::Rc;
+
+fn main() {
+    let v1 = Rc::new(vec![String::from("hello")]);
+    assert_eq!(Rc::strong_count(&v1), 1);
+    let v2 = v1.clone();
+    assert_eq!(Rc::strong_count(&v1), 2);
+    assert_eq!(Rc::ptr_eq(&v1, &v2), true);
+    println!("v1={:?}, v2={:?}", v1, v2);
+    assert_eq!(*v1, vec![String::from("hello")]);
+    assert_eq!(*v2, vec![String::from("hello")]);
+}
+----
++
+[source,console]
+.Results
+----
+$ cargo run --bin clone_whole_vec_ref_as_immutable
+   ...
+    Finished dev [unoptimized + debuginfo] target(s) in 5.04s
+     Running `.../target/debug/clone_whole_vec_ref_as_immutable`
+v1=["hello"], v2=["hello"]
+----
+
+* Get references each cells as mutable
++
+[source,rust]
+.src/bin/clone_each_cells_ref_as_mut.rs
 ----
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -307,9 +336,40 @@ fn main() {
 [source,console]
 .Results
 ----
-$ cargo run --bin vec_clone_ref_as_mut
+$ cargo run --bin clone_each_cells_ref_as_mut
    ...
     Finished dev [unoptimized + debuginfo] target(s) in 3.86s
-     Running `.../target/debug/vec_clone_ref_as_mut`
+     Running `.../target/debug/clone_each_cells_ref_as_mut`
 v1="hello world", v2="hello world"
+----
+
+* Get references whole `Vec` as mutable
++
+[source,rust]
+.src/bin/clone_whole_vec_ref_as_mut.rs
+----
+use std::cell::RefCell;
+use std::rc::Rc;
+
+fn main() {
+    let v1 = Rc::new(RefCell::new(vec![String::from("hello")]));
+    assert_eq!(Rc::strong_count(&v1), 1);
+    let v2 = Rc::clone(&v1);
+    assert_eq!(Rc::strong_count(&v1), 2);
+    assert_eq!(Rc::ptr_eq(&v1, &v2), true);
+    v1.borrow_mut()[0].push_str(" world");
+    println!("v1={:?}, v2={:?}", v1.borrow(), v2.borrow());
+    assert_eq!(*v1.borrow(), vec![String::from("hello world")]);
+    assert_eq!(*v2.borrow(), vec![String::from("hello world")]);
+}
+----
++
+[source,console]
+.Results
+----
+$ cargo run --bin clone_whole_vec_ref_as_mut
+   ...
+    Finished dev [unoptimized + debuginfo] target(s) in 3.98s
+     Running `/home/guest/tmp_rust/rust-examples/projects/algorithms/target/debug/clone_whole_vec_ref_as_mut`
+v1=["hello world"], v2=["hello world"]
 ----
