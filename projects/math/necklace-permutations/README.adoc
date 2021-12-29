@@ -123,6 +123,7 @@ $ cargo run --bin np_demo_v2
 
 === Benchmark
 
+==== 2021-12-29 20:49
 [source,console]
 ----
 [20:49:28] necklace-permutations$ cargo criterion
@@ -156,7 +157,7 @@ necklace_perm_iterative(11)
 [21:20:26] necklace-permutations$
 ----
 
-==== necklace_perm v1: necklace_perm_with_filter
+===== necklace_perm v1: necklace_perm_with_filter
 
 image::np_v1_20211229/pdf.svg[]
 
@@ -172,7 +173,7 @@ image::np_v1_20211229/median.svg[]
 
 image::np_v1_20211229/mean.svg[]
 
-==== necklace_perm v2: necklace_perm_iterative
+===== necklace_perm v2: necklace_perm_iterative
 
 image::np_v2_20211229/pdf.svg[]
 
@@ -187,6 +188,108 @@ image::np_v2_20211229/typical.svg[]
 image::np_v2_20211229/median.svg[]
 
 image::np_v2_20211229/mean.svg[]
+
+==== 2021-12-29 22:55
+
+The `necklace_perm_iterative` has been `improved`.
+
+[source,console]
+----
+$ cargo criterion
+...
+Gnuplot not found, using plotters backend
+Benchmarking necklace_perm_with_filter(11): Warming up for 3.0000 s
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 1421.7s, or reduce sample count to 10.
+necklace_perm_with_filter(11)
+                        time:   [12.131 s 12.278 s 12.440 s]
+                        change: [-0.5817% +1.0117% +2.6321%] (p = 0.23 > 0.05)
+                        No change in performance detected.
+
+Benchmarking necklace_perm_iterative(11): Warming up for 3.0000 s
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 391.0s, or reduce sample count to 10.
+necklace_perm_iterative(11)
+                        time:   [4.7102 s 4.7457 s 4.7858 s]
+                        change: [-6.0182% -5.1378% -4.1526%] (p = 0.00 < 0.05)
+                        Performance has improved.
+----
+
+* `necklace_perm_with_filter()` +
+I didn't expect any improvement as the changes would only replace the swapping implementation, and it was.(swapの実装を置き換えるのみで可読性の改善はあるが、性能改善が期待できるものではない。)
++
+[source,diff]
+.src/lib.rs
+----
+@@ -10,7 +10,7 @@
+ /// ```
+ pub fn necklace_perm_with_filter<T>(v: Vec<T>)
+ -> Vec<Vec<T>>
+-where T: Clone + std::cmp::PartialEq + std::cmp::PartialOrd
++where T: Clone + std::cmp::PartialOrd
+ {
+     let num_of_chars = v.len();
+     let mut result = Vec::<Vec<T>>::new();
+@@ -24,9 +24,7 @@ where T: Clone + std::cmp::PartialEq + std::cmp::PartialOrd
+         for result_idx in 0..(result_len) {
+             for i in (n+1) .. num_of_chars {
+                 let mut v_new = result[result_idx].clone();
+-                let tmp = v_new[n].clone();
+-                v_new[n] = v_new[i].clone();
+-                v_new[i] = tmp;
++                v_new.swap(n, i);
+                 result.push(v_new);
+             }
+         }
+----
+
+* necklace_perm +
+リングの左端を置換を終えた後で、リングの右端で「右端＜左端」の関係を満たすものだけ選別する処理を切り出した。つまり裏返しを除外するロジックが n=1 のケースを切り出すことで、ifの評価を減らしている。
++
+[source,diff]
+.src/lib.rs
+----
+@@ -45,7 +43,7 @@ where T: Clone + std::cmp::PartialEq + std::cmp::PartialOrd
+ /// ```
+ pub fn necklace_perm<T>(v: Vec<T>)
+ -> Vec<Vec<T>>
+-where T: Clone + std::cmp::PartialEq + std::cmp::PartialOrd
++where T: Clone + std::cmp::PartialOrd
+ {
+     let num_of_chars = v.len();
+     let mut result = Vec::<Vec<T>>::new();
+@@ -63,17 +61,25 @@ where T: Clone + std::cmp::PartialEq + std::cmp::PartialOrd
+         result.push(v_new);
+     }
+
+-    for n in 1 .. num_of_chars {
++    let n: usize = 1;
++    let result_len = result.len();
++    for result_idx in 0..(result_len) {
++        for i in (n+1) .. (num_of_chars-1) {
++            if result[result_idx][i] > result[result_idx][end] {
++                continue;
++            }
++            let mut v_new = result[result_idx].clone();
++            v_new.swap(n, i);
++            result.push(v_new);
++        }
++    }
++
++    for n in 2 .. num_of_chars {
+         let result_len = result.len();
+         for result_idx in 0..(result_len) {
+             for i in (n+1) .. (num_of_chars-1) {
+-                if n == 1 && result[result_idx][i] > result[result_idx][end] {
+-                    continue;
+-                }
+                 let mut v_new = result[result_idx].clone();
+-                let tmp = v_new[n].clone();
+-                v_new[n] = v_new[i].clone();
+-                v_new[i] = tmp;
++                v_new.swap(n, i);
+                 result.push(v_new);
+             }
+         }
+----
 
 === References
 * https://keisan.casio.com/exec/system/15137364949473[Necklace Permutation - Keisan Online Calculator^]

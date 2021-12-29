@@ -10,7 +10,7 @@
 /// ```
 pub fn necklace_perm_with_filter<T>(v: Vec<T>)
 -> Vec<Vec<T>>
-where T: Clone + std::cmp::PartialEq + std::cmp::PartialOrd
+where T: Clone + std::cmp::PartialOrd
 {
     let num_of_chars = v.len();
     let mut result = Vec::<Vec<T>>::new();
@@ -24,9 +24,7 @@ where T: Clone + std::cmp::PartialEq + std::cmp::PartialOrd
         for result_idx in 0..(result_len) {
             for i in (n+1) .. num_of_chars {
                 let mut v_new = result[result_idx].clone();
-                let tmp = v_new[n].clone();
-                v_new[n] = v_new[i].clone();
-                v_new[i] = tmp;
+                v_new.swap(n, i);
                 result.push(v_new);
             }
         }
@@ -45,7 +43,7 @@ where T: Clone + std::cmp::PartialEq + std::cmp::PartialOrd
 /// ```
 pub fn necklace_perm<T>(v: Vec<T>)
 -> Vec<Vec<T>>
-where T: Clone + std::cmp::PartialEq + std::cmp::PartialOrd
+where T: Clone + std::cmp::PartialOrd
 {
     let num_of_chars = v.len();
     let mut result = Vec::<Vec<T>>::new();
@@ -63,17 +61,25 @@ where T: Clone + std::cmp::PartialEq + std::cmp::PartialOrd
         result.push(v_new);
     }
 
-    for n in 1 .. num_of_chars {
+    let n: usize = 1;
+    let result_len = result.len();
+    for result_idx in 0..(result_len) {
+        for i in (n+1) .. (num_of_chars-1) {
+            if result[result_idx][i] > result[result_idx][end] {
+                continue;
+            }
+            let mut v_new = result[result_idx].clone();
+            v_new.swap(n, i);
+            result.push(v_new);
+        }
+    }
+
+    for n in 2 .. num_of_chars {
         let result_len = result.len();
         for result_idx in 0..(result_len) {
             for i in (n+1) .. (num_of_chars-1) {
-                if n == 1 && result[result_idx][i] > result[result_idx][end] {
-                    continue;
-                }
                 let mut v_new = result[result_idx].clone();
-                let tmp = v_new[n].clone();
-                v_new[n] = v_new[i].clone();
-                v_new[i] = tmp;
+                v_new.swap(n, i);
                 result.push(v_new);
             }
         }
