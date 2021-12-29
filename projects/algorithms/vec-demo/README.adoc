@@ -232,3 +232,84 @@ $ cargo run --bin sort_vec_of_vec
 [4, 3, 1, 2]
 [4, 3, 2, 1]
 ----
+
+==== Clone references in Vector
+
+* Clone values in vector
++
+[source,rust]
+----
+fn main() {
+    let mut v1 = vec![String::from("hello")];
+    let v2 = v1.clone();
+    v1[0].push_str(" world");
+    println!("v1={:?}, v2={:?}, std::ptr::eq(v1, v2)={}", v1, v2, std::ptr::eq(&v1[0], &v2[0]));
+    assert_eq!(v1, vec!["hello world"]);
+    assert_eq!(v2, vec!["hello"]);
+}
+----
++
+[source,console]
+.Results
+----
+v1=["hello world"], v2=["hello"], std::ptr::eq(v1, v2)=false
+----
+
+* Get references as immutable
++
+[source,rust]
+.src/bin/vec_clone_ref_as_immutable.rs
+----
+use std::rc::Rc;
+
+fn main() {
+    // let mut v1 = vec![Rc::new(String::from("hello"))];
+    let v1 = vec![Rc::new(String::from("hello"))];
+    assert_eq!(Rc::strong_count(&v1[0]), 1);
+    let v2 = v1.clone();
+    assert_eq!(Rc::strong_count(&v1[0]), 2);
+    assert_eq!(Rc::ptr_eq(&v1[0], &v2[0]), true);
+    // v1[0].push_str(" world");  // cannot borrow as mutable
+    println!("v1={:?}, v2={:?}", v1, v2);
+    assert_eq!(*v1[0], String::from("hello"));
+    assert_eq!(*v2[0], String::from("hello"));
+}
+----
++
+[source,console]
+.Results
+----
+$ cargo run --bin vec_clone_ref_as_immutable
+   ...
+    Finished dev [unoptimized + debuginfo] target(s) in 3.85s
+     Running `.../target/debug/vec_clone_ref_as_immutable`
+v1=["hello"], v2=["hello"]
+----
+
+* Get references as mutable
++
+[source,rust]
+.src/bin/vec_clone_ref_as_mut.rs
+----
+use std::cell::RefCell;
+use std::rc::Rc;
+
+fn main() {
+    let v1 = vec![Rc::new(RefCell::new(String::from("hello")))];
+    let v2 = v1.clone();
+    v1[0].borrow_mut().push_str(" world");
+    println!("v1={:?}, v2={:?}", v1[0].borrow(), v2[0].borrow());
+    assert_eq!(*v1[0].borrow(), String::from("hello world"));
+    assert_eq!(*v2[0].borrow(), String::from("hello world"));
+}
+----
++
+[source,console]
+.Results
+----
+$ cargo run --bin vec_clone_ref_as_mut
+   ...
+    Finished dev [unoptimized + debuginfo] target(s) in 3.86s
+     Running `.../target/debug/vec_clone_ref_as_mut`
+v1="hello world", v2="hello world"
+----
