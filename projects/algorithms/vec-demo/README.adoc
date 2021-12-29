@@ -42,7 +42,7 @@ test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 
 === Run commands
 
-==== for demo
+==== Using an iterator in a `for` loop
 
 ifdef::env-github[]
 [source,rust]
@@ -61,7 +61,7 @@ fn main() {
 endif::[]
 ifndef::env-github[]
 [source,rust]
-.src/for_loop.rs
+.src/bin/for_loop.rs
 ----
 include::src/bin/for_loop.rs[]
 ----
@@ -100,7 +100,7 @@ fn main() {
 endif::[]
 ifndef::env-github[]
 [source,rust]
-.src/iter_find.rs
+.src/bin/iter_find.rs
 ----
 include::src/bin/iter_find.rs[]
 ----
@@ -137,7 +137,7 @@ fn main() {
 endif::[]
 ifndef::env-github[]
 [source,rust]
-.src/iter_position.rs
+.src/bin/iter_position.rs
 ----
 include::src/bin/iter_position.rs[]
 ----
@@ -151,4 +151,84 @@ $ cargo run --bin iter_position
      Running `target/debug/iter_position`
 index=Some(1), strings=["one", "two", "three"]
 index=Some(1), strings=n/a(moved)
+----
+
+==== Sort vec of vec
+
+[source,rust]
+.src/bin/sort_vec_of_vec.rs
+----
+fn main() {
+    let mut perm_4 = vec![
+        [1, 2, 3, 4],
+        [2, 1, 3, 4],
+        [3, 2, 1, 4],
+        [4, 2, 3, 1],
+        [1, 3, 2, 4],
+        [1, 4, 3, 2],
+        [2, 3, 1, 4],
+        [2, 4, 3, 1],
+        [3, 1, 2, 4],
+        [3, 4, 1, 2],
+        [4, 3, 2, 1],
+        [4, 1, 3, 2],
+        [1, 2, 4, 3],
+        [2, 1, 4, 3],
+        [3, 2, 4, 1],
+        [4, 2, 1, 3],
+        [1, 3, 4, 2],
+        [1, 4, 2, 3],
+        [2, 3, 4, 1],
+        [2, 4, 1, 3],
+        [3, 1, 4, 2],
+        [3, 4, 2, 1],
+        [4, 3, 1, 2],
+        [4, 1, 2, 3],
+    ];
+    perm_4.sort_by(|a, b| {
+        if a[0] != b[0] {
+            a[0].partial_cmp(&b[0]).unwrap()
+        } else if a[1] != b[1] {
+            a[1].partial_cmp(&b[1]).unwrap()
+        } else if a[2] != b[2] {
+            a[2].partial_cmp(&b[2]).unwrap()
+        } else {
+            a[3].partial_cmp(&b[3]).unwrap()
+        }
+    });
+    for e in perm_4 {
+        println!("{:?}", e);
+    }
+}
+----
+
+[source,console]
+----
+$ cargo run --bin sort_vec_of_vec
+    Finished dev [unoptimized + debuginfo] target(s) in 0.05s
+     Running `.../target/debug/sort_vec_of_vec`
+[1, 2, 3, 4]
+[1, 2, 4, 3]
+[1, 3, 2, 4]
+[1, 3, 4, 2]
+[1, 4, 2, 3]
+[1, 4, 3, 2]
+[2, 1, 3, 4]
+[2, 1, 4, 3]
+[2, 3, 1, 4]
+[2, 3, 4, 1]
+[2, 4, 1, 3]
+[2, 4, 3, 1]
+[3, 1, 2, 4]
+[3, 1, 4, 2]
+[3, 2, 1, 4]
+[3, 2, 4, 1]
+[3, 4, 1, 2]
+[3, 4, 2, 1]
+[4, 1, 2, 3]
+[4, 1, 3, 2]
+[4, 2, 1, 3]
+[4, 2, 3, 1]
+[4, 3, 1, 2]
+[4, 3, 2, 1]
 ----
