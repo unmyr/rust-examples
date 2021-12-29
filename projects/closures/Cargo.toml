@@ -2,7 +2,7 @@
 members = [
     "capture-by-move",
     "capture-values",
-    "closure-in-struct.rs",
+    "closure-in-struct",
     "get-closures-imm",
     "get-closures-mut",
     "immutable-borrow",

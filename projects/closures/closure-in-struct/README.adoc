@@ -1,8 +1,14 @@
-== Closures
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --lib closure-in-struct
+     Created library `closure-in-struct` package
+$ cd closure-in-struct/
+----
 
-=== Closure in struct
-
-* <<closure-in-struct/README.adoc#,Closure in struct>>
+=== Generate closure in constructor
 
 [source,rust]
 .src/bin/generate_closure_in_constructor.rs
@@ -41,15 +47,9 @@ fn main() {
 [source,console]
 .Results
 ----
-$ cargo run --bin generate_closure_in_constructor
+cargo run --bin generate_closure_in_constructor
    Compiling closure-in-struct v0.1.0 (.../closure-in-struct)
     Finished dev [unoptimized + debuginfo] target(s) in 4.75s
      Running `.../target/debug/generate_closure_in_constructor`
 5.0
 ----
-
-=== References
-* https://doc.rust-lang.org/book/ch13-01-closures.html[Closures: Anonymous Functions that Can Capture Their Environment - The Rust Programming Language^]
-* https://doc.rust-lang.org/std/ops/trait.Fn.html[Fn in std::ops - Rust^]
-* https://doc.rust-lang.org/std/ops/trait.FnMut.html[FnMut in std::ops - Rust^]
-* https://doc.rust-lang.org/std/ops/trait.FnOnce.html[FnOnce in std::ops - Rust^]
