@@ -55,9 +55,7 @@ where T: Clone + std::cmp::PartialOrd
     let end: usize = num_of_chars - 1;
     for i in 2 .. (num_of_chars-1) {
         let mut v_new = result[0].clone();
-        let tmp = v_new[end].clone();
-        v_new[end] = v_new[i].clone();
-        v_new[i] = tmp;
+        v_new.swap(end, i);
         result.push(v_new);
     }
 
