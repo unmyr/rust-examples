@@ -18,3 +18,4 @@ clean:
 	(cd plotting && cargo clean)
 	(cd singly-linked-list && cargo clean)
 	(cd threads && cargo clean)
+	(cd wasm && cargo clean)
