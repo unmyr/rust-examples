@@ -1,8 +1,5 @@
 use std::ops::Range;
 
-#![feature(test)]
-extern crate test;
-
 struct PermutationIterator<T> {
     initial: Vec<T>,
     ranges: Vec<Range<u16>>,
@@ -169,8 +166,6 @@ where T: Clone + std::cmp::PartialEq + std::cmp::PartialOrd
 
 #[cfg(test)]
 mod tests {
-    use test::Bencher;
-
     #[test]
     fn test_perm_tmp_vec_u32() {
         use crate::perm_tmp_vec_u32;
@@ -299,73 +294,5 @@ mod tests {
             }
         }
         assert_eq!(verify.len(), 0);
-    }
-
-    #[bench]
-    fn bench_perm_tmp_vec_u32(b: &mut Bencher) {
-        use crate::perm_tmp_vec_u32;
-        
-        b.iter(|| {
-            for _ in 0..20 {
-                // 6! = 720 patterns
-                let mut result = Vec::<Vec<u32>>::new();
-                perm_tmp_vec_u32(vec![1, 2, 3, 4, 5, 6], &mut vec![], &mut result);
-                result.clear();
-            }
-        })
-    }
-
-    #[bench]
-    fn bench_perm_with_swap_u32(b: &mut Bencher) {
-        use crate::perm_with_swap_u32;
-        
-        b.iter(|| {
-            for _ in 0..20 {
-                // 6! = 720 patterns
-                let mut result = Vec::<Vec<u32>>::new();
-                perm_with_swap_u32(vec![1, 2, 3, 4, 5, 6], 0, &mut result);
-                result.clear();
-            }
-        })
-    }
-
-    #[bench]
-    fn bench_perm_with_swap_gen(b: &mut Bencher) {
-        use crate::perm_with_swap_gen;
-        
-        b.iter(|| {
-            for _ in 0..20 {
-                // 6! = 720 patterns
-                let mut result = Vec::<Vec<u32>>::new();
-                perm_with_swap_gen(vec![1, 2, 3, 4, 5, 6], 0, &mut result);
-                result.clear();
-            }
-        })
-    }
-
-    #[bench]
-    fn bench_perm_iterative_no_gen(b: &mut Bencher) {
-        use crate::perm_iterative_no_gen;
-        
-        b.iter(|| {
-            for _ in 0..20 {
-                // 6! = 720 patterns
-                let mut result = perm_iterative_no_gen(vec![1, 2, 3, 4, 5, 6]);
-                result.clear();
-            }
-        })
-    }
-
-    #[bench]
-    fn bench_perm_iterative_ordered_gen(b: &mut Bencher) {
-        use crate::perm_iterative_ordered_gen;
-        
-        b.iter(|| {
-            for _ in 0..20 {
-                // 6! = 720 patterns
-                let mut result = perm_iterative_ordered_gen(vec![1, 2, 3, 4, 5, 6]);
-                result.clear();
-            }
-        })
     }
 }
