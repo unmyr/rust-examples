@@ -15,26 +15,18 @@ $ cd permutation/
 
 === Benchmark
 
-. Set nightly
+. First install cargo-criterion:
 +
 [source,console]
 ----
-$ rustup override set nightly
+cargo install cargo-criterion
 ----
 
-. Install nightly
+. Then you can use it to run your Criterion-rs benchmarks:
 +
 [source,console]
 ----
-$ rustup install nightly
-----
-
-. Check version
-+
-[source,console]
-----
-$ cargo -V
-cargo 1.59.0-nightly (fcef61230 2021-12-17)
+cargo criterion
 ----
 
 ==== Benchmark results
@@ -43,24 +35,34 @@ Swap implementation is faster.
 
 [source,console]
 ----
-$ cargo bench
-   Compiling permutation v0.1.0 (.../projects/math/permutation)
-    Finished bench [optimized] target(s) in 4.57s
-     Running unittests (target/release/deps/permutation-a8a03217a213bc5a)
+$ cargo criterion
+...
+Gnuplot not found, using plotters backend
+v1 recursive tmp_vec u32(6)
+                        time:   [351.78 us 365.16 us 382.44 us]
+                        change: [+9.3256% +15.170% +22.512%] (p = 0.00 < 0.05)
+                        Performance has regressed.
 
-running 10 tests
-test tests::test_perm_iterative_no_gen ... ignored
-test tests::test_perm_iterative_ordered_gen ... ignored
-test tests::test_perm_tmp_vec_u32 ... ignored
-test tests::test_perm_with_swap_gen ... ignored
-test tests::test_perm_with_swap_u32 ... ignored
-test tests::bench_perm_iterative_no_gen      ... bench:     721,800 ns/iter (+/- 252,102)
-test tests::bench_perm_iterative_ordered_gen ... bench:   2,510,677 ns/iter (+/- 217,588)
-test tests::bench_perm_tmp_vec_u32           ... bench:   5,281,755 ns/iter (+/- 992,021)
-test tests::bench_perm_with_swap_gen         ... bench:   2,727,402 ns/iter (+/- 182,668)
-test tests::bench_perm_with_swap_u32         ... bench:   2,699,400 ns/iter (+/- 152,745)
+v2 recursive swap u32(6)
+                        time:   [511.56 us 516.17 us 521.23 us]
+                        change: [+0.6862% +1.8608% +3.0244%] (p = 0.00 < 0.05)
+                        Change within noise threshold.
 
-test result: ok. 0 pass
+v3 recursive swap generics(6)
+                        time:   [502.35 us 504.99 us 508.68 us]
+                        change: [-1.1029% +0.5176% +1.9625%] (p = 0.54 > 0.05)
+                        No change in performance detected.
+
+v4 iterative unordered(6)
+                        time:   [199.51 us 205.30 us 214.17 us]
+                        change: [-2.0463% -0.2419% +1.7000%] (p = 0.82 > 0.05)
+                        No change in performance detected.
+
+v5 iterative ordered sorting(6)
+                        time:   [767.24 us 808.82 us 856.43 us]
+                        change: [+4.8453% +8.2637% +12.629%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+...
 ----
 
 === Codes
@@ -94,24 +96,21 @@ pub fn perm_tmp_vec_u32(v1: Vec<u32>, v2: &mut Vec<u32>, out: &mut Vec<Vec<u32>>
 * Swap implementation
 +
 [source,rust]
-.src/lib.rs
+.src/v2_recursive_unordered_u32.rs
 ----
-pub fn perm_with_swap_u32(v1: Vec<u32>, m: usize, out: &mut Vec<Vec<u32>>)
+pub fn gen_perm_with_depth(v: Vec<u32>, m: usize, out: &mut Vec<Vec<u32>>)
 {
-    if m == v1.len() {
-        out.push(v1.to_vec());
+    if m == v.len() {
+        out.push(v.to_vec());
         return;
     }
 
-    for item in v1[m..].iter() {
-        let mut vc1 = v1.clone();
-        if vc1[m] != *item {
-            let n = m + vc1[m..].iter().position(|&r| r == *item).unwrap();
-            let tmp = vc1[m];
-            vc1[m] = vc1[n];
-            vc1[n] = tmp;
+    for i in m .. v.len() {
+        let mut v_new = v.clone();
+        if i != m {
+            v_new.swap(m, i);
         }
-        perm_with_swap_u32(vc1, m+1, out);
+        gen_perm_with_depth(v_new, m+1, out);
     }
 }
 ----
@@ -119,9 +118,9 @@ pub fn perm_with_swap_u32(v1: Vec<u32>, m: usize, out: &mut Vec<Vec<u32>>)
 * Generics
 +
 [source,rust]
-.src/lib.rs
+.src/v3_recursive_unordered_gen.rs
 ----
-pub fn perm_with_swap_gen<T>(v: Vec<T>, m: usize, out: &mut Vec<Vec<T>>)
+pub fn gen_perm_with_depth<T>(v: Vec<T>, m: usize, out: &mut Vec<Vec<T>>)
 where T: Clone + std::cmp::PartialEq
 {
     if m == v.len() {
@@ -132,22 +131,21 @@ where T: Clone + std::cmp::PartialEq
     for i in m .. v.len() {
         let mut v_new = v.clone();
         if i != m {
-            let tmp = v_new[m].clone();
-            v_new[m] = v_new[i].clone();
-            v_new[i] = tmp;
+            v_new.swap(m, i);
         }
-        perm_with_swap_gen(v_new, m+1, out);
+        gen_perm_with_depth(v_new, m+1, out);
     }
 }
 ----
 
-* Non-recursive implementation
+* Non-recursive implementation (Unordered)
 +
 [source,rust]
+.src/v4_iterative_unordered.rs
 ----
-pub fn perm_iterative_no_gen<T>(v: Vec<T>)
+pub fn gen_perm<T>(v: Vec<T>)
 -> Vec<Vec<T>>
-where T: Clone + std::cmp::PartialEq
+where T: Clone
 {
     let num_of_chars = v.len();
     let mut result = Vec::<Vec<T>>::new();
@@ -159,9 +157,7 @@ where T: Clone + std::cmp::PartialEq
         for result_idx in 0..(result_len) {
             for i in (n+1) .. num_of_chars {
                 let mut v_new = result[result_idx].clone();
-                let tmp = v_new[n].clone();
-                v_new[n] = v_new[i].clone();
-                v_new[i] = tmp;
+                v_new.swap(n, i);
                 result.push(v_new);
             }
         }
@@ -173,10 +169,11 @@ where T: Clone + std::cmp::PartialEq
 * Non-recursive implementation (Ordered)
 +
 [source,rust]
+.src/v5_iterative_ordered.rs
 ----
-pub fn perm_iterative_ordered_gen<T>(v: Vec<T>)
+pub fn gen_perm<T>(v: Vec<T>)
 -> Vec<Vec<T>>
-where T: Clone + std::cmp::PartialEq + std::cmp::PartialOrd
+where T: Clone + std::cmp::PartialOrd
 {
     let num_of_chars = v.len();
     let mut result = Vec::<Vec<T>>::new();
@@ -186,9 +183,7 @@ where T: Clone + std::cmp::PartialEq + std::cmp::PartialOrd
         for result_idx in 0..(result_len) {
             for i in (n+1) .. num_of_chars {
                 let mut v_new = result[result_idx].clone();
-                let tmp = v_new[n].clone();
-                v_new[n] = v_new[i].clone();
-                v_new[i] = tmp;
+                v_new.swap(n, i);
                 result.push(v_new);
             }
         }
