@@ -3,6 +3,10 @@ name = "tsp-basic"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "tsplib"
+path = "src/lib.rs"
+
 [dependencies]
 regex = "1"
 rand = "0.8"
