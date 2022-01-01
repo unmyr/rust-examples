@@ -23,6 +23,14 @@ mod tests {
     use crate::v1_recursive_ordered_u32::gen_perm_with_tmp_vec_u32;
 
     #[test]
+    fn test_gen_perm_0() {
+        let mut result = Vec::<Vec<u32>>::new();
+        gen_perm_with_tmp_vec_u32(Vec::new(), &mut vec![], &mut result);
+        println!("{:?}", result);
+        assert_eq!(result, Vec::<Vec<u32>>::new());
+    }
+
+    #[test]
     fn test_gen_perm_1() {
         let mut result = Vec::<Vec<u32>>::new();
         gen_perm_with_tmp_vec_u32(vec![1], &mut vec![], &mut result);

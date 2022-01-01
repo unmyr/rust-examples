@@ -19,6 +19,14 @@ mod tests {
     use crate::v3_recursive_unordered_gen::gen_perm_with_depth;
 
     #[test]
+    fn test_gen_perm_0() {
+        let mut result = Vec::<Vec<u32>>::new();
+        gen_perm_with_depth(Vec::new(), 0, &mut result);
+        println!("{:?}", result);
+        assert_eq!(result, vec![vec![]]);
+    }
+
+    #[test]
     fn test_gen_perm_1() {
         let mut result = Vec::<Vec<u32>>::new();
         gen_perm_with_depth(vec![1], 0, &mut result);

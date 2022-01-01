@@ -25,6 +25,12 @@ mod tests {
     use crate::v4_iterative_unordered::gen_perm;
 
     #[test]
+    fn test_gen_perm_0() {
+        let result: Vec<Vec<u8>> = gen_perm(Vec::new());
+        assert_eq!(result, vec![Vec::new()]);
+    }
+
+    #[test]
     fn test_gen_perm_1() {
         let result = gen_perm(vec![1]);
         assert_eq!(result, vec![vec![1]]);
