@@ -11,3 +11,5 @@ path = "src/lib.rs"
 regex = "1"
 rand = "0.8"
 necklace-permutations = { path = "../necklace-permutations" }
+pathfinder_simd = { version = "0.5", features = ["pf-no-simd"] }
+plotters = "0.3"

@@ -69,4 +69,7 @@ total_dist_min=181.92024
 total_dist_min=180.90567
 ----
 
+.1 -> 2 -> 11 -> 3 -> 10 -> 9 -> 4 -> 5 -> 6 -> 7 -> 8
+image::images/tsp-1_2_11_3_10_9_4_5_6_7_8.png[]
+
 === References

@@ -8,8 +8,8 @@ use std::cmp::{Ordering, PartialEq, PartialOrd};
 #[derive(Debug, Clone)]
 pub struct TspNode {
     pub node_no: usize,
-    x: i32,
-    y: i32,
+    pub x: i32,
+    pub y: i32,
 }
 
 #[derive(Debug)]
