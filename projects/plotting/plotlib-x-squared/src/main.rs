@@ -23,5 +23,5 @@ fn main() {
         .y_label("The response of something");
 
     // A page with a single view is then saved to an SVG file
-    Page::single(&v).save("images/0.svg").unwrap();
+    Page::single(&v).save("../images/plotlib-x-squared.svg").unwrap();
 }

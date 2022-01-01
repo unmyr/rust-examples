@@ -1,3 +1,5 @@
+== Plotters
+
 === Workaround: SSE4.1 causes crashes on older CPU
 
 ==== Symptom

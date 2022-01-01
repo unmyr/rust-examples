@@ -21,7 +21,7 @@ $ cd plotters-x-squared/
 use plotters::prelude::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let root = BitMapBackend::new("images/0.png", (640, 480)).into_drawing_area();
+    let root = BitMapBackend::new("../images/plotters-x-squared.png", (640, 480)).into_drawing_area();
     root.fill(&WHITE)?;
     let mut chart = ChartBuilder::on(&root)
         .caption("y=x^2", ("sans-serif", 50).into_font())
@@ -60,82 +60,4 @@ $ cargo run
 ----
 
 .Results
-image::images/0.png[]
-
-=== Workaround: SSE4.1 causes crashes on older CPU
-
-==== Symptom
-
-[source,console]
-----
-$ cargo run
-...
-   Compiling pathfinder_simd v0.5.1
-   Compiling pathfinder_geometry v0.5.1
-   Compiling font-kit v0.10.1
-   Compiling plotters v0.3.1
-   Compiling quick-start v0.1.0 (.../quick-start)
-    Finished dev [unoptimized + debuginfo] target(s) in 26.58s
-     Running `target/debug/plotters-x-squared`
-Illegal instruction (core dumped)
-----
-
-
-==== Cause
-
-The application crashes because of using instruction sets 'sse4.1' in `pathfinder_simd`.
-
-[source,console]
-----
-$ rust-gdb -q ./target/debug/plotters-x-squared
-Reading symbols from ./target/debug/plotters-x-squared...done.
-(gdb) run
-Starting program: .../target/debug/plotters-x-squared
-[Thread debugging using libthread_db enabled]
-Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
-
-Program received signal SIGILL, Illegal instruction.
-0x00000000080dc4f5 in core::core_arch::x86::sse41::_mm_max_epi32 (a=..., b=...)
-    at /rustc/f1edd0429582dd29cccacaf50fd134b05593bd9c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse41.rs:287
-287     /rustc/f1edd0429582dd29cccacaf50fd134b05593bd9c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse41.rs: No such file or directory.
-(gdb) bt
-#0  0x00000000080dc4f5 in core::core_arch::x86::sse41::_mm_max_epi32 (a=..., b=...)
-    at /rustc/f1edd0429582dd29cccacaf50fd134b05593bd9c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse41.rs:287
-#1  0x00000000080db055 in pathfinder_simd::x86::I32x4::max (self=..., other=...)
-    at /home/guest/.cargo/registry/src/github.com-1ecc6299db9ec823/pathfinder_simd-0.5.1/src/x86/mod.rs:705
-...
-#15 0x0000000008086288 in plotters_x_squared::main () at src/main.rs:6
-(gdb)
-----
-
-==== Workaround
-
-. Fix `Cargo.toml`
-+
-[source,diff]
-.Cargo.toml
-----
-@@ -1,7 +1,8 @@
- [package]
- name = "plotters-x-squared"
- version = "0.1.0"
- edition = "2021"
-
- [dependencies]
-+pathfinder_simd = { version = "0.5", features = ["pf-no-simd"] }
- plotters = "0.3"
-----
-
-. Rerun
-+
-[source,rust]
-----
-$ cargo run
-   Compiling pathfinder_simd v0.5.1
-   Compiling pathfinder_geometry v0.5.1
-   Compiling font-kit v0.10.1
-   Compiling plotters v0.3.1
-   Compiling plotters-x-squared v0.1.0 (.../plotters-x-squared)
-    Finished dev [unoptimized + debuginfo] target(s) in 26.73s
-     Running `target/debug/plotters-x-squared`
-----
+image::../images/plotters-x-squared.png[]
