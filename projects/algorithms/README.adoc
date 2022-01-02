@@ -251,6 +251,10 @@ fn main() {
 
 === Iterator
 
+==== Implement iterator
+
+* Generation
++
 [source,rust]
 ----
 struct ReverseIterator {
@@ -284,50 +288,116 @@ fn main() {
 }
 ----
 
-=== fold
-
-* sum
+* Iterate sequences:
 +
 [source,rust]
 ----
-fn main() {
-    let sum = (1..=3).into_iter().fold(0, |sum, e| sum + e);
-    assert_eq!(sum, 6);
+struct Reverser<T> {
+    v: Vec<T>
 }
-----
 
-* factorial
-+
-[source,rust]
-----
-fn main() {
-    let n: u32 = 5;
-    let factorial_5 = (1..=n).into_iter().fold(1, |prod, e| prod * e);
-    println!("{:?}", factorial_5);
-    assert_eq!(factorial_5, 120);
+struct ReverseIterator<'a, T> {
+    r: &'a Reverser<T>,
+    some_i: Option<usize>
 }
-----
 
-* chain
-+
-[source,rust]
-----
-type MyIter = Box<dyn Iterator<Item=i32>>;
-
-fn main() {
-    let a = 0..3;
-    let b = 3..6;
-    let c = 6..9;
-    let v = vec![b, c];
-    let z = v.into_iter().fold(
-        Box::new(a) as MyIter,
-        |acc, e| {
-            Box::new(acc.chain(Box::new(e) as MyIter)) as MyIter
-        }
-    );
-
-    for i in z {
-        println!("{}", i);
+impl<T> Reverser<T> {
+    fn new(v: Vec<T>) -> Reverser<T> {
+        Reverser {v: v}
     }
+
+    fn iter(&self) -> ReverseIterator<'_,T> {
+        if self.v.len() == 0 {
+            ReverseIterator {
+                r: &self,
+                some_i: None
+            }
+        } else {
+            ReverseIterator {
+                r: &self,
+                some_i: Some(self.v.len() - 1),
+            }
+        }
+    }
+}
+
+impl<'a, T> Iterator for ReverseIterator<'a, T> {
+    type Item = &'a T;
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.some_i {
+            Some(i) => {
+                let cur_val = &self.r.v[i];
+                if i == 0 {
+                    self.some_i = None;
+                } else {
+                    self.some_i = Some(i - 1);
+                }
+                Some(cur_val)
+            },
+            _ => None
+        }
+    }
+}
+
+fn main() {
+    let r = Reverser::new(vec!["a", "b", "c"]);
+    let mut iter = r.iter();
+    assert_eq!(iter.next(), Some(&"c"));
+    assert_eq!(iter.next(), Some(&"b"));
+    assert_eq!(iter.next(), Some(&"a"));
+    assert_eq!(iter.next(), None);
+
+    let r = Reverser::new(Vec::<&str>::new());
+    let mut iter = r.iter();
+    assert_eq!(iter.next(), None);
+
+    let r = Reverser::new(vec!["a", "b", "c", "e", "f"]);
+    let iter = r.iter();
+    assert_eq!(iter.take(3).collect::<Vec<&&str>>(), vec![&"f", &"e", &"c"]);
+}
+----
+
+==== std::iter::Chain
+
+* Append values to the iterator
++
+[source,rust]
+----
+use std::iter::Chain;
+use std::slice::Iter;
+
+fn main() {
+    let a1 = [1, 2, 3];
+    let a2 = [4, 5, 6];
+    let iter: Chain<Iter<_>, Iter<_>> = a1.iter().chain(a2.iter());
+    for v in iter {
+        println!("{:?}", v);
+    }
+}
+----
++
+.Results
+----
+1
+2
+3
+4
+5
+6
+----
+
+* Add a value to the iterator
++
+[source,rust]
+----
+fn main() {
+    let v = vec![1, 2, 3];
+    let mut v_iter = v.iter().chain(std::iter::once(&4));
+    assert_eq!(v_iter.next(), Some(&1));
+    assert_eq!(v_iter.next(), Some(&2));
+    assert_eq!(v_iter.next(), Some(&3));
+    assert_eq!(v_iter.next(), Some(&4));
+    assert_eq!(v_iter.next(), None);
+    assert_eq!(v, vec![1, 2, 3]);
 }
 ----
