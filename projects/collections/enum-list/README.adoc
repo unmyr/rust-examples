@@ -1,11 +1,17 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+:icons: font
+endif::[]
+
 === Set up a new project
 . Set up a new project, and go to the projects directory.
 +
 [source,console]
 ----
-$ cargo new --lib singly-linked-list
-     Created library `singly-linked-list` package
-$ cd singly-linked-list/
+$ cargo new --lib enum-list
+     Created library `enum-list` package
+$ cd enum-list/
 ----
 
 === Run tests

@@ -4,7 +4,7 @@ use std::rc::Rc;
 /// 
 /// ```
 /// use std::rc::Rc;
-/// use singly_linked_list::List::{Cons, Nil};
+/// use enum_list::List::{Cons, Nil};
 /// 
 /// let a = Rc::new(Cons(10, Rc::new(Nil)));
 /// ```
