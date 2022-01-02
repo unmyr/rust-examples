@@ -2,6 +2,7 @@
 members = [
     "digits_sum_has_nth_roots",
     "factorial",
+    "itertools-examples",
     "nalgebra-example-mutmal",
     "ndarray-example-mutmal",
     "necklace-permutations",
