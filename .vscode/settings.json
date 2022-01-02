@@ -23,6 +23,7 @@
     "ifdef",
     "imagesdir",
     "immut",
+    "itertools",
     "libc",
     "libthread",
     "minigrep",
