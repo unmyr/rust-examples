@@ -25,35 +25,27 @@ impl<T> SinglyLinkedList<T> {
             next: None,
         }
     }
+
     pub fn push_back(&mut self, v: T) {
         let node_new = SinglyLinkedList::new(v);
-
-        let mut cur: Option<Rc<RefCell<SinglyLinkedList<T>>>>;
+        let mut cur: Rc<RefCell<SinglyLinkedList<T>>>;
         if let Some(ref next) = self.next {
-            cur = Some(Rc::clone(next));
+            cur = Rc::clone(next);
         } else {
             self.next = Some(Rc::new(RefCell::new(node_new)));
             return;
         };
 
         loop {
-            let cur_cloned = match cur {
-                None => break,
-                Some(ref n) => Rc::clone(n)
-            };
-            cur = match cur_cloned.borrow().next {
-                Some(ref next) => Some(Rc::clone(next)),
-                None => {
-                    unsafe {
-                        (*cur_cloned.as_ptr()).next = Some(
-                            Rc::new(
-                                RefCell::new(node_new)
-                            )
-                        );
-                    }
-                    return;
-                }
-            };
+            if let Some(ref next) = Rc::clone(&cur).borrow().next {
+                cur = Rc::clone(next);
+                continue;
+            }
+
+            cur.borrow_mut().next = Some(
+                Rc::new(RefCell::new(node_new))
+            );
+            return;
         }
     }
 }
