@@ -648,7 +648,7 @@ error: could not compile `playground` due to previous error
 * Using `Rc<RefCell<String>>`
 +
 [source,rust]
-.slice_pointers.rs
+.projects/algorithms/vec-demo/src/bin/view_for_slices_mut.rs
 ----
 fn main() {
     let names = vec![
