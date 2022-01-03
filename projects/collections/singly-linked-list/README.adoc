@@ -106,5 +106,12 @@ SinglyLinkedList(1, SinglyLinkedList(2, SinglyLinkedList(3, Nil)))
 
 === References
 
+* doc.rust-lang.org
+** https://doc.rust-lang.org/std/rc/struct.Rc.html[Rc in std::rc - Rust^]
+** https://doc.rust-lang.org/std/cell/struct.RefCell.html[RefCell in std::cell - Rust^]
 * https://stackoverflow.com/questions/47748091/how-can-i-make-only-certain-struct-fields-mutable[rust - How can I make only certain struct fields mutable? - Stack Overflow^] +
   rust struct mut field - Google Search
+* https://stackoverflow.com/questions/55331919/borrowed-refcell-does-not-last-long-enough-when-iterating-over-a-list[rust - Borrowed RefCell does not last long enough when iterating over a list - Stack Overflow^] +
+  rust RefCell next list get pointer - Google Search
+* https://blog.ymgyt.io/entry/2019/08/17/013313[Rustでdoubly linked list - happy developing^] +
+  rust RefCell list next - Google 検索
