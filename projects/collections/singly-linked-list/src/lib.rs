@@ -1,13 +1,14 @@
 use std::fmt;
+use std::fmt::Debug;
 use std::rc::Rc;
 use std::cell::RefCell;
 
-pub struct SinglyLinkedList<T> {
+pub struct SinglyLinkedList<T: Debug> {
     value: T,
     next: Option<Rc<RefCell<SinglyLinkedList<T>>>>,
 }
 
-impl<T: std::fmt::Debug> fmt::Display for SinglyLinkedList<T> {
+impl<T: Debug> fmt::Display for SinglyLinkedList<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.next {
             None => write!(f, "SinglyLinkedList({:?}, Nil)", self.value),
@@ -18,7 +19,13 @@ impl<T: std::fmt::Debug> fmt::Display for SinglyLinkedList<T> {
     }
 }
 
-impl<T: Clone> SinglyLinkedList<T> {
+impl<T: Debug> Drop for SinglyLinkedList<T> {
+    fn drop(&mut self) {
+        println!("> Dropping: {:?}", self.value);
+    }
+}
+
+impl<T: Clone + Debug> SinglyLinkedList<T> {
     pub fn new(v: T) -> SinglyLinkedList<T> {
         SinglyLinkedList {
             value: v,
@@ -46,12 +53,14 @@ impl<T: Clone> SinglyLinkedList<T> {
     }
 
     pub fn pop_back(&mut self) -> Option<T> {
+        println!("pop_back(): BEGIN");
         let mut some_prev: Option<Rc<RefCell<SinglyLinkedList<T>>>> = None;
         let mut cur: Rc<RefCell<SinglyLinkedList<T>>>;
         if let Some(ref next) = self.next {
             cur = Rc::clone(next);
         } else {
             // You can't pop the head of the list.
+            println!("pop_back(): END");
             return None;
         };
 
@@ -67,7 +76,7 @@ impl<T: Clone> SinglyLinkedList<T> {
         } else {
             self.next = None;
         }
-        drop(cur);
+        println!("pop_back(): END");
         return Some(result);
     }
 }
