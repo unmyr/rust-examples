@@ -36,16 +36,12 @@ impl<T> SinglyLinkedList<T> {
             return;
         };
 
-        loop {
-            if let Some(ref next) = Rc::clone(&cur).borrow().next {
-                cur = Rc::clone(next);
-                continue;
-            }
-
-            cur.borrow_mut().next = Some(
-                Rc::new(RefCell::new(node_new))
-            );
-            return;
+        while let Some(ref next) = Rc::clone(&cur).borrow().next {
+            cur = Rc::clone(next);
         }
+
+        cur.borrow_mut().next = Some(
+            Rc::new(RefCell::new(node_new))
+        );
     }
 }
