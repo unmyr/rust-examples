@@ -34,13 +34,13 @@ impl<T: Debug> fmt::Display for SinglyLinkedList<T> {
     }
 }
 
-impl<T: Clone + Debug> ListNode<T> {
+impl<T: Debug> ListNode<T> {
     pub fn new(v: T) -> ListNode<T> {
         ListNode { value: v, next: None }
     }
 }
 
-impl<T: Clone + Debug> SinglyLinkedList<T> {
+impl<T: Debug> SinglyLinkedList<T> {
     pub fn new() -> SinglyLinkedList<T> {
         SinglyLinkedList {
             head: None,
@@ -102,13 +102,13 @@ impl<T: Clone + Debug> SinglyLinkedList<T> {
             cur = Rc::clone(next);
         }
 
-        let result: T;
-        result = Rc::clone(&cur).borrow().value.clone();
         if let Some(prev) = some_prev {
             prev.borrow_mut().next = None;
         } else {
             self.head = None;
         }
+        let result: T;
+        result = Rc::try_unwrap(cur).ok().unwrap().into_inner().value;
         println!("pop_back(): END");
         return Some(result);
     }
