@@ -3,43 +3,65 @@ use std::fmt::Debug;
 use std::rc::Rc;
 use std::cell::RefCell;
 
-pub struct SinglyLinkedList<T: Debug> {
+pub struct ListNode<T: Debug> {
     value: T,
-    next: Option<Rc<RefCell<SinglyLinkedList<T>>>>,
+    next: Option<Rc<RefCell<ListNode<T>>>>,
 }
 
-impl<T: Debug> fmt::Display for SinglyLinkedList<T> {
+pub struct SinglyLinkedList<T: Debug> {
+    head: Option<Rc<RefCell<ListNode<T>>>>,
+}
+
+impl<T: Debug> fmt::Display for ListNode<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.next {
-            None => write!(f, "SinglyLinkedList({:?}, Nil)", self.value),
+            None => write!(f, "ListNode({:?},Nil)", self.value),
             Some(ref next) => {
-                write!(f, "SinglyLinkedList({:?}, {})", self.value, next.borrow())
+                write!(f, "ListNode({:?},{})", self.value, next.borrow())
             }
         }
     }
 }
 
-impl<T: Debug> Drop for SinglyLinkedList<T> {
-    fn drop(&mut self) {
-        println!("> Dropping: {:?}", self.value);
+impl<T: Debug> fmt::Display for SinglyLinkedList<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.head {
+            None => write!(f, "SinglyLinkedList(Nil)"),
+            Some(ref head) => {
+                write!(f, "SinglyLinkedList({})", head.borrow())
+            }
+        }
+    }
+}
+
+impl<T: Clone + Debug> ListNode<T> {
+    pub fn new(v: T) -> ListNode<T> {
+        ListNode { value: v, next: None }
     }
 }
 
 impl<T: Clone + Debug> SinglyLinkedList<T> {
-    pub fn new(v: T) -> SinglyLinkedList<T> {
+    pub fn new() -> SinglyLinkedList<T> {
         SinglyLinkedList {
-            value: v,
-            next: None,
+            head: None,
         }
     }
 
+    /// # Examples
+    ///
+    /// ```
+    /// use list::SinglyLinkedList;
+    /// let mut list = SinglyLinkedList::new();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// ```
     pub fn push_back(&mut self, v: T) {
-        let node_new = SinglyLinkedList::new(v);
-        let mut cur: Rc<RefCell<SinglyLinkedList<T>>>;
-        if let Some(ref next) = self.next {
-            cur = Rc::clone(next);
+        let node_new = ListNode::new(v);
+        let mut cur: Rc<RefCell<ListNode<T>>>;
+        if let Some(ref head) = self.head {
+            cur = Rc::clone(head);
         } else {
-            self.next = Some(Rc::new(RefCell::new(node_new)));
+            self.head = Some(Rc::new(RefCell::new(node_new)));
             return;
         };
 
@@ -52,12 +74,23 @@ impl<T: Clone + Debug> SinglyLinkedList<T> {
         );
     }
 
+    /// # Examples
+    ///
+    /// ```
+    /// use list::SinglyLinkedList;
+    /// let mut list = SinglyLinkedList::new();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// assert_eq!(list.pop_back(), Some(2));
+    /// assert_eq!(list.pop_back(), Some(1));
+    /// assert_eq!(list.pop_back(), None);
+    /// ```
     pub fn pop_back(&mut self) -> Option<T> {
         println!("pop_back(): BEGIN");
-        let mut some_prev: Option<Rc<RefCell<SinglyLinkedList<T>>>> = None;
-        let mut cur: Rc<RefCell<SinglyLinkedList<T>>>;
-        if let Some(ref next) = self.next {
-            cur = Rc::clone(next);
+        let mut some_prev: Option<Rc<RefCell<ListNode<T>>>> = None;
+        let mut cur: Rc<RefCell<ListNode<T>>>;
+        if let Some(ref head) = self.head {
+            cur = Rc::clone(head);
         } else {
             // You can't pop the head of the list.
             println!("pop_back(): END");
@@ -74,7 +107,7 @@ impl<T: Clone + Debug> SinglyLinkedList<T> {
         if let Some(prev) = some_prev {
             prev.borrow_mut().next = None;
         } else {
-            self.next = None;
+            self.head = None;
         }
         println!("pop_back(): END");
         return Some(result);
