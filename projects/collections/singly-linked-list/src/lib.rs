@@ -3,12 +3,12 @@ use std::fmt::Debug;
 use std::rc::Rc;
 use std::cell::RefCell;
 
-pub struct ListNode<T: Debug> {
+pub struct ListNode<T> {
     value: T,
     next: Option<Rc<RefCell<ListNode<T>>>>,
 }
 
-pub struct SinglyLinkedList<T: Debug> {
+pub struct SinglyLinkedList<T> {
     head: Option<Rc<RefCell<ListNode<T>>>>,
 }
 
@@ -107,6 +107,7 @@ impl<T: Debug> SinglyLinkedList<T> {
         } else {
             self.head = None;
         }
+
         let result: T;
         result = Rc::try_unwrap(cur).ok().unwrap().into_inner().value;
         println!("pop_back(): END");
