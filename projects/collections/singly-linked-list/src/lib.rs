@@ -40,6 +40,12 @@ impl<T: Debug> ListNode<T> {
     }
 }
 
+impl<T: Debug> Default for SinglyLinkedList<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<T: Debug> SinglyLinkedList<T> {
     pub fn new() -> SinglyLinkedList<T> {
         SinglyLinkedList {
@@ -111,7 +117,7 @@ impl<T: Debug> SinglyLinkedList<T> {
         let result: T;
         result = Rc::try_unwrap(cur).ok().unwrap().into_inner().value;
         println!("pop_back(): END");
-        return Some(result);
+        Some(result)
     }
 }
 
