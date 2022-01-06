@@ -114,3 +114,34 @@ impl<T: Debug> SinglyLinkedList<T> {
         return Some(result);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::SinglyLinkedList;
+
+    #[test]
+    fn test_push_pop_1() {
+        let mut list = SinglyLinkedList::new();
+        list.push_back(1);
+        assert_eq!(list.pop_back(), Some(1));
+        assert_eq!(list.pop_back(), None);
+        list.push_back(1);
+        assert_eq!(list.pop_back(), Some(1));
+        assert_eq!(list.pop_back(), None);
+    }
+
+    #[test]
+    fn test_push_pop_2() {
+        let mut list = SinglyLinkedList::new();
+        list.push_back("hello");
+        list.push_back("world");
+        assert_eq!(list.pop_back(), Some("world"));
+        assert_eq!(list.pop_back(), Some("hello"));
+        assert_eq!(list.pop_back(), None);
+        list.push_back("hello");
+        list.push_back("world");
+        assert_eq!(list.pop_back(), Some("world"));
+        assert_eq!(list.pop_back(), Some("hello"));
+        assert_eq!(list.pop_back(), None);
+    }
+}
