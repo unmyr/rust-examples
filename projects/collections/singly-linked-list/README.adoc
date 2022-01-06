@@ -67,7 +67,7 @@ impl<T> SinglyLinkedList<T> {
             cur = match cur_cloned.borrow().next {
                 Some(ref next) => Some(Rc::clone(next)),
                 None => {
-                    cur_cloned.borrow_mut() = node_new;
+                    cur_cloned.borrow_mut().next = Some(Rc::new(RefCell::new(node_new)));  //<1>
                     return;
                 }
             };
@@ -75,6 +75,7 @@ impl<T> SinglyLinkedList<T> {
     }
 }
 ----
+<1> BorrowMutError
 
 [source,rust]
 .src/main.rs
@@ -87,6 +88,16 @@ fn main() {
     list.push_back(3);
     println!("{}", list);
 }
+----
+
+[source,console]
+----
+$ cargo run
+   Compiling singly-linked-list v0.1.0 (.../singly-linked-list)
+    Finished dev [unoptimized + debuginfo] target(s) in 2.24s
+     Running `.../target/debug/singly-linked-list`
+thread 'main' panicked at 'already borrowed: BorrowMutError', .../singly-linked-list/src/lib.rs:47:32
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
 ----
 
 ==== v1: Using unsafe
