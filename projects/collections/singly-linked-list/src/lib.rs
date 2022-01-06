@@ -1,3 +1,4 @@
+use std::default::Default;
 use std::fmt;
 use std::fmt::Debug;
 use std::rc::Rc;
@@ -8,6 +9,7 @@ pub struct ListNode<T> {
     next: Option<Rc<RefCell<ListNode<T>>>>,
 }
 
+#[derive(Default)]
 pub struct SinglyLinkedList<T> {
     head: Option<Rc<RefCell<ListNode<T>>>>,
 }
@@ -40,24 +42,12 @@ impl<T: Debug> ListNode<T> {
     }
 }
 
-impl<T: Debug> Default for SinglyLinkedList<T> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl<T: Debug> SinglyLinkedList<T> {
-    pub fn new() -> SinglyLinkedList<T> {
-        SinglyLinkedList {
-            head: None,
-        }
-    }
-
     /// # Examples
     ///
     /// ```
     /// use list::SinglyLinkedList;
-    /// let mut list = SinglyLinkedList::new();
+    /// let mut list: SinglyLinkedList<u8> = Default::default();
     /// list.push_back(1);
     /// list.push_back(2);
     /// ```
@@ -84,7 +74,7 @@ impl<T: Debug> SinglyLinkedList<T> {
     ///
     /// ```
     /// use list::SinglyLinkedList;
-    /// let mut list = SinglyLinkedList::new();
+    /// let mut list: SinglyLinkedList<u8> = Default::default();
     /// list.push_back(1);
     /// list.push_back(2);
     /// assert_eq!(list.pop_back(), Some(2));
@@ -127,7 +117,7 @@ mod tests {
 
     #[test]
     fn test_push_pop_1() {
-        let mut list = SinglyLinkedList::new();
+        let mut list: SinglyLinkedList<u8> = Default::default();
         list.push_back(1);
         assert_eq!(list.pop_back(), Some(1));
         assert_eq!(list.pop_back(), None);
@@ -138,7 +128,7 @@ mod tests {
 
     #[test]
     fn test_push_pop_2() {
-        let mut list = SinglyLinkedList::new();
+        let mut list: SinglyLinkedList<&str> = Default::default();
         list.push_back("hello");
         list.push_back("world");
         assert_eq!(list.pop_back(), Some("world"));
