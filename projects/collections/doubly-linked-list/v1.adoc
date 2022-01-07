@@ -3,7 +3,7 @@
 This code does not free the Node objects, resulting in a memory leak.
 
 [source,rust]
-.src/lib.rs
+.src/v1.rs
 ----
 use std::rc::Rc;
 use std::cell::RefCell;
@@ -142,7 +142,7 @@ List[Node(1, Nil, 2), Node(2, 1, 3), Node(3, 2, Nil)]
 == v2: Fix memory leaks
 
 [source,diff]
-.src/lib.rs
+.src/v1.rs
 ----
 @@ -1,11 +1,12 @@
  use std::rc::Rc;
@@ -192,7 +192,7 @@ List[Node(1, Nil, 2), Node(2, 1, 3), Node(3, 2, Nil)]
 ----
 
 [source,rust]
-.src/lib.rs
+.src/v1.rs
 ----
 use std::rc::Rc;
 use std::rc::Weak;
