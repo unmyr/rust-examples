@@ -1,4 +1,5 @@
 use std::rc::Rc;
+use std::rc::Weak;
 use std::cell::RefCell;
 use std::fmt;
 use std::fmt::Debug;
@@ -6,7 +7,7 @@ use std::fmt::Debug;
 pub struct Node<T: Debug> {
     value: T,
     next: Option<Rc<RefCell<Node<T>>>>,
-    prev: Option<Rc<RefCell<Node<T>>>>,
+    prev: Option<Weak<RefCell<Node<T>>>>,
 }
 
 #[derive(Default)]
@@ -46,7 +47,7 @@ impl<T: Debug> List<T> {
         while let Some(ref next) = Rc::clone(&cur).borrow().next {
             cur = Rc::clone(next);
         }
-        node_new.prev = Some(Rc::clone(&cur));
+        node_new.prev = Some(Rc::downgrade(&cur));
 
         cur.borrow_mut().next = Some(
             Rc::new(RefCell::new(node_new))
@@ -63,7 +64,8 @@ impl<T: Debug> fmt::Display for Node<T> {
             (Some(prev), None) => {
                 write!(
                     f, "Node({:?}, {:?}, Nil)",
-                    self.value, prev.borrow().value
+                    self.value,
+                    Rc::clone(&prev.upgrade().unwrap()).borrow().value
                 )
             },
             (None, Some(next)) => {
@@ -75,7 +77,10 @@ impl<T: Debug> fmt::Display for Node<T> {
             (Some(prev), Some(next)) => {
                 write!(
                     f, "Node({:?}, {:?}, {:?}), {}",
-                    self.value, prev.borrow().value, next.borrow().value, next.borrow()
+                    self.value,
+                    Rc::clone(&prev.upgrade().unwrap()).borrow().value,
+                    next.borrow().value,
+                    next.borrow()
                 )
             }
         }
