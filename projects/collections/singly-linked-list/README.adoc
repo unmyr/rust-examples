@@ -1054,7 +1054,5 @@ SinglyLinkedList(Nil)
 * pop_front()
 ** https://rust-unofficial.github.io/too-many-lists/fourth-breaking.html[Breaking - Learning Rust With Entirely Too Many Linked Lists^] +
    rust cannot move out of an rc - Google 検索
-** https://stackoverflow.com/questions/66258586/how-can-i-unwrap-an-rc-obtained-by-weakupgrade-having-more-than-one-strong-r[rust - How can I unwrap an Rc, obtained by Weak::upgrade, having more than one strong references? - Stack Overflow^] +
-   rust rc into_inner - Google 検索
 ** https://stackoverflow.com/questions/54012660/unwrap-and-access-t-from-an-optionrcrefcellt[rust - Unwrap and access T from an Option<Rc<RefCell<T>>> - Stack Overflow^] +
    rust rc into_inner - Google 検索
