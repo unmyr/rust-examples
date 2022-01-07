@@ -16,7 +16,7 @@ $ cd doubly-linked-list/
 
 === Codes
 
-* <<v1.adoc#,v1>> +
+* <<v1.adoc#,v1.x>> +
   There is a memory leak in this code.
 
 === References

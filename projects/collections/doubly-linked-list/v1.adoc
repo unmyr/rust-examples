@@ -1,4 +1,6 @@
-== v1: There is a memory leak in this code
+== v1
+
+=== v1.1 There is a memory leak in this code
 
 This code does not free the Node objects, resulting in a memory leak.
 
@@ -139,7 +141,7 @@ List[Node(1, Nil, 2), Node(2, 1, 3), Node(3, 2, Nil)]
 > Dropping: List
 ----
 
-== v2: Fix memory leaks
+=== v1.2: Fix memory leaks
 
 [source,diff]
 .src/v1.rs
