@@ -6,8 +6,8 @@ use std::fmt::Debug;
 
 pub struct Node<T: Debug> {
     value: T,
-    next: Option<Rc<RefCell<Node<T>>>>,
     prev: Option<Weak<RefCell<Node<T>>>>,
+    next: Option<Rc<RefCell<Node<T>>>>,
 }
 
 #[derive(Default)]
