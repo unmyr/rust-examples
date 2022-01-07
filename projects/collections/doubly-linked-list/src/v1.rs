@@ -62,16 +62,25 @@ impl<T: Debug> fmt::Display for Node<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match (self.prev.as_ref(), self.next.as_ref()) {
             (None, None) => {
-                write!(f, "Node({:?},Nil,Nil)", self.value)
+                write!(f, "Node({:?}, Nil, Nil)", self.value)
             },
-            (Some(_), None) => {
-                write!(f, "Node({:?},*,Nil)", self.value)
+            (Some(prev), None) => {
+                write!(
+                    f, "Node({:?}, {:?}, Nil)",
+                    self.value, prev.borrow().value
+                )
             },
             (None, Some(next)) => {
-                write!(f, "Node({:?},Nil,{})", self.value, next.borrow())
+                write!(
+                    f, "Node({:?}, Nil, {:?}), {}",
+                    self.value, next.borrow().value, next.borrow()
+                )
             },
-            (Some(_), Some(next)) => {
-                write!(f, "Node({:?},*,{})", self.value, next.borrow())
+            (Some(prev), Some(next)) => {
+                write!(
+                    f, "Node({:?}, {:?}, {:?}), {}",
+                    self.value, prev.borrow().value, next.borrow().value, next.borrow()
+                )
             }
         }
     }
@@ -80,9 +89,9 @@ impl<T: Debug> fmt::Display for Node<T> {
 impl<T: Debug> fmt::Display for List<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.head {
-            None => write!(f, "List(Nil)"),
+            None => write!(f, "List[]"),
             Some(ref head) => {
-                write!(f, "List({})", head.borrow())
+                write!(f, "List[{}]", head.borrow())
             }
         }
     }
