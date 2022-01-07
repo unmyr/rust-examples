@@ -1,0 +1,27 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+:icons: font
+endif::[]
+
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --lib doubly-linked-list
+     Created library `doubly-linked-list` package
+$ cd doubly-linked-list/
+----
+
+=== Codes
+
+* <<v1.adoc#,v1>> +
+  There is a memory leak in this code.
+
+=== References
+* doc.rust-lang.org
+** https://doc.rust-lang.org/std/rc/struct.Rc.html[Rc in std::rc - Rust^]
+** https://doc.rust-lang.org/std/cell/struct.RefCell.html[RefCell in std::cell - Rust^]
+* https://stackoverflow.com/questions/66258586/how-can-i-unwrap-an-rc-obtained-by-weakupgrade-having-more-than-one-strong-r[rust - How can I unwrap an Rc, obtained by Weak::upgrade, having more than one strong references? - Stack Overflow^] +
+   rust rc into_inner - Google 検索
