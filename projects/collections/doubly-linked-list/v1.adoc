@@ -115,7 +115,7 @@ mod tests {
 ----
 
 [source,rust]
-.src/main.rs
+.src/bin/db_list_v1.rs
 ----
 use list::v1::List;
 
