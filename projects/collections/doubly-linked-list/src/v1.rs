@@ -34,7 +34,7 @@ impl<T: Debug> Drop for Node<T> {
 
 impl<T: Debug> List<T> {
     pub fn push_back(&mut self, v: T) {
-        let node_new = Node::new(v);
+        let mut node_new = Node::new(v);
         let mut cur: Rc<RefCell<Node<T>>>;
         if let Some(ref head) = self.head {
             cur = Rc::clone(head);
@@ -42,19 +42,15 @@ impl<T: Debug> List<T> {
             self.head = Some(Rc::new(RefCell::new(node_new)));
             return;
         };
-        let mut some_prev: Option<Rc<RefCell<Node<T>>>> = None;
 
         while let Some(ref next) = Rc::clone(&cur).borrow().next {
-            some_prev = Some(Rc::clone(&cur));
             cur = Rc::clone(next);
         }
+        node_new.prev = Some(Rc::clone(&cur));
 
         cur.borrow_mut().next = Some(
             Rc::new(RefCell::new(node_new))
         );
-        if let Some(prev) = some_prev {
-            cur.borrow_mut().prev = Some(Rc::clone(&prev));
-        };
     }
 }
 
@@ -99,9 +95,13 @@ impl<T: Debug> fmt::Display for List<T> {
 
 #[cfg(test)]
 mod tests {
+    use crate::v1::List;
+
     #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
+    fn test_push_back_u8() {
+        let mut list: List<u8> = Default::default();
+        list.push_back(1);
+        list.push_back(2);
+        list.push_back(3);
     }
 }
