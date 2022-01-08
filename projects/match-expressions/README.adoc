@@ -16,3 +16,38 @@ $ cd match-expressions/
 $ cargo test
 ...
 ----
+
+=== Examples
+
+==== Range
+
+[source,rust]
+----
+pub fn get_message_str(msg: &Message) -> String {
+    let message = match msg {
+        Message::Hello {
+            id: id_variable @ 3..=7,
+        } => format!("Found an id in range: {}", id_variable),
+        Message::Hello { id: 10..=12 } => {
+            format!("Found an id in another range")
+        }
+        Message::Hello { id } => format!("Found some other id: {}", id),
+    };
+    message
+}
+----
+
+==== Tuple
+
+[source,rust]
+----
+pub fn get_message_str(a: Option<&str>, b: Option<u8>) -> String {
+    match (a, b) {
+        (Some(msg), Some(code)) => {
+            format!("msg={}, code={}", msg, code)
+        },
+        (_, None) => format!("msg=*, code=Nil"),
+        (None, Some(code)) => format!("msg=Nil, code={}", code),
+    }
+}
+----
