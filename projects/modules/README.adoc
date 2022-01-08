@@ -1,0 +1,109 @@
+== References
+
+* https://iximiuz.com/en/posts/rust-privacy-and-visibility/[Understanding Rust Privacy and Visibility Model^] +
+  rust module unique - Google Search
+* https://doc.rust-lang.org/cargo/[Introduction - The Cargo Book^]
+** https://doc.rust-lang.org/cargo/guide/project-layout.html[Package Layout - The Cargo Book^]
+
+== Examples
+
+=== duplicate definitions for `get_message`
+
+==== Single file
+
+[source,rust]
+.src/lib.rs
+----
+pub struct Hello {
+    pub msg: String
+}
+
+pub mod v1 {
+    impl super::Hello {
+        pub fn get_message() -> String {
+            String::from("v1: Hello world")
+        }
+    }
+}
+
+pub mod v2 {
+    impl super::Hello {
+        pub fn get_message() -> String {
+            String::from("v2: Hello world")
+        }
+    }
+}
+----
+
+* lib.rs
++
+----
+duplicate definitions with name `get_message`
+
+duplicate definitions for `get_message`
+----
+
+** v1.rs[7, 9]:
++
+----
+duplicate definitions for `get_message`
+----
+
+** v2.rs[15, 9]:
++
+----
+other definition for `get_message`
+----
+
+==== modules in separate files
+
+[source,rust]
+.src/lib.rs
+----
+pub mod v1;
+pub mod v2;
+
+pub struct Hello {
+    pub msg: String
+}
+----
+
+[source,rust]
+.src/v1.rs
+----
+impl super::Hello {
+    pub fn get_message() -> String {
+        String::from("v1: Hello world")
+    }
+}
+----
+
+[source,rust]
+.src/v2.rs
+----
+impl super::Hello {
+    pub fn get_message() -> String {
+        String::from("v2: Hello world")
+    }
+}
+----
+
+* v1.rs
++
+----
+duplicate definitions with name `get_message`
+
+duplicate definitions for `get_message`
+----
+
+** v1.rs[2, 5]:
++
+----
+duplicate definitions for `get_message`
+----
+
+** v2.rs[2, 5]:
++
+----
+other definition for `get_message`
+----

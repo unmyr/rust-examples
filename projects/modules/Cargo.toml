@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "parent-module",
+    "sub-modules"
+]

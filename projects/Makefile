@@ -13,6 +13,7 @@ clean:
 	(cd loop-1million && cargo clean)
 	(cd match-expressions && cargo clean)
 	(cd math && cargo clean)
+	(cd modules && cargo clean)
 	(cd operator-overloading && cargo clean)
 	(cd option-take && cargo clean)
 	(cd ownership && cargo clean)
