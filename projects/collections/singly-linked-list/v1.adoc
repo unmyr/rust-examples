@@ -1,54 +1,54 @@
 == v1 Code examples
 
-=== v1.0: Cannot compile
+[#v1.0]
+=== v1.0: Runtime error!
 
 [source,rust]
-.src/lib.rs
+.src/v0.rs
 ----
 use std::fmt;
-use std::fmt::Debug;
 use std::rc::Rc;
 use std::cell::RefCell;
 
-pub struct ListNode<T: Debug> {
+pub struct ListNode<T> {
     value: T,
     next: Option<Rc<RefCell<ListNode<T>>>>,
 }
 
 #[derive(Default)]
-pub struct SinglyLinkedList<T: Debug> {
+pub struct SinglyLinkedList<T> {
     head: Option<Rc<RefCell<ListNode<T>>>>,
 }
 
-impl<T: Debug> fmt::Display for ListNode<T> {
+impl<T: fmt::Debug> fmt::Display for ListNode<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.next {
-            None => write!(f, "ListNode({:?},Nil)", self.value),
             Some(ref next) => {
-                write!(f, "ListNode({:?},{})", self.value, next.borrow())
-            }
+                write!(f, "ListNode({:?}), {}", self.value, next.borrow())
+            },
+            None => write!(f, "ListNode({:?})", self.value)
         }
     }
 }
 
-impl<T: Debug> fmt::Display for SinglyLinkedList<T> {
+impl<T: fmt::Debug> fmt::Display for SinglyLinkedList<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.head {
-            None => write!(f, "SinglyLinkedList(Nil)"),
             Some(ref head) => {
-                write!(f, "SinglyLinkedList({})", head.borrow())
+                write!(f, "SinglyLinkedList[{}]", head.borrow())
             }
+            None => write!(f, "SinglyLinkedList[]")
         }
     }
 }
 
-impl<T: Debug> ListNode<T> {
+impl<T> ListNode<T> {
     pub fn new(v: T) -> ListNode<T> {
         ListNode { value: v, next: None }
     }
 }
 
-impl<T: Debug> SinglyLinkedList<T> {
+impl<T> SinglyLinkedList<T> {
     pub fn new() -> SinglyLinkedList<T> {
         SinglyLinkedList {
             head: None,
@@ -108,7 +108,28 @@ thread 'main' panicked at 'already borrowed: BorrowMutError', .../singly-linked-
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
 ----
 
+[#v1.1]
 === v1.1: Using unsafe
+
+[source,diff]
+.diff -u src/v0.rs src/v1.rs
+----
+@@ -66,7 +66,13 @@
+             cur = match cur_cloned.borrow().next {
+                 Some(ref next) => Some(Rc::clone(next)),
+                 None => {
+-                    cur_cloned.borrow_mut().next = Some(Rc::new(RefCell::new(node_new)));  //<1>
++                    unsafe {
++                        (*cur_cloned.as_ptr()).next = Some(
++                            Rc::new(
++                                RefCell::new(node_new)
++                            )
++                        );
++                    }
+                     return;
+                 }
+             };
+----
 
 [source,rust]
 .src/v1.rs
@@ -130,10 +151,10 @@ pub struct SinglyLinkedList<T> {
 impl<T: fmt::Debug> fmt::Display for ListNode<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.next {
-            None => write!(f, "ListNode({:?},Nil)", self.value),
             Some(ref next) => {
-                write!(f, "ListNode({:?},{})", self.value, next.borrow())
-            }
+                write!(f, "ListNode({:?}), {}", self.value, next.borrow())
+            },
+            None => write!(f, "ListNode({:?})", self.value)
         }
     }
 }
@@ -141,13 +162,14 @@ impl<T: fmt::Debug> fmt::Display for ListNode<T> {
 impl<T: fmt::Debug> fmt::Display for SinglyLinkedList<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.head {
-            None => write!(f, "SinglyLinkedList(Nil)"),
             Some(ref head) => {
-                write!(f, "SinglyLinkedList({})", head.borrow())
+                write!(f, "SinglyLinkedList[{}]", head.borrow())
             }
+            None => write!(f, "SinglyLinkedList[]")
         }
     }
 }
+
 impl<T> ListNode<T> {
     pub fn new(v: T) -> ListNode<T> {
         ListNode { value: v, next: None }
@@ -198,10 +220,10 @@ impl<T> SinglyLinkedList<T> {
 [source,rust]
 .src/bin/sl_list_v1.rs
 ----
-use list::SinglyLinkedList;
+use list::v1::SinglyLinkedList;
 
 fn main() {
-    let mut list = SinglyLinkedList::new();
+    let mut list: SinglyLinkedList<u8> = Default::default();
     list.push_back(1);
     list.push_back(2);
     list.push_back(3);
@@ -212,9 +234,9 @@ fn main() {
 [source,console]
 .Results
 ----
-$ cargo run
+$ cargo run --bin sl_list_v1
    Compiling singly-linked-list v0.1.0 (.../singly-linked-list)
     Finished dev [unoptimized + debuginfo] target(s) in 2.33s
      Running `.../singly-linked-list`
-SinglyLinkedList(ListNode(1,ListNode(2,ListNode(3,Nil))))
+SinglyLinkedList[ListNode(1), ListNode(2), ListNode(3)]
 ----

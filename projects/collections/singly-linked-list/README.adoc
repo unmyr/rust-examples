@@ -16,7 +16,8 @@ $ cd singly-linked-list/
 
 === Codes
 
-* <<v1.adoc#,v1: Using unsafe>>
+* <<v1.adoc#v1.0,v0: Runtime error!>>
+* <<v1.adoc#v1.1,v1: Using unsafe>>
 * <<v2.adoc#,v2: Remove unsafe>>
 * <<v3.adoc#,v3: Replace to `while let` expression>>
 * <<v4.adoc#,v4: Add `pop_back()`>>

@@ -15,10 +15,10 @@ pub struct SinglyLinkedList<T> {
 impl<T: fmt::Debug> fmt::Display for ListNode<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.next {
-            None => write!(f, "ListNode({:?},Nil)", self.value),
             Some(ref next) => {
-                write!(f, "ListNode({:?},{})", self.value, next.borrow())
-            }
+                write!(f, "ListNode({:?}), {}", self.value, next.borrow())
+            },
+            None => write!(f, "ListNode({:?})", self.value)
         }
     }
 }
@@ -26,10 +26,10 @@ impl<T: fmt::Debug> fmt::Display for ListNode<T> {
 impl<T: fmt::Debug> fmt::Display for SinglyLinkedList<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.head {
-            None => write!(f, "SinglyLinkedList(Nil)"),
             Some(ref head) => {
-                write!(f, "SinglyLinkedList({})", head.borrow())
+                write!(f, "SinglyLinkedList[{}]", head.borrow())
             }
+            None => write!(f, "SinglyLinkedList[]")
         }
     }
 }

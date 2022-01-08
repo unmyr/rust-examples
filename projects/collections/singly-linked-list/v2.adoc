@@ -24,10 +24,10 @@ pub struct SinglyLinkedList<T> {
 impl<T: fmt::Debug> fmt::Display for ListNode<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.next {
-            None => write!(f, "ListNode({:?},Nil)", self.value),
             Some(ref next) => {
-                write!(f, "ListNode({:?},{})", self.value, next.borrow())
-            }
+                write!(f, "ListNode({:?}), {}", self.value, next.borrow())
+            },
+            None => write!(f, "ListNode({:?})", self.value)
         }
     }
 }
@@ -35,10 +35,10 @@ impl<T: fmt::Debug> fmt::Display for ListNode<T> {
 impl<T: fmt::Debug> fmt::Display for SinglyLinkedList<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.head {
-            None => write!(f, "SinglyLinkedList(Nil)"),
             Some(ref head) => {
-                write!(f, "SinglyLinkedList({})", head.borrow())
+                write!(f, "SinglyLinkedList[{}]", head.borrow())
             }
+            None => write!(f, "SinglyLinkedList[]")
         }
     }
 }
@@ -86,10 +86,10 @@ impl<T> SinglyLinkedList<T> {
 [source,rust]
 .src/bin/sl_list_v2.rs
 ----
-use list::SinglyLinkedList;
+use list::v1::SinglyLinkedList;
 
 fn main() {
-    let mut list = SinglyLinkedList::new();
+    let mut list: SinglyLinkedList<u8> = Default::default();
     list.push_back(1);
     list.push_back(2);
     list.push_back(3);
@@ -104,5 +104,5 @@ $ cargo run --bin sl_list_v2
    Compiling singly-linked-list v0.1.0 (.../singly-linked-list)
     Finished dev [unoptimized + debuginfo] target(s) in 2.29s
      Running `.../target/debug/singly-linked-list`
-SinglyLinkedList(ListNode(1,ListNode(2,ListNode(3,Nil))))
+SinglyLinkedList[ListNode(1), ListNode(2), ListNode(3)]
 ----
