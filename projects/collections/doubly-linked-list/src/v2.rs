@@ -21,19 +21,7 @@ impl<T: Debug> Node<T> {
     }
 }
 
-impl<T: Debug> Drop for List<T> {
-    fn drop(&mut self) {
-        println!("> Dropping: List");
-    }
-}
-
-impl<T: Debug> Drop for Node<T> {
-    fn drop(&mut self) {
-        println!("> Dropping: Node {:?}", self.value);
-    }
-}
-
-impl<T: Debug + Clone> List<T> {
+impl<T: Debug> List<T> {
     pub fn push_back(&mut self, v: T) {
         let mut node_new = Node::new(v);
         let mut cur: Rc<RefCell<Node<T>>>;
@@ -74,9 +62,8 @@ impl<T: Debug + Clone> List<T> {
 
         assert_eq!(Rc::strong_count(&cur), 1);
         assert_eq!(Rc::weak_count(&cur), 0);
-        let result: T;
-        result = Rc::clone(&cur).borrow().value.clone();
-        Some(result)
+        let last: Node<T> = Rc::try_unwrap(cur).ok().unwrap().into_inner();
+        Some(last.value)
     }
 }
 
