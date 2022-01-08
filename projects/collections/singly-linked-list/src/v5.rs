@@ -1,20 +1,12 @@
-use std::default::Default;
 use std::fmt;
 use std::rc::Rc;
 use std::cell::RefCell;
-
-pub mod v1;
-pub mod v2;
-pub mod v3;
-pub mod v4;
-pub mod v5;
 
 pub struct ListNode<T> {
     value: T,
     next: Option<Rc<RefCell<ListNode<T>>>>,
 }
 
-#[derive(Default)]
 pub struct SinglyLinkedList<T> {
     head: Option<Rc<RefCell<ListNode<T>>>>,
 }
@@ -48,11 +40,17 @@ impl<T> ListNode<T> {
 }
 
 impl<T> SinglyLinkedList<T> {
+    pub fn new() -> SinglyLinkedList<T> {
+        SinglyLinkedList {
+            head: None,
+        }
+    }
+
     /// # Examples
     ///
     /// ```
     /// use list::SinglyLinkedList;
-    /// let mut list: SinglyLinkedList<u8> = Default::default();
+    /// let mut list = SinglyLinkedList::new();
     /// list.push_back(1);
     /// list.push_back(2);
     /// ```
@@ -79,7 +77,7 @@ impl<T> SinglyLinkedList<T> {
     ///
     /// ```
     /// use list::SinglyLinkedList;
-    /// let mut list: SinglyLinkedList<u8> = Default::default();
+    /// let mut list = SinglyLinkedList::new();
     /// list.push_back(1);
     /// list.push_back(2);
     /// assert_eq!(list.pop_back(), Some(2));
@@ -109,40 +107,8 @@ impl<T> SinglyLinkedList<T> {
             self.head = None;
         }
 
-        let result: T;
-        result = Rc::try_unwrap(cur).ok().unwrap().into_inner().value;
+        let last: ListNode<T> = Rc::try_unwrap(cur).ok().unwrap().into_inner();
         println!("pop_back(): END");
-        Some(result)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::SinglyLinkedList;
-
-    #[test]
-    fn test_push_pop_1() {
-        let mut list: SinglyLinkedList<u8> = Default::default();
-        list.push_back(1);
-        assert_eq!(list.pop_back(), Some(1));
-        assert_eq!(list.pop_back(), None);
-        list.push_back(1);
-        assert_eq!(list.pop_back(), Some(1));
-        assert_eq!(list.pop_back(), None);
-    }
-
-    #[test]
-    fn test_push_pop_2() {
-        let mut list: SinglyLinkedList<&str> = Default::default();
-        list.push_back("hello");
-        list.push_back("world");
-        assert_eq!(list.pop_back(), Some("world"));
-        assert_eq!(list.pop_back(), Some("hello"));
-        assert_eq!(list.pop_back(), None);
-        list.push_back("hello");
-        list.push_back("world");
-        assert_eq!(list.pop_back(), Some("world"));
-        assert_eq!(list.pop_back(), Some("hello"));
-        assert_eq!(list.pop_back(), None);
+        return Some(last.value);
     }
 }

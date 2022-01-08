@@ -1,0 +1,219 @@
+== v1 Code examples
+
+=== v1.0: Cannot compile
+
+[source,rust]
+.src/lib.rs
+----
+use std::fmt;
+use std::fmt::Debug;
+use std::rc::Rc;
+use std::cell::RefCell;
+
+pub struct ListNode<T: Debug> {
+    value: T,
+    next: Option<Rc<RefCell<ListNode<T>>>>,
+}
+
+pub struct SinglyLinkedList<T: Debug> {
+    head: Option<Rc<RefCell<ListNode<T>>>>,
+}
+
+impl<T: Debug> fmt::Display for ListNode<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.next {
+            None => write!(f, "ListNode({:?},Nil)", self.value),
+            Some(ref next) => {
+                write!(f, "ListNode({:?},{})", self.value, next.borrow())
+            }
+        }
+    }
+}
+
+impl<T: Debug> fmt::Display for SinglyLinkedList<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.head {
+            None => write!(f, "SinglyLinkedList(Nil)"),
+            Some(ref head) => {
+                write!(f, "SinglyLinkedList({})", head.borrow())
+            }
+        }
+    }
+}
+
+impl<T: Debug> ListNode<T> {
+    pub fn new(v: T) -> ListNode<T> {
+        ListNode { value: v, next: None }
+    }
+}
+
+impl<T: Debug> SinglyLinkedList<T> {
+    pub fn new() -> SinglyLinkedList<T> {
+        SinglyLinkedList {
+            head: None,
+        }
+    }
+
+    pub fn push_back(&mut self, v: T) {
+        let node_new = ListNode::new(v);
+
+        let mut cur: Option<Rc<RefCell<ListNode<T>>>>;
+        if let Some(ref head) = self.head {
+            cur = Some(Rc::clone(head));
+        } else {
+            self.head = Some(Rc::new(RefCell::new(node_new)));
+            return;
+        };
+
+        loop {
+            let cur_cloned = match cur {
+                None => break,
+                Some(ref n) => Rc::clone(n)
+            };
+            cur = match cur_cloned.borrow().next {
+                Some(ref next) => Some(Rc::clone(next)),
+                None => {
+                    cur_cloned.borrow_mut().next = Some(Rc::new(RefCell::new(node_new)));  //<1>
+                    return;
+                }
+            };
+        }
+    }
+}
+----
+<1> BorrowMutError
+
+[source,rust]
+.src/main.rs
+----
+use list::SinglyLinkedList;
+
+fn main() {
+    let mut list = SinglyLinkedList::new();
+    list.push_back(1);
+    list.push_back(2);
+    list.push_back(3);
+    println!("{}", list);
+}
+----
+
+[source,console]
+----
+$ cargo run
+   Compiling singly-linked-list v0.1.0 (.../singly-linked-list)
+    Finished dev [unoptimized + debuginfo] target(s) in 2.23s
+     Running `/home/guest/tmp_rust/rust-examples/projects/collections/target/debug/singly-linked-list`
+thread 'main' panicked at 'already borrowed: BorrowMutError', .../singly-linked-list/src/lib.rs:68:32
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+----
+
+=== v1.1: Using unsafe
+
+[source,rust]
+.src/v1.rs
+----
+use std::fmt;
+use std::fmt::Debug;
+use std::rc::Rc;
+use std::cell::RefCell;
+
+pub struct ListNode<T: Debug> {
+    value: T,
+    next: Option<Rc<RefCell<ListNode<T>>>>,
+}
+
+pub struct SinglyLinkedList<T: Debug> {
+    head: Option<Rc<RefCell<ListNode<T>>>>,
+}
+
+impl<T: Debug> fmt::Display for ListNode<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.next {
+            None => write!(f, "ListNode({:?},Nil)", self.value),
+            Some(ref next) => {
+                write!(f, "ListNode({:?},{})", self.value, next.borrow())
+            }
+        }
+    }
+}
+
+impl<T: Debug> fmt::Display for SinglyLinkedList<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.head {
+            None => write!(f, "SinglyLinkedList(Nil)"),
+            Some(ref head) => {
+                write!(f, "SinglyLinkedList({})", head.borrow())
+            }
+        }
+    }
+}
+impl<T: Debug> ListNode<T> {
+    pub fn new(v: T) -> ListNode<T> {
+        ListNode { value: v, next: None }
+    }
+}
+
+impl<T: Debug> SinglyLinkedList<T> {
+    pub fn new() -> SinglyLinkedList<T> {
+        SinglyLinkedList {
+            head: None,
+        }
+    }
+
+    pub fn push_back(&mut self, v: T) {
+        let node_new = ListNode::new(v);
+
+        let mut cur: Option<Rc<RefCell<ListNode<T>>>>;
+        if let Some(ref head) = self.head {
+            cur = Some(Rc::clone(head));
+        } else {
+            self.head = Some(Rc::new(RefCell::new(node_new)));
+            return;
+        };
+
+        loop {
+            let cur_cloned = match cur {
+                None => break,
+                Some(ref n) => Rc::clone(n)
+            };
+            cur = match cur_cloned.borrow().next {
+                Some(ref next) => Some(Rc::clone(next)),
+                None => {
+                    unsafe {
+                        (*cur_cloned.as_ptr()).next = Some(
+                            Rc::new(
+                                RefCell::new(node_new)
+                            )
+                        );
+                    }
+                    return;
+                }
+            };
+        }
+    }
+}
+----
+
+[source,rust]
+.src/bin/sl_list_v1.rs
+----
+use list::SinglyLinkedList;
+
+fn main() {
+    let mut list = SinglyLinkedList::new();
+    list.push_back(1);
+    list.push_back(2);
+    list.push_back(3);
+    println!("{}", list);
+}
+----
+
+[source,console]
+.Results
+----
+$ cargo run
+   Compiling singly-linked-list v0.1.0 (.../singly-linked-list)
+    Finished dev [unoptimized + debuginfo] target(s) in 2.33s
+     Running `.../singly-linked-list`
+SinglyLinkedList(ListNode(1,ListNode(2,ListNode(3,Nil))))
+----

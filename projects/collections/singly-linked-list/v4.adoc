@@ -1,0 +1,442 @@
+== v4 Code examples: Implement pop_back
+
+==== v4.1: First implementation
+
+[source,diff]
+.diff -u src/v3.rs src/v4.rs
+----
+@@ -39,7 +39,7 @@
+     }
+ }
+
+-impl<T> SinglyLinkedList<T> {
++impl<T: Clone> SinglyLinkedList<T> {
+     pub fn new() -> SinglyLinkedList<T> {
+         SinglyLinkedList {
+             head: None,
+@@ -64,4 +64,29 @@
+             Rc::new(RefCell::new(node_new))
+         );
+     }
++
++    pub fn pop_back(&mut self) -> Option<T> {
++        let mut some_prev: Option<Rc<RefCell<ListNode<T>>>> = None;
++        let mut cur: Rc<RefCell<ListNode<T>>>;
++        if let Some(ref head) = self.head {
++            cur = Rc::clone(head);
++        } else {
++            // You can't pop the head of the list.
++            return None;
++        };
++
++        while let Some(ref next) = Rc::clone(&cur).borrow().next {
++            some_prev = Some(Rc::clone(&cur));
++            cur = Rc::clone(next);
++        }
++
++        let result: T;
++        result = Rc::clone(&cur).borrow().value.clone();
++        if let Some(prev) = some_prev {
++            prev.borrow_mut().next = None;
++        } else {
++            self.head = None;
++        }
++        return Some(result);
++    }
+ }
+----
+
+[source,rust]
+.src/lib.rs
+----
+use std::fmt;
+use std::rc::Rc;
+use std::cell::RefCell;
+
+pub struct ListNode<T> {
+    value: T,
+    next: Option<Rc<RefCell<ListNode<T>>>>,
+}
+
+pub struct SinglyLinkedList<T> {
+    head: Option<Rc<RefCell<ListNode<T>>>>,
+}
+
+impl<T: fmt::Debug> fmt::Display for ListNode<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.next {
+            None => write!(f, "ListNode({:?},Nil)", self.value),
+            Some(ref next) => {
+                write!(f, "ListNode({:?},{})", self.value, next.borrow())
+            }
+        }
+    }
+}
+
+impl<T: fmt::Debug> fmt::Display for SinglyLinkedList<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.head {
+            None => write!(f, "SinglyLinkedList(Nil)"),
+            Some(ref head) => {
+                write!(f, "SinglyLinkedList({})", head.borrow())
+            }
+        }
+    }
+}
+
+impl<T> ListNode<T> {
+    pub fn new(v: T) -> ListNode<T> {
+        ListNode { value: v, next: None }
+    }
+}
+
+impl<T: Clone> SinglyLinkedList<T> {  //<1>
+    pub fn new() -> SinglyLinkedList<T> {
+        SinglyLinkedList {
+            head: None,
+        }
+    }
+
+    pub fn push_back(&mut self, v: T) {
+        let node_new = ListNode::new(v);
+        let mut cur: Rc<RefCell<ListNode<T>>>;
+        if let Some(ref head) = self.head {
+            cur = Rc::clone(head);
+        } else {
+            self.head = Some(Rc::new(RefCell::new(node_new)));
+            return;
+        };
+
+        while let Some(ref next) = Rc::clone(&cur).borrow().next {
+            cur = Rc::clone(next);
+        }
+
+        cur.borrow_mut().next = Some(
+            Rc::new(RefCell::new(node_new))
+        );
+    }
+
+    pub fn pop_back(&mut self) -> Option<T> {
+        let mut some_prev: Option<Rc<RefCell<ListNode<T>>>> = None;
+        let mut cur: Rc<RefCell<ListNode<T>>>;
+        if let Some(ref head) = self.head {
+            cur = Rc::clone(head);
+        } else {
+            // You can't pop the head of the list.
+            return None;
+        };
+
+        while let Some(ref next) = Rc::clone(&cur).borrow().next {
+            some_prev = Some(Rc::clone(&cur));
+            cur = Rc::clone(next);
+        }
+
+        let result: T;
+        result = Rc::clone(&cur).borrow().value.clone(); //<2>
+        if let Some(prev) = some_prev {
+            prev.borrow_mut().next = None;
+        } else {
+            self.head = None;
+        }
+        return Some(result);
+    }
+}
+----
+<1> Clone is required.
+<2> Use `value.clone()` to avoid move or copy the value.
+
+[source,rust]
+.src/main.rs
+----
+use list::v4::SinglyLinkedList;
+
+fn main() {
+    let mut list = SinglyLinkedList::new();
+    list.push_back(1);
+    list.push_back(2);
+    list.push_back(3);
+    println!("{}", list);
+    assert_eq!(list.pop_back(), Some(3));
+    println!("{}", list);
+    assert_eq!(list.pop_back(), Some(2));
+    println!("{}", list);
+    assert_eq!(list.pop_back(), Some(1));
+    println!("{}", list);
+    assert_eq!(list.pop_back(), None);
+    println!("{}", list);
+}
+----
+
+[source,console]
+.Results
+----
+$ cargo run --bin sl_list_v4
+   Compiling singly-linked-list v0.1.0 (.../singly-linked-list)
+    Finished dev [unoptimized + debuginfo] target(s) in 2.59s
+     Running `.../target/debug/singly-linked-list`
+SinglyLinkedList(ListNode(1,ListNode(2,ListNode(3,Nil))))
+SinglyLinkedList(ListNode(1,ListNode(2,Nil)))
+SinglyLinkedList(ListNode(1,Nil))
+SinglyLinkedList(Nil)
+SinglyLinkedList(Nil)
+----
+
+=== v4.2: Add Drop trait
+
+* Simply adding Drop trait will result in a compile error
++
+[source,diff]
+----
+@@ -90,3 +90,15 @@ impl<T: Clone> SinglyLinkedList<T> {
+         return Some(result);
+     }
+ }
++
++impl<T> Drop for SinglyLinkedList<T> {
++    fn drop(&mut self) {
++        println!("> Dropping: SinglyLinkedList");
++    }
++}
++
++impl<T: fmt::Debug> Drop for ListNode<T> {
++    fn drop(&mut self) {
++        println!("> Dropping: {:?}", self.value);
++    }
++}
+----
++
+[source,console]
+----
+$ cargo run --bin sl_list_v4
+   Compiling singly-linked-list v0.1.0 (.../singly-linked-list)
+error[E0367]: `Drop` impl requires `T: Debug` but the struct it is implemented for does not
+   --> singly-linked-list/src/v4.rs:100:9
+    |
+100 | impl<T: fmt::Debug> Drop for ListNode<T> {
+    |         ^^^^^^^^^^
+    |
+note: the implementor must specify the same requirement
+   --> singly-linked-list/src/v4.rs:5:1
+    |
+5   | / pub struct ListNode<T> {
+6   | |     value: T,
+7   | |     next: Option<Rc<RefCell<ListNode<T>>>>,
+8   | | }
+    | |_^
+
+For more information about this error, try `rustc --explain E0367`.
+error: could not compile `singly-linked-list` due to previous error
+----
+
+* Fix compile errors 
++
+[source,diff]
+----
+@@ -2,12 +2,12 @@ use std::fmt;
+ use std::rc::Rc;
+ use std::cell::RefCell;
+
+-pub struct ListNode<T> {
++pub struct ListNode<T: fmt::Debug> {
+     value: T,
+     next: Option<Rc<RefCell<ListNode<T>>>>,
+ }
+
+-pub struct SinglyLinkedList<T> {
++pub struct SinglyLinkedList<T: fmt::Debug> {
+     head: Option<Rc<RefCell<ListNode<T>>>>,
+ }
+
+@@ -33,13 +33,13 @@ impl<T: fmt::Debug> fmt::Display for SinglyLinkedList<T> {
+     }
+ }
+
+-impl<T> ListNode<T> {
++impl<T: fmt::Debug> ListNode<T> {
+     pub fn new(v: T) -> ListNode<T> {
+         ListNode { value: v, next: None }
+     }
+ }
+
+-impl<T: Clone> SinglyLinkedList<T> {
++impl<T: fmt::Debug + Clone> SinglyLinkedList<T> {
+     pub fn new() -> SinglyLinkedList<T> {
+         SinglyLinkedList {
+             head: None,
+@@ -66,12 +66,14 @@ impl<T: Clone> SinglyLinkedList<T> {
+     }
+
+     pub fn pop_back(&mut self) -> Option<T> {
++        println!("pop_back(): BEGIN");
+         let mut some_prev: Option<Rc<RefCell<ListNode<T>>>> = None;
+         let mut cur: Rc<RefCell<ListNode<T>>>;
+         if let Some(ref head) = self.head {
+             cur = Rc::clone(head);
+         } else {
+             // You can't pop the head of the list.
++            println!("pop_back(): END");
+             return None;
+         };
+
+@@ -87,6 +89,19 @@ impl<T: Clone> SinglyLinkedList<T> {
+         } else {
+             self.head = None;
+         }
++        println!("pop_back(): END");
+         return Some(result);
+     }
+ }
++
++impl<T: fmt::Debug> Drop for SinglyLinkedList<T> {
++    fn drop(&mut self) {
++        println!("> Dropping: SinglyLinkedList");
++    }
++}
++
++impl<T:fmt::Debug> Drop for ListNode<T> {
++    fn drop(&mut self) {
++        println!("> Dropping: {:?}", self.value);
++    }
++}
+----
++
+[source,rust]
+.src/v4.rs
+----
+use std::fmt;
+use std::rc::Rc;
+use std::cell::RefCell;
+
+pub struct ListNode<T: fmt::Debug> {  //(1)
+    value: T,
+    next: Option<Rc<RefCell<ListNode<T>>>>,
+}
+
+pub struct SinglyLinkedList<T: fmt::Debug> {  //(1)
+    head: Option<Rc<RefCell<ListNode<T>>>>,
+}
+
+impl<T: fmt::Debug> fmt::Display for ListNode<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.next {
+            None => write!(f, "ListNode({:?},Nil)", self.value),
+            Some(ref next) => {
+                write!(f, "ListNode({:?},{})", self.value, next.borrow())
+            }
+        }
+    }
+}
+
+impl<T: fmt::Debug> fmt::Display for SinglyLinkedList<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.head {
+            None => write!(f, "SinglyLinkedList(Nil)"),
+            Some(ref head) => {
+                write!(f, "SinglyLinkedList({})", head.borrow())
+            }
+        }
+    }
+}
+
+impl<T: fmt::Debug> ListNode<T> {
+    pub fn new(v: T) -> ListNode<T> {
+        ListNode { value: v, next: None }
+    }
+}
+
+impl<T: fmt::Debug + Clone> SinglyLinkedList<T> {
+    pub fn new() -> SinglyLinkedList<T> {
+        SinglyLinkedList {
+            head: None,
+        }
+    }
+
+    pub fn push_back(&mut self, v: T) {
+        let node_new = ListNode::new(v);
+        let mut cur: Rc<RefCell<ListNode<T>>>;
+        if let Some(ref head) = self.head {
+            cur = Rc::clone(head);
+        } else {
+            self.head = Some(Rc::new(RefCell::new(node_new)));
+            return;
+        };
+
+        while let Some(ref next) = Rc::clone(&cur).borrow().next {
+            cur = Rc::clone(next);
+        }
+
+        cur.borrow_mut().next = Some(
+            Rc::new(RefCell::new(node_new))
+        );
+    }
+
+    pub fn pop_back(&mut self) -> Option<T> {
+        println!("pop_back(): BEGIN");
+        let mut some_prev: Option<Rc<RefCell<ListNode<T>>>> = None;
+        let mut cur: Rc<RefCell<ListNode<T>>>;
+        if let Some(ref head) = self.head {
+            cur = Rc::clone(head);
+        } else {
+            // You can't pop the head of the list.
+            println!("pop_back(): END");
+            return None;
+        };
+
+        while let Some(ref next) = Rc::clone(&cur).borrow().next {
+            some_prev = Some(Rc::clone(&cur));
+            cur = Rc::clone(next);
+        }
+
+        let result: T;
+        result = Rc::clone(&cur).borrow().value.clone(); //(2)
+        if let Some(prev) = some_prev {
+            prev.borrow_mut().next = None;
+        } else {
+            self.head = None;
+        }
+        println!("pop_back(): END");
+        return Some(result);
+    }
+}
+
+impl<T: fmt::Debug> Drop for SinglyLinkedList<T> {
+    fn drop(&mut self) {
+        println!("> Dropping: SinglyLinkedList");
+    }
+}
+
+impl<T:fmt::Debug> Drop for ListNode<T> {
+    fn drop(&mut self) {
+        println!("> Dropping: {:?}", self.value);
+    }
+}
+----
+<1> Due to the limitation of the (current) type system, you can't conditionally implement the Drop trait. To add T: Debug bound to the impl Drop, the struct declaration should also have same bound. +
+https://users.rust-lang.org/t/drop-impl-requires-t-debug-but-the-struct-it-is-implemented-for-does-not/57763[`Drop` impl requires `T: Debug` but the struct it is implemented for does not - help - The Rust Programming Language Forum^] +
+error[E0367]: `Drop` impl requires `T: Debug` but the struct it is implemented for does not - Google 検索
++
+[source,console]
+.Results
+----
+$ cargo run --bin sl_list_v4
+   Compiling singly-linked-list v0.1.0 (.../singly-linked-list)
+    Finished dev [unoptimized + debuginfo] target(s) in 2.14s
+     Running `.../target/debug/sl_list_v4`
+SinglyLinkedList(ListNode(1,ListNode(2,ListNode(3,Nil))))
+pop_back(): BEGIN
+pop_back(): END
+> Dropping: 3
+SinglyLinkedList(ListNode(1,ListNode(2,Nil)))
+pop_back(): BEGIN
+pop_back(): END
+> Dropping: 2
+SinglyLinkedList(ListNode(1,Nil))
+pop_back(): BEGIN
+pop_back(): END
+> Dropping: 1
+SinglyLinkedList(Nil)
+pop_back(): BEGIN
+pop_back(): END
+SinglyLinkedList(Nil)
+> Dropping: SinglyLinkedList
+----

@@ -1,21 +1,13 @@
-use std::default::Default;
 use std::fmt;
 use std::rc::Rc;
 use std::cell::RefCell;
 
-pub mod v1;
-pub mod v2;
-pub mod v3;
-pub mod v4;
-pub mod v5;
-
-pub struct ListNode<T> {
+pub struct ListNode<T: fmt::Debug> {
     value: T,
     next: Option<Rc<RefCell<ListNode<T>>>>,
 }
 
-#[derive(Default)]
-pub struct SinglyLinkedList<T> {
+pub struct SinglyLinkedList<T: fmt::Debug> {
     head: Option<Rc<RefCell<ListNode<T>>>>,
 }
 
@@ -41,21 +33,19 @@ impl<T: fmt::Debug> fmt::Display for SinglyLinkedList<T> {
     }
 }
 
-impl<T> ListNode<T> {
+impl<T: fmt::Debug> ListNode<T> {
     pub fn new(v: T) -> ListNode<T> {
         ListNode { value: v, next: None }
     }
 }
 
-impl<T> SinglyLinkedList<T> {
-    /// # Examples
-    ///
-    /// ```
-    /// use list::SinglyLinkedList;
-    /// let mut list: SinglyLinkedList<u8> = Default::default();
-    /// list.push_back(1);
-    /// list.push_back(2);
-    /// ```
+impl<T: fmt::Debug + Clone> SinglyLinkedList<T> {
+    pub fn new() -> SinglyLinkedList<T> {
+        SinglyLinkedList {
+            head: None,
+        }
+    }
+
     pub fn push_back(&mut self, v: T) {
         let node_new = ListNode::new(v);
         let mut cur: Rc<RefCell<ListNode<T>>>;
@@ -75,17 +65,6 @@ impl<T> SinglyLinkedList<T> {
         );
     }
 
-    /// # Examples
-    ///
-    /// ```
-    /// use list::SinglyLinkedList;
-    /// let mut list: SinglyLinkedList<u8> = Default::default();
-    /// list.push_back(1);
-    /// list.push_back(2);
-    /// assert_eq!(list.pop_back(), Some(2));
-    /// assert_eq!(list.pop_back(), Some(1));
-    /// assert_eq!(list.pop_back(), None);
-    /// ```
     pub fn pop_back(&mut self) -> Option<T> {
         println!("pop_back(): BEGIN");
         let mut some_prev: Option<Rc<RefCell<ListNode<T>>>> = None;
@@ -103,46 +82,26 @@ impl<T> SinglyLinkedList<T> {
             cur = Rc::clone(next);
         }
 
+        let result: T;
+        result = Rc::clone(&cur).borrow().value.clone();
         if let Some(prev) = some_prev {
             prev.borrow_mut().next = None;
         } else {
             self.head = None;
         }
-
-        let result: T;
-        result = Rc::try_unwrap(cur).ok().unwrap().into_inner().value;
         println!("pop_back(): END");
-        Some(result)
+        return Some(result);
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use crate::SinglyLinkedList;
-
-    #[test]
-    fn test_push_pop_1() {
-        let mut list: SinglyLinkedList<u8> = Default::default();
-        list.push_back(1);
-        assert_eq!(list.pop_back(), Some(1));
-        assert_eq!(list.pop_back(), None);
-        list.push_back(1);
-        assert_eq!(list.pop_back(), Some(1));
-        assert_eq!(list.pop_back(), None);
+impl<T: fmt::Debug> Drop for SinglyLinkedList<T> {
+    fn drop(&mut self) {
+        println!("> Dropping: SinglyLinkedList");
     }
+}
 
-    #[test]
-    fn test_push_pop_2() {
-        let mut list: SinglyLinkedList<&str> = Default::default();
-        list.push_back("hello");
-        list.push_back("world");
-        assert_eq!(list.pop_back(), Some("world"));
-        assert_eq!(list.pop_back(), Some("hello"));
-        assert_eq!(list.pop_back(), None);
-        list.push_back("hello");
-        list.push_back("world");
-        assert_eq!(list.pop_back(), Some("world"));
-        assert_eq!(list.pop_back(), Some("hello"));
-        assert_eq!(list.pop_back(), None);
+impl<T:fmt::Debug> Drop for ListNode<T> {
+    fn drop(&mut self) {
+        println!("> Dropping: {:?}", self.value);
     }
 }
