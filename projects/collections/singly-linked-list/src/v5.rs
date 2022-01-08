@@ -49,7 +49,7 @@ impl<T> SinglyLinkedList<T> {
     /// # Examples
     ///
     /// ```
-    /// use list::SinglyLinkedList;
+    /// use list::v5::SinglyLinkedList;
     /// let mut list = SinglyLinkedList::new();
     /// list.push_back(1);
     /// list.push_back(2);
@@ -76,7 +76,7 @@ impl<T> SinglyLinkedList<T> {
     /// # Examples
     ///
     /// ```
-    /// use list::SinglyLinkedList;
+    /// use list::v5::SinglyLinkedList;
     /// let mut list = SinglyLinkedList::new();
     /// list.push_back(1);
     /// list.push_back(2);
