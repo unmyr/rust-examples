@@ -114,21 +114,20 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
 .src/v1.rs
 ----
 use std::fmt;
-use std::fmt::Debug;
 use std::rc::Rc;
 use std::cell::RefCell;
 
-pub struct ListNode<T: Debug> {
+pub struct ListNode<T> {
     value: T,
     next: Option<Rc<RefCell<ListNode<T>>>>,
 }
 
 #[derive(Default)]
-pub struct SinglyLinkedList<T: Debug> {
+pub struct SinglyLinkedList<T> {
     head: Option<Rc<RefCell<ListNode<T>>>>,
 }
 
-impl<T: Debug> fmt::Display for ListNode<T> {
+impl<T: fmt::Debug> fmt::Display for ListNode<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.next {
             None => write!(f, "ListNode({:?},Nil)", self.value),
@@ -139,7 +138,7 @@ impl<T: Debug> fmt::Display for ListNode<T> {
     }
 }
 
-impl<T: Debug> fmt::Display for SinglyLinkedList<T> {
+impl<T: fmt::Debug> fmt::Display for SinglyLinkedList<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.head {
             None => write!(f, "SinglyLinkedList(Nil)"),
@@ -149,13 +148,13 @@ impl<T: Debug> fmt::Display for SinglyLinkedList<T> {
         }
     }
 }
-impl<T: Debug> ListNode<T> {
+impl<T> ListNode<T> {
     pub fn new(v: T) -> ListNode<T> {
         ListNode { value: v, next: None }
     }
 }
 
-impl<T: Debug> SinglyLinkedList<T> {
+impl<T> SinglyLinkedList<T> {
     pub fn new() -> SinglyLinkedList<T> {
         SinglyLinkedList {
             head: None,
