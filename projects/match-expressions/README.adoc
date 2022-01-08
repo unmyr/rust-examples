@@ -3,9 +3,9 @@
 +
 [source,console]
 ----
-$ cargo new --lib pattern-syntax
-     Created library `pattern-syntax` package
-$ cd pattern-syntax/
+$ cargo new --lib match-expressions
+     Created library `match-expressions` package
+$ cd match-expressions/
 ----
 
 === Run tests
