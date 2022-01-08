@@ -1,5 +1,8 @@
 [workspace]
 members = [
     "parent-module",
-    "sub-modules"
+    "private-parent",
+    "pub-in-path",
+    "self-examples",
+    "sub-modules",
 ]

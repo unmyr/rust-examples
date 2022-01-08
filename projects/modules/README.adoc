@@ -4,6 +4,8 @@
   rust module unique - Google Search
 * https://doc.rust-lang.org/cargo/[Introduction - The Cargo Book^]
 ** https://doc.rust-lang.org/cargo/guide/project-layout.html[Package Layout - The Cargo Book^]
+* https://doc.rust-lang.org/reference/[^Introduction - The Rust Reference]
+** https://doc.rust-lang.org/reference/visibility-and-privacy.html[Visibility and privacy - The Rust Reference^]
 
 == Examples
 
