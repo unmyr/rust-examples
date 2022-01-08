@@ -3,10 +3,9 @@ pub fn gen_perm<T>(v: Vec<T>)
 where T: Clone
 {
     let num_of_chars = v.len();
-    let mut result = Vec::<Vec<T>>::new();
+    let mut result = vec![v];
     // let vec_size = (1..=num_of_chars).fold(1, |acc, v| acc * v);
     // let mut out = Vec::<Vec<T>>::with_capacity(vec_size);
-    result.push(v);
     for n in 0 .. num_of_chars {
         let result_len = result.len();
         for result_idx in 0..(result_len) {

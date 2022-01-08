@@ -15,8 +15,9 @@ where T: Clone + std::cmp::PartialEq
     }
 }
 
+#[cfg(test)]
 mod tests {
-    use crate::v3_recursive_unordered_gen::gen_perm_with_depth;
+    use super::gen_perm_with_depth;
 
     #[test]
     fn test_gen_perm_0() {

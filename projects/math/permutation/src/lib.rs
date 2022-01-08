@@ -19,16 +19,16 @@ impl<T> PermutationIterator<T> {
     {
         let mut indexes = Vec::<u16>::with_capacity(p.len());
         let mut ranges = Vec::<Range<u16>>::with_capacity(p.len());
-        indexes.push(0 as u16);
-        ranges.push(0 as u16 .. 1 as u16);
+        indexes.push(0_u16);
+        ranges.push(0_u16 .. 1_u16);
         for i in 1 .. p.len() {
             ranges.push((i-1) as u16 .. p.len() as u16);
-            indexes.push(ranges[i].start.clone());
+            indexes.push(ranges[i].start);
         }
         PermutationIterator {
-            initial: p.clone(),
-            ranges: ranges,
-            indexes: indexes,
+            initial: p,
+            ranges,
+            indexes,
         }
     }
 }
@@ -54,7 +54,7 @@ impl<T: Clone> Iterator for PermutationIterator<T> {
                 self.indexes[i - 1] += 1;
             }
         }
-        return Some(v);
+        Some(v)
     }
 }
 

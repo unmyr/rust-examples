@@ -3,8 +3,7 @@ pub fn gen_perm<T>(v: Vec<T>)
 where T: Clone + std::cmp::PartialOrd
 {
     let num_of_chars = v.len();
-    let mut result = Vec::<Vec<T>>::new();
-    result.push(v);
+    let mut result = vec![v];
     for n in 0 .. num_of_chars {
         let result_len = result.len();
         for result_idx in 0..(result_len) {
@@ -22,7 +21,7 @@ where T: Clone + std::cmp::PartialOrd
                 return a[i].partial_cmp(&b[i]).unwrap();
             }
         }
-        return a[m].partial_cmp(&b[m]).unwrap();
+        a[m].partial_cmp(&b[m]).unwrap()
     });
     result
 }

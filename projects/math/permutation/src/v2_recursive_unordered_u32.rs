@@ -16,7 +16,7 @@ pub fn gen_perm_with_depth(v: Vec<u32>, m: usize, out: &mut Vec<Vec<u32>>)
 
 #[cfg(test)]
 mod tests {
-    use crate::v2_recursive_unordered_u32::gen_perm_with_depth;
+    use super::gen_perm_with_depth;
 
     #[test]
     fn test_gen_perm_0() {
