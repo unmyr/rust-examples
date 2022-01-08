@@ -5,7 +5,7 @@
 [source,diff]
 .diff -u src/v4.rs src/v5.rs
 ----
-@@ -2,12 +2,12 @@
+@@ -2,13 +2,13 @@
  use std::rc::Rc;
  use std::cell::RefCell;
 
@@ -15,12 +15,13 @@
      next: Option<Rc<RefCell<ListNode<T>>>>,
  }
 
+ #[derive(Default)]
 -pub struct SinglyLinkedList<T: fmt::Debug> {
 +pub struct SinglyLinkedList<T> {
      head: Option<Rc<RefCell<ListNode<T>>>>,
  }
 
-@@ -33,19 +33,27 @@
+@@ -34,19 +34,27 @@
      }
  }
 
@@ -42,7 +43,7 @@
 +    /// # Examples
 +    ///
 +    /// ```
-+    /// use list::SinglyLinkedList;
++    /// use list::v5::SinglyLinkedList;
 +    /// let mut list = SinglyLinkedList::new();
 +    /// list.push_back(1);
 +    /// list.push_back(2);
@@ -50,14 +51,14 @@
      pub fn push_back(&mut self, v: T) {
          let node_new = ListNode::new(v);
          let mut cur: Rc<RefCell<ListNode<T>>>;
-@@ -65,6 +73,17 @@
+@@ -66,6 +74,17 @@
          );
      }
 
 +    /// # Examples
 +    ///
 +    /// ```
-+    /// use list::SinglyLinkedList;
++    /// use list::v5::SinglyLinkedList;
 +    /// let mut list = SinglyLinkedList::new();
 +    /// list.push_back(1);
 +    /// list.push_back(2);
@@ -68,7 +69,7 @@
      pub fn pop_back(&mut self) -> Option<T> {
          println!("pop_back(): BEGIN");
          let mut some_prev: Option<Rc<RefCell<ListNode<T>>>> = None;
-@@ -82,26 +101,14 @@
+@@ -83,26 +102,14 @@
              cur = Rc::clone(next);
          }
 
@@ -80,7 +81,7 @@
              self.head = None;
          }
 -        println!("pop_back(): END");
--        return Some(result);
+-        Some(result)
 -    }
 -}
 
@@ -112,6 +113,7 @@ pub struct ListNode<T> {
     next: Option<Rc<RefCell<ListNode<T>>>>,
 }
 
+#[derive(Default)]
 pub struct SinglyLinkedList<T> {
     head: Option<Rc<RefCell<ListNode<T>>>>,
 }

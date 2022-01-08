@@ -7,6 +7,7 @@ pub struct ListNode<T> {
     next: Option<Rc<RefCell<ListNode<T>>>>,
 }
 
+#[derive(Default)]
 pub struct SinglyLinkedList<T> {
     head: Option<Rc<RefCell<ListNode<T>>>>,
 }

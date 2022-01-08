@@ -58,6 +58,7 @@ pub struct ListNode<T> {
     next: Option<Rc<RefCell<ListNode<T>>>>,
 }
 
+#[derive(Default)]
 pub struct SinglyLinkedList<T> {
     head: Option<Rc<RefCell<ListNode<T>>>>,
 }
@@ -186,8 +187,9 @@ SinglyLinkedList(Nil)
 * Simply adding Drop trait will result in a compile error
 +
 [source,diff]
+.git diff
 ----
-@@ -90,3 +90,15 @@ impl<T: Clone> SinglyLinkedList<T> {
+@@ -91,3 +91,15 @@ impl<T: Clone> SinglyLinkedList<T> {
          return Some(result);
      }
  }
@@ -206,6 +208,7 @@ SinglyLinkedList(Nil)
 ----
 +
 [source,console]
+.Results
 ----
 $ cargo run --bin sl_list_v4
    Compiling singly-linked-list v0.1.0 (.../singly-linked-list)
@@ -232,7 +235,7 @@ error: could not compile `singly-linked-list` due to previous error
 +
 [source,diff]
 ----
-@@ -2,12 +2,12 @@ use std::fmt;
+@@ -2,13 +2,13 @@ use std::fmt;
  use std::rc::Rc;
  use std::cell::RefCell;
 
@@ -242,12 +245,13 @@ error: could not compile `singly-linked-list` due to previous error
      next: Option<Rc<RefCell<ListNode<T>>>>,
  }
 
+ #[derive(Default)]
 -pub struct SinglyLinkedList<T> {
 +pub struct SinglyLinkedList<T: fmt::Debug> {
      head: Option<Rc<RefCell<ListNode<T>>>>,
  }
 
-@@ -33,13 +33,13 @@ impl<T: fmt::Debug> fmt::Display for SinglyLinkedList<T> {
+@@ -34,13 +34,13 @@ impl<T: fmt::Debug> fmt::Display for SinglyLinkedList<T> {
      }
  }
 
@@ -263,7 +267,7 @@ error: could not compile `singly-linked-list` due to previous error
      pub fn new() -> SinglyLinkedList<T> {
          SinglyLinkedList {
              head: None,
-@@ -66,12 +66,14 @@ impl<T: Clone> SinglyLinkedList<T> {
+@@ -67,12 +67,14 @@ impl<T: Clone> SinglyLinkedList<T> {
      }
 
      pub fn pop_back(&mut self) -> Option<T> {
@@ -278,7 +282,7 @@ error: could not compile `singly-linked-list` due to previous error
              return None;
          };
 
-@@ -87,6 +89,19 @@ impl<T: Clone> SinglyLinkedList<T> {
+@@ -88,6 +90,19 @@ impl<T: Clone> SinglyLinkedList<T> {
          } else {
              self.head = None;
          }
@@ -312,6 +316,7 @@ pub struct ListNode<T: fmt::Debug> {  //(1)
     next: Option<Rc<RefCell<ListNode<T>>>>,
 }
 
+#[derive(Default)]
 pub struct SinglyLinkedList<T: fmt::Debug> {  //(1)
     head: Option<Rc<RefCell<ListNode<T>>>>,
 }
