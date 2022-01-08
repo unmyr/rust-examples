@@ -90,7 +90,7 @@ impl<T: fmt::Debug + Clone> SinglyLinkedList<T> {
             self.head = None;
         }
         println!("pop_back(): END");
-        return Some(result);
+        Some(result)
     }
 }
 

@@ -41,7 +41,7 @@
 +        } else {
 +            self.head = None;
 +        }
-+        return Some(result);
++        Some(result)
 +    }
  }
 ----
@@ -138,7 +138,7 @@ impl<T: Clone> SinglyLinkedList<T> {  //<1>
         } else {
             self.head = None;
         }
-        return Some(result);
+        Some(result)
     }
 }
 ----
@@ -395,7 +395,7 @@ impl<T: fmt::Debug + Clone> SinglyLinkedList<T> {
             self.head = None;
         }
         println!("pop_back(): END");
-        return Some(result);
+        Some(result)
     }
 }
 
