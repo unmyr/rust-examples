@@ -109,10 +109,9 @@ impl<T> SinglyLinkedList<T> {
             self.head = None;
         }
 
-        let result: T;
-        result = Rc::try_unwrap(cur).ok().unwrap().into_inner().value;
+        let last: ListNode<T> = Rc::try_unwrap(cur).ok().unwrap().into_inner();
         println!("pop_back(): END");
-        Some(result)
+        Some(last.value)
     }
 }
 
