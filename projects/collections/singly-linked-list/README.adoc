@@ -22,6 +22,7 @@ $ cd singly-linked-list/
 * <<docs/v3.adoc#,v3: Replace to `while let` expression>>
 * <<docs/v4.adoc#,v4: Add `pop_back()`>>
 * <<docs/v5.adoc#,v5: Remove `Clone` trait>>
+* <<docs/v6.adoc#,v6: Add `Iterator` trait>>
 
 === References
 
