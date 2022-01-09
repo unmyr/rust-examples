@@ -118,6 +118,30 @@ impl<T> SinglyLinkedList<T> {
     /// let mut list: SinglyLinkedList<u8> = Default::default();
     /// list.push_back(1);
     /// list.push_back(2);
+    /// assert_eq!(list.pop_front(), Some(1));
+    /// assert_eq!(list.pop_front(), Some(2));
+    /// assert_eq!(list.pop_front(), None);
+    /// ```
+    pub fn pop_front(&mut self) -> Option<T> {
+        let head = match self.head {
+            Some(ref head) => Rc::clone(head),
+            None => return None,
+        };
+        assert_eq!(Rc::strong_count(&head), 2);
+        self.head = None;
+        assert_eq!(Rc::strong_count(&head), 1);
+        let node: ListNode<T> = Rc::try_unwrap(head).ok().unwrap().into_inner();
+        self.head = node.next;
+        Some(node.value)
+    }
+
+    /// # Examples
+    ///
+    /// ```
+    /// use list::v6::SinglyLinkedList;
+    /// let mut list: SinglyLinkedList<u8> = Default::default();
+    /// list.push_back(1);
+    /// list.push_back(2);
     /// let mut iter = list.iter();
     /// assert_eq!(iter.next(), Some(1));
     /// assert_eq!(iter.next(), Some(2));
@@ -188,6 +212,30 @@ mod tests {
     }
 
     #[test]
+    fn test_pop_front_1() {
+        let mut list: SinglyLinkedList<u8> = Default::default();
+        assert_eq!(list.pop_front(), None);
+
+        list.push_back(1);
+        assert_eq!(list.pop_front(), Some(1));
+        assert_eq!(list.pop_front(), None);
+
+        list.push_back(1);
+        assert_eq!(list.pop_front(), Some(1));
+        assert_eq!(list.pop_front(), None);
+    }
+
+    #[test]
+    fn test_pop_front_2() {
+        let mut list: SinglyLinkedList<u8> = Default::default();
+        list.push_back(1);
+        list.push_back(2);
+        assert_eq!(list.pop_front(), Some(1));
+        assert_eq!(list.pop_front(), Some(2));
+        assert_eq!(list.pop_front(), None);
+    }
+
+    #[test]
     fn test_iter_unwrap_failed() {
         let mut list: SinglyLinkedList<u8> = Default::default();
         list.push_back(1);
@@ -212,6 +260,28 @@ mod tests {
         assert_eq!(iter.next(), Some(1));
         list.push_back(2);
         assert_eq!(list.pop_back(), Some(2));
+        assert_eq!(iter.next(), None);
+    }
+
+    #[test]
+    fn test_iter_and_pop_front_1() {
+        let mut list: SinglyLinkedList<u8> = Default::default();
+        list.push_back(1);
+        list.push_back(2);
+        let mut iter = list.iter();             // The next pointer points to 1.
+        assert_eq!(list.pop_front(), Some(1));  // node 1 is dropped.
+        assert_eq!(iter.next(), None);          // The next pointer is None.
+    }
+
+    #[test]
+    fn test_iter_and_pop_front1() {
+        let mut list: SinglyLinkedList<u8> = Default::default();
+        list.push_back(1);
+        list.push_back(2);
+        let mut iter = list.iter();            // The next pointer points to 1.
+        assert_eq!(iter.next(), Some(1));      // The next pointer points to 2.
+        assert_eq!(list.pop_front(), Some(1)); // node 1 is dropped.
+        assert_eq!(iter.next(), Some(2));      // The next pointer points to None.
         assert_eq!(iter.next(), None);
     }
 }
