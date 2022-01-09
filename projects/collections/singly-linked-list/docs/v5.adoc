@@ -1,6 +1,11 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+endif::[]
+
 == v5: Remove `Clone` trait
 
-==== v5.1: Clone is no longer needed with pop_back()
+=== v5.1: Clone is no longer needed with pop_back()
 
 [source,diff]
 .diff -u src/v4.rs src/v5.rs

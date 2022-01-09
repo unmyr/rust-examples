@@ -1,6 +1,11 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+endif::[]
+
 == v1 Code examples
 
-[#v1.0]
+[[v1.0]]
 === v1.0: Runtime error!
 
 [source,rust]
@@ -108,7 +113,7 @@ thread 'main' panicked at 'already borrowed: BorrowMutError', .../singly-linked-
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
 ----
 
-[#v1.1]
+[[v1.1]]
 === v1.1: Using unsafe
 
 [source,diff]
