@@ -159,7 +159,7 @@ impl<T:Clone> Iterator for SinglyLinkedListIterator<T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::v6::SinglyLinkedList;
+    use super::SinglyLinkedList;
 
     #[test]
     fn test_push_pop_1() {
