@@ -36,16 +36,9 @@ impl<T: fmt::Debug + Clone> SinglyLinkedList<T> {
             }
         };
 
-        loop {
-            match cur_ref.next {
-                None => (),
-                Some(ref mut next) => {
-                    cur_ref = next;
-                    continue;
-                }
-            }
-            break;
-        };
+        while let Some(ref mut next) = cur_ref.next {
+            cur_ref = next;
+        }
 
         cur_ref.next = Some(Box::new(ListNode::new(v)))
     }

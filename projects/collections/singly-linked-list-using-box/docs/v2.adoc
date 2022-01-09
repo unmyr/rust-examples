@@ -10,9 +10,10 @@ The push_back function v2 improves the recursive algorithm to a iterative algori
 === v2.1
 
 [source,diff]
+.diff -u src/v1.rs src/v2.rs
 ----
-@@ -15,40 +15,45 @@ impl<T: Clone + fmt::Debug> ListNode<T> {
-     pub fn new(v: T) -> ListNode<T> {
+@@ -15,40 +15,38 @@
+     fn new(v: T) -> ListNode<T> {
          ListNode { value: v, next: None }
      }
 -
@@ -46,19 +47,11 @@ The push_back function v2 improves the recursive algorithm to a iterative algori
                  self.head = Some(Box::new(node_new));
 +                return;
              }
--        }
 +        };
 +
-+        loop {
-+            match cur_ref.next {
-+                None => (),
-+                Some(ref mut next) => {
-+                    cur_ref = next;
-+                    continue;
-+                }
-+            }
-+            break;
-+        };
++        while let Some(ref mut next) = cur_ref.next {
++            cur_ref = next;
+         }
 +
 +        cur_ref.next = Some(Box::new(ListNode::new(v)))
      }
@@ -71,7 +64,7 @@ The push_back function v2 improves the recursive algorithm to a iterative algori
      /// let mut list: SinglyLinkedList<u8> = Default::default();
      /// list.push_back(1);
      /// list.push_back(2);
-@@ -87,7 +92,7 @@ impl<T: fmt::Debug + Clone> SinglyLinkedList<T> {
+@@ -87,7 +85,7 @@
      /// # Examples
      ///
      /// ```
@@ -123,16 +116,9 @@ impl<T: fmt::Debug + Clone> SinglyLinkedList<T> {
             }
         };
 
-        loop {
-            match cur_ref.next {
-                None => (),
-                Some(ref mut next) => {
-                    cur_ref = next;
-                    continue;
-                }
-            }
-            break;
-        };
+        while let Some(ref mut next) = cur_ref.next {
+            cur_ref = next;
+        }
 
         cur_ref.next = Some(Box::new(ListNode::new(v)))
     }
