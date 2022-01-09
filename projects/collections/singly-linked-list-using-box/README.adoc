@@ -1,0 +1,74 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+:icons: font
+endif::[]
+
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --lib singly-linked-list-using-box
+     Created library `singly-linked-list-using-box` package
+$ cd singly-linked-list-using-box/
+----
+
+=== Code
+
+[source,rust]
+----
+pub struct ListNode<T> {
+    value: T,
+    next: Option<Box<ListNode<T>>>,
+}
+
+#[derive(Default)]
+pub struct SinglyLinkedList<T> {
+    head: Option<Box<ListNode<T>>>,
+}
+
+impl<T> ListNode<T> {
+    pub fn new(v: T) -> ListNode<T> {
+        ListNode { value: v, next: None }
+    }
+}
+
+impl<T> SinglyLinkedList<T> {
+    /// # Examples
+    ///
+    /// ```
+    /// use list::v6::SinglyLinkedList;
+    /// let mut list: SinglyLinkedList<u8> = Default::default();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// ```
+    pub fn push_back(&mut self, v: T) {}
+
+    /// # Examples
+    ///
+    /// ```
+    /// use list::v6::SinglyLinkedList;
+    /// let mut list: SinglyLinkedList<u8> = Default::default();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// assert_eq!(list.pop_back(), Some(2));
+    /// assert_eq!(list.pop_back(), Some(1));
+    /// assert_eq!(list.pop_back(), None);
+    /// ```
+    pub fn pop_back(&mut self) -> Option<T> { None }
+
+    /// # Examples
+    ///
+    /// ```
+    /// use list::v6::SinglyLinkedList;
+    /// let mut list: SinglyLinkedList<u8> = Default::default();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// assert_eq!(list.pop_front(), Some(1));
+    /// assert_eq!(list.pop_front(), Some(2));
+    /// assert_eq!(list.pop_front(), None);
+    /// ```
+    pub fn pop_front(&mut self) -> Option<T> { None }
+}
+----
