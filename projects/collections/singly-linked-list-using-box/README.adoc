@@ -16,6 +16,13 @@ $ cd singly-linked-list-using-box/
 
 === Code
 
+* <<docs/v1.adoc#,v1>> +
+  v1 of the push_back function uses a recursive algorithm.
+* <<docs/v1.adoc#,v2>> +
+  The push_back function v2 improves the recursive algorithm to a iterative algorithm.
+
+==== Prototype
+
 [source,rust]
 ----
 pub struct ListNode<T> {

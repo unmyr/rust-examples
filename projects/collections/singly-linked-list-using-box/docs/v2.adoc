@@ -3,25 +3,87 @@ ifndef::leveloffset[]
 :toclevels: 3
 endif::[]
 
-== v1 Code examples
+== v2 Code examples
 
-* https://stackoverflow.com/questions/55062035/what-would-be-a-better-way-to-implement-pop-in-my-single-linked-list-in-rust[What would be a better way to implement .pop() in my single linked list in Rust? - Stack Overflow^] +
-  rust singly linked list peek - Google 検索
-* https://stackoverflow.com/questions/41653148/singly-linked-list-in-rust[Singly-Linked List in Rust - Stack Overflow^] +
-  rust box LinkedList - Google Search
+The push_back function v2 improves the recursive algorithm to a iterative algorithm.
 
-=== v1.0
+=== v2.1
 
-The push_back function uses a recursive algorithm.
+[source,diff]
+----
+@@ -15,40 +15,45 @@ impl<T: Clone + fmt::Debug> ListNode<T> {
+     pub fn new(v: T) -> ListNode<T> {
+         ListNode { value: v, next: None }
+     }
+-
+-    fn push_back(&mut self, v: T) {
+-        match &mut self.next {
+-            None => {
+-                self.next = Some(Box::new(ListNode::new(v)))
+-            },
+-            Some(ref mut next) => next.push_back(v),
+-        }
+-    }
+ }
+
+ impl<T: fmt::Debug + Clone> SinglyLinkedList<T> {
+     /// # Examples
+     ///
+     /// ```
+-    /// use singly_linked_list_using_box::v1::SinglyLinkedList;
++    /// use singly_linked_list_using_box::v2::SinglyLinkedList;
+     /// let mut list: SinglyLinkedList<u8> = Default::default();
+     /// list.push_back(1);
+     /// list.push_back(2);
+     /// ```
+     pub fn push_back(&mut self, v: T) {
+-        match &mut self.head {
+-            Some(head_ref) => head_ref.push_back(v),
++        let mut cur_ref = match &mut self.head {
++            Some(head_ref) => head_ref,
+             None => {
+                 let node_new = ListNode::new(v);
+                 self.head = Some(Box::new(node_new));
++                return;
+             }
+-        }
++        };
++
++        loop {
++            match cur_ref.next {
++                None => (),
++                Some(ref mut next) => {
++                    cur_ref = next;
++                    continue;
++                }
++            }
++            break;
++        };
++
++        cur_ref.next = Some(Box::new(ListNode::new(v)))
+     }
+
+     /// # Examples
+     ///
+     /// ```
+-    /// use singly_linked_list_using_box::v1::SinglyLinkedList;
++    /// use singly_linked_list_using_box::v2::SinglyLinkedList;
+     /// let mut list: SinglyLinkedList<u8> = Default::default();
+     /// list.push_back(1);
+     /// list.push_back(2);
+@@ -87,7 +92,7 @@ impl<T: fmt::Debug + Clone> SinglyLinkedList<T> {
+     /// # Examples
+     ///
+     /// ```
+-    /// use singly_linked_list_using_box::v1::SinglyLinkedList;
++    /// use singly_linked_list_using_box::v2::SinglyLinkedList;
+     /// let mut list: SinglyLinkedList<u8> = Default::default();
+     /// list.push_back(1);
+     /// list.push_back(2);
+----
 
 [source,rust]
-.src/lib.rs
-----
-pub mod v1;
-----
-
-[source,rust]
-.src/v1.rs
+.src/v2.rs
 ----
 use std::fmt;
 
@@ -40,40 +102,45 @@ impl<T: Clone + fmt::Debug> ListNode<T> {
     pub fn new(v: T) -> ListNode<T> {
         ListNode { value: v, next: None }
     }
-
-    fn push_back(&mut self, v: T) {
-        match &mut self.next {
-            None => {
-                self.next = Some(Box::new(ListNode::new(v)))
-            },
-            Some(ref mut next) => next.push_back(v),
-        }
-    }
 }
 
 impl<T: fmt::Debug + Clone> SinglyLinkedList<T> {
     /// # Examples
     ///
     /// ```
-    /// use singly_linked_list_using_box::v1::SinglyLinkedList;
+    /// use singly_linked_list_using_box::v2::SinglyLinkedList;
     /// let mut list: SinglyLinkedList<u8> = Default::default();
     /// list.push_back(1);
     /// list.push_back(2);
     /// ```
     pub fn push_back(&mut self, v: T) {
-        match &mut self.head {
-            Some(head_ref) => head_ref.push_back(v),
+        let mut cur_ref = match &mut self.head {
+            Some(head_ref) => head_ref,
             None => {
                 let node_new = ListNode::new(v);
                 self.head = Some(Box::new(node_new));
+                return;
             }
-        }
+        };
+
+        loop {
+            match cur_ref.next {
+                None => (),
+                Some(ref mut next) => {
+                    cur_ref = next;
+                    continue;
+                }
+            }
+            break;
+        };
+
+        cur_ref.next = Some(Box::new(ListNode::new(v)))
     }
 
     /// # Examples
     ///
     /// ```
-    /// use singly_linked_list_using_box::v1::SinglyLinkedList;
+    /// use singly_linked_list_using_box::v2::SinglyLinkedList;
     /// let mut list: SinglyLinkedList<u8> = Default::default();
     /// list.push_back(1);
     /// list.push_back(2);
@@ -112,7 +179,7 @@ impl<T: fmt::Debug + Clone> SinglyLinkedList<T> {
     /// # Examples
     ///
     /// ```
-    /// use singly_linked_list_using_box::v1::SinglyLinkedList;
+    /// use singly_linked_list_using_box::v2::SinglyLinkedList;
     /// let mut list: SinglyLinkedList<u8> = Default::default();
     /// list.push_back(1);
     /// list.push_back(2);
@@ -195,9 +262,9 @@ mod tests {
 ----
 
 [source,rust]
-.src/bin/slb_v1.rs
+.src/bin/slb_v2.rs
 ----
-use singly_linked_list_using_box::v1::SinglyLinkedList;
+use singly_linked_list_using_box::v2::SinglyLinkedList;
 
 fn main() {
     let mut list: SinglyLinkedList<u8> = Default::default();
@@ -222,10 +289,10 @@ fn main() {
 
 [source,console]
 ----
-$ cargo run
+cargo run --bin slb_v2
    Compiling singly-linked-list-using-box v0.1.0 (.../singly-linked-list-using-box)
-    Finished dev [unoptimized + debuginfo] target(s) in 3.08s
-     Running `.../target/debug/slb_v1`
+    Finished dev [unoptimized + debuginfo] target(s) in 1.39s
+     Running `.../target/debug/slb_v2`
 SinglyLinkedList[ListNode(1), ListNode(2), ListNode(3)]
 SinglyLinkedList[]
 ----
