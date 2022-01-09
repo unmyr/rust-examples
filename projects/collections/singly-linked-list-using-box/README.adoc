@@ -14,6 +14,22 @@ $ cargo new --lib singly-linked-list-using-box
 $ cd singly-linked-list-using-box/
 ----
 
+=== References
+
+* https://stackoverflow.com/questions/55062035/what-would-be-a-better-way-to-implement-pop-in-my-single-linked-list-in-rust[What would be a better way to implement .pop() in my single linked list in Rust? - Stack Overflow^] +
+  rust singly linked list peek - Google 検索
+* https://stackoverflow.com/questions/41653148/singly-linked-list-in-rust[Singly-Linked List in Rust - Stack Overflow^] +
+  rust box LinkedList - Google Search
+* https://gist.github.com/hardvain/32fca033bb61a5e3bf8bbeeb32fbbd5e[Singly Linked List in Rust - gists · GitHub^] +
+  rust pub singly linked list iter - Google 検索
+* Raw pointer
+** https://11takanori.medium.com/singly-linked-list-in-rust-70a7c2cfa162[Singly-Linked List in Rust. 本記事は“Open Data Structures”… | by Takanori Ishibashi | Medium^] +
+   rust singly linked list box - Google 検索
+** https://github.com/rust-lang/rust/blob/master/library/alloc/src/collections/linked_list.rs[rust/linked_list.rs at master · rust-lang/rust^] +
+   rust std LinkedList github - Google 検索
+** https://rust-unofficial.github.io/too-many-lists/[Learning Rust With Entirely Too Many Linked Lists - GitHub ...^] +
+   rust std LinkedList github - Google 検索
+
 === Code
 
 * <<docs/v1.adoc#,v1>> +

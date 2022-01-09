@@ -5,11 +5,6 @@ endif::[]
 
 == v1 Code examples
 
-* https://stackoverflow.com/questions/55062035/what-would-be-a-better-way-to-implement-pop-in-my-single-linked-list-in-rust[What would be a better way to implement .pop() in my single linked list in Rust? - Stack Overflow^] +
-  rust singly linked list peek - Google 検索
-* https://stackoverflow.com/questions/41653148/singly-linked-list-in-rust[Singly-Linked List in Rust - Stack Overflow^] +
-  rust box LinkedList - Google Search
-
 === v1.0
 
 The push_back function uses a recursive algorithm.
