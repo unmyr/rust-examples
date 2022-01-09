@@ -26,18 +26,18 @@ pub mod v1;
 use std::fmt;
 
 #[derive(Debug)]
-pub struct ListNode<T> {
-    pub value: T,
-    pub next: Option<Box<ListNode<T>>>,
+struct ListNode<T> {
+    value: T,
+    next: Option<Box<ListNode<T>>>,
 }
 
 #[derive(Default, Debug)]
 pub struct SinglyLinkedList<T> {
-    pub head: Option<Box<ListNode<T>>>,
+    head: Option<Box<ListNode<T>>>,
 }
 
 impl<T: Clone + fmt::Debug> ListNode<T> {
-    pub fn new(v: T) -> ListNode<T> {
+    fn new(v: T) -> ListNode<T> {
         ListNode { value: v, next: None }
     }
 
