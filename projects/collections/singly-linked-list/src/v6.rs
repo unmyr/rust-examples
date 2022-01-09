@@ -137,23 +137,23 @@ impl<T> SinglyLinkedList<T> {
 impl<T:Clone> Iterator for SinglyLinkedListIterator<T> {
     type Item = T;
     fn next(&mut self) -> Option<Self::Item> {
-        match self.cur {
-            Some(ref cur_weak) => {
-                match cur_weak.upgrade() {
-                    Some(cur_strong) => {
-                        let cur_val = cur_strong.borrow().value.clone();
-                        if let Some(ref next) = cur_strong.borrow().next {
-                            self.cur = Some(Rc::downgrade(next))
-                        } else {
-                            self.cur = None;
-                        }
-                        Some(cur_val)
-                    },
-                    None => None
-                }
-            },
-            None => None,
+        let cur_weak = match self.cur {
+            Some(ref cur_weak) => cur_weak,
+            None => return None,
+        };
+
+        let cur_strong = match cur_weak.upgrade() {
+            Some(cur_strong) => cur_strong,
+            None => return None,
+        };
+
+        let cur_val = cur_strong.borrow().value.clone();
+        if let Some(ref next) = cur_strong.borrow().next {
+            self.cur = Some(Rc::downgrade(next))
+        } else {
+            self.cur = None;
         }
+        Some(cur_val)
     }
 }
 
