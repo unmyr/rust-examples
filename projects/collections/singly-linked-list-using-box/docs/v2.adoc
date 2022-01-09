@@ -400,13 +400,13 @@ pub struct SinglyLinkedListIterator<'a, T:'a> {
     next: Option<&'a Box<ListNode<T>>>
 }
 
-impl<T: Clone + fmt::Debug> ListNode<T> {
+impl<T: fmt::Debug> ListNode<T> {
     fn new(v: T) -> ListNode<T> {
         ListNode { value: v, next: None }
     }
 }
 
-impl<T: fmt::Debug + Clone> SinglyLinkedList<T> {
+impl<T: fmt::Debug> SinglyLinkedList<T> {
     /// # Examples
     ///
     /// ```
@@ -505,9 +505,6 @@ impl<T: fmt::Debug + Clone> SinglyLinkedList<T> {
     /// assert_eq!(iter.next(), None);
     /// ```
     pub fn iter(&self) -> SinglyLinkedListIterator<'_,T> {
-        // if self.head.is_none() {
-        //     return SinglyLinkedListIterator { next: None };
-        // }
         return SinglyLinkedListIterator {
             next: self.head.as_ref()
         }
@@ -534,7 +531,7 @@ impl<T: fmt::Debug> fmt::Display for SinglyLinkedList<T> {
     }
 }
 
-impl<'a, T:Clone + fmt::Debug> Iterator for SinglyLinkedListIterator<'a,T> {
+impl<'a, T: fmt::Debug> Iterator for SinglyLinkedListIterator<'a,T> {
     type Item = &'a T;
     fn next(&mut self) -> Option<Self::Item> {
         self.next.map(|node| {
