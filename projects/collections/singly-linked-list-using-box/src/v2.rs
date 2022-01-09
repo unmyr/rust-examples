@@ -11,6 +11,10 @@ pub struct SinglyLinkedList<T> {
     head: Option<Box<ListNode<T>>>,
 }
 
+pub struct SinglyLinkedListIterator<'a, T:'a> {
+    next: Option<&'a Box<ListNode<T>>>
+}
+
 impl<T: Clone + fmt::Debug> ListNode<T> {
     fn new(v: T) -> ListNode<T> {
         ListNode { value: v, next: None }
@@ -102,6 +106,27 @@ impl<T: fmt::Debug + Clone> SinglyLinkedList<T> {
         self.head = cur.next;
         Some(cur.value)
     }
+
+    /// # Examples
+    ///
+    /// ```
+    /// use singly_linked_list_using_box::v2::SinglyLinkedList;
+    /// let mut list: SinglyLinkedList<u8> = Default::default();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// let mut iter = list.iter();
+    /// assert_eq!(iter.next(), Some(&1));
+    /// assert_eq!(iter.next(), Some(&2));
+    /// assert_eq!(iter.next(), None);
+    /// ```
+    pub fn iter(&self) -> SinglyLinkedListIterator<'_,T> {
+        // if self.head.is_none() {
+        //     return SinglyLinkedListIterator { next: None };
+        // }
+        return SinglyLinkedListIterator {
+            next: self.head.as_ref()
+        }
+    }
 }
 
 impl<T: fmt::Debug> fmt::Display for ListNode<T> {
@@ -121,6 +146,16 @@ impl<T: fmt::Debug> fmt::Display for SinglyLinkedList<T> {
             Some(ref head) => write!(f, "SinglyLinkedList[{}]", head),
             None => write!(f, "SinglyLinkedList[]")
         }
+    }
+}
+
+impl<'a, T:Clone + fmt::Debug> Iterator for SinglyLinkedListIterator<'a,T> {
+    type Item = &'a T;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.next.map(|node| {
+            self.next = node.next.as_ref().map(|node| node);
+            &node.value
+        })
     }
 }
 
@@ -163,5 +198,34 @@ mod tests {
         list.push_back(1);
         assert_eq!(list.pop_back(), Some(1));
         assert_eq!(list.pop_back(), None);
+    }
+
+    #[test]
+    fn test_iter() {
+        let mut list: SinglyLinkedList<u8> = Default::default();
+        let mut iter = list.iter();
+        assert_eq!(iter.next(), None);
+
+        list.push_back(1);
+        list.push_back(2);
+        list.push_back(3);
+        let mut iter = list.iter();
+        assert_eq!(iter.next(), Some(&1));
+        assert_eq!(iter.next(), Some(&2));
+        assert_eq!(iter.next(), Some(&3));
+        assert_eq!(iter.next(), None);
+    }
+
+    #[test]
+    #[ignore]
+    fn test_iter_and_pop_front() {
+        // let mut list: SinglyLinkedList<u8> = Default::default();
+        // list.push_back(1);
+        // list.push_back(2);
+        // list.push_back(3);
+
+        // let mut iter = list.iter();             // NG: immutable borrow occurs here
+        // assert_eq!(list.pop_front(), Some(1));  // NG: mutable borrow occurs here
+        // assert_eq!(iter.next(), None);          // NG: immutable borrow later used here
     }
 }
