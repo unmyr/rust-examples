@@ -152,7 +152,7 @@ impl<'a, T: fmt::Debug> Iterator for SinglyLinkedListIterator<'a,T> {
     type Item = &'a T;
     fn next(&mut self) -> Option<Self::Item> {
         self.next.map(|node| {
-            self.next = node.next.as_ref().map(|node| node);
+            self.next = node.next.as_ref();
             &node.value
         })
     }
