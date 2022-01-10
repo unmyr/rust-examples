@@ -12,7 +12,7 @@ pub struct SinglyLinkedList<T> {
 }
 
 pub struct SinglyLinkedListIterator<'a, T:'a> {
-    next: Option<&'a Box<ListNode<T>>>
+    next: Option<&'a ListNode<T>>
 }
 
 impl<T: fmt::Debug> ListNode<T> {
@@ -123,7 +123,7 @@ impl<T: fmt::Debug> SinglyLinkedList<T> {
     /// ```
     pub fn iter(&self) -> SinglyLinkedListIterator<'_,T> {
         return SinglyLinkedListIterator {
-            next: self.head.as_ref()
+            next: self.head.as_deref()
         }
     }
 }
@@ -152,7 +152,7 @@ impl<'a, T: fmt::Debug> Iterator for SinglyLinkedListIterator<'a,T> {
     type Item = &'a T;
     fn next(&mut self) -> Option<Self::Item> {
         self.next.map(|node| {
-            self.next = node.next.as_ref();
+            self.next = node.next.as_deref();
             &node.value
         })
     }
