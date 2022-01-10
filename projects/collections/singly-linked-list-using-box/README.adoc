@@ -41,7 +41,7 @@ $ cd singly-linked-list-using-box/
 
 [source,rust]
 ----
-pub struct ListNode<T> {
+struct ListNode<T> {
     value: T,
     next: Option<Box<ListNode<T>>>,
 }
@@ -49,6 +49,10 @@ pub struct ListNode<T> {
 #[derive(Default)]
 pub struct SinglyLinkedList<T> {
     head: Option<Box<ListNode<T>>>,
+}
+
+pub struct SinglyLinkedListIterator<'a, T:'a> {
+    next: Option<&'a ListNode<T>>
 }
 
 impl<T> ListNode<T> {
@@ -61,7 +65,7 @@ impl<T> SinglyLinkedList<T> {
     /// # Examples
     ///
     /// ```
-    /// use list::v6::SinglyLinkedList;
+    /// use list::SinglyLinkedList;
     /// let mut list: SinglyLinkedList<u8> = Default::default();
     /// list.push_back(1);
     /// list.push_back(2);
@@ -71,7 +75,7 @@ impl<T> SinglyLinkedList<T> {
     /// # Examples
     ///
     /// ```
-    /// use list::v6::SinglyLinkedList;
+    /// use list::SinglyLinkedList;
     /// let mut list: SinglyLinkedList<u8> = Default::default();
     /// list.push_back(1);
     /// list.push_back(2);
@@ -84,7 +88,7 @@ impl<T> SinglyLinkedList<T> {
     /// # Examples
     ///
     /// ```
-    /// use list::v6::SinglyLinkedList;
+    /// use list::SinglyLinkedList;
     /// let mut list: SinglyLinkedList<u8> = Default::default();
     /// list.push_back(1);
     /// list.push_back(2);
@@ -93,5 +97,23 @@ impl<T> SinglyLinkedList<T> {
     /// assert_eq!(list.pop_front(), None);
     /// ```
     pub fn pop_front(&mut self) -> Option<T> { None }
+
+    /// # Examples
+    ///
+    /// ```
+    /// use singly_linked_list_using_box::v2::SinglyLinkedList;
+    /// let mut list: SinglyLinkedList<u8> = Default::default();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// let mut iter = list.iter();
+    /// assert_eq!(iter.next(), Some(&1));
+    /// assert_eq!(iter.next(), Some(&2));
+    /// assert_eq!(iter.next(), None);
+    /// ```
+    pub fn iter(&self) -> SinglyLinkedListIterator<'_,T> {
+        return SinglyLinkedListIterator {
+            next: self.head.as_deref()
+        }
+    }
 }
 ----
