@@ -3,5 +3,6 @@ members = [
     "doubly-linked-list",
     "enum-list",
     "singly-linked-list",
+    "singly-linked-list-unsafe",
     "singly-linked-list-using-box",
 ]

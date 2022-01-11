@@ -1,0 +1,132 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+:icons: font
+endif::[]
+
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --lib singly-linked-list-unsafe
+     Created library `singly-linked-list-unsafe` package
+$ cd singly-linked-list-unsafe/
+----
+
+=== Prototype
+
+[source,rust]
+----
+use std::cell::RefCell;
+use std::default::Default;
+use std::rc::Rc;
+use std::rc::Weak;
+
+pub struct ListNode<T> {
+    value: T,
+    next: Option<Rc<RefCell<ListNode<T>>>>,
+}
+
+#[derive(Default)]
+pub struct SinglyLinkedList<T> {
+    head: Option<Rc<RefCell<ListNode<T>>>>,
+}
+
+impl<T> ListNode<T> {
+    pub fn new(v: T) -> ListNode<T> {
+        ListNode { value: v, next: None }
+    }
+}
+
+impl<T> SinglyLinkedList<T> {
+    /// # Examples
+    ///
+    /// ```
+    /// use singly_linked_list_unsafe::SinglyLinkedList;
+    /// let mut list: SinglyLinkedList<u8> = Default::default();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// ```
+    pub fn push_back(&mut self, v: T) {}
+
+    /// # Examples
+    ///
+    /// ```
+    /// use singly_linked_list_unsafe::SinglyLinkedList;
+    /// let mut list: SinglyLinkedList<u8> = Default::default();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// assert_eq!(list.pop_back(), Some(2));
+    /// assert_eq!(list.pop_back(), Some(1));
+    /// assert_eq!(list.pop_back(), None);
+    /// ```
+    pub fn pop_back(&mut self) -> Option<T> { None }
+
+    /// # Examples
+    ///
+    /// ```
+    /// use singly_linked_list_unsafe::SinglyLinkedList;
+    /// let mut list: SinglyLinkedList<u8> = Default::default();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// assert_eq!(list.pop_front(), Some(1));
+    /// assert_eq!(list.pop_front(), Some(2));
+    /// assert_eq!(list.pop_front(), None);
+    /// ```
+    pub fn pop_front(&mut self) -> Option<T> { None }
+
+    /// # Examples
+    ///
+    /// ```
+    /// use singly_linked_list_using_box::v2::SinglyLinkedList;
+    /// let mut list: SinglyLinkedList<u8> = Default::default();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// let mut iter = list.iter();
+    /// assert_eq!(iter.next(), Some(&1));
+    /// assert_eq!(iter.next(), Some(&2));
+    /// assert_eq!(iter.next(), None);
+    /// ```
+    pub fn iter(&self) -> SinglyLinkedListIterator<T> {
+        return SinglyLinkedListIterator {
+            next: self.head.as_deref()
+        }
+    }
+}
+
+pub struct SinglyLinkedListIterator<T> {
+    cur: Option<NonNull<ListNode<T>>>
+}
+----
+
+[source,rust]
+----
+use singly_linked_list_unsafe::SinglyLinkedList;
+
+fn main() {
+    let mut list: SinglyLinkedList<u8> = Default::default();
+    list.push_back(1);
+    list.push_back(2);
+    let mut iter = list.iter();
+    assert_eq!(iter.next(), Some(1));
+    assert_eq!(list.pop_back(), Some(2));
+    assert_eq!(iter.next(), None);  //<1>
+    assert_eq!(list.iter().collect::<Vec<_>>(), vec![1]);
+----
+<1> NG: The pointer held by Iterator is accessing the freed memory!
++
+[source,console]
+----
+$ cargo run
+   Compiling singly-linked-list-unsafe v0.1.0 (.../singly-linked-list-unsafe)
+    Finished dev [unoptimized + debuginfo] target(s) in 1.68s
+     Running `.../target/debug/singly-linked-list-unsafe`
+pop_back(2): prev(value:1, next: Some(0x7fffbb8915f0) => None)
+> Dropping: 0x7fffbb8915f0(value: 2, next: None)
+thread 'main' panicked at 'assertion failed: `(left == right)`
+  left: `Some(16)`,
+ right: `None`', singly-linked-list-unsafe/src/main.rs:10:5
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+> Dropping: SinglyLinkedList
+----
