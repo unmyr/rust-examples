@@ -1,0 +1,22 @@
+== Example of const generics
+
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new const-generics --bin
+     Created binary (application) `const-generics` package
+$ cd const-generics/
+----
+
+=== Run
+
+[source,console]
+----
+$ cargo run
+   Compiling const-generics v0.1.0 (.../const-generics)
+    Finished dev [unoptimized + debuginfo] target(s) in 2.94s
+     Running `.../target/debug/const-generics`
+ArrayGenerics([1, 2, 3])
+----
