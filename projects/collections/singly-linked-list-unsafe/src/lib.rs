@@ -75,7 +75,6 @@ impl<T: Clone + Debug> SinglyLinkedList<T> {
             cur = cur.as_ref().next.unwrap();
             cur.as_mut().next = None;
         }
-        return;
     }
 
     /// # Examples
