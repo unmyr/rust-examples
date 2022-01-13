@@ -72,8 +72,6 @@ impl<T: Clone + Debug> SinglyLinkedList<T> {
                 cur = next;
             }
             cur.as_mut().next = node_new;
-            cur = cur.as_ref().next.unwrap();
-            cur.as_mut().next = None;
         }
     }
 
