@@ -3,10 +3,10 @@ use std::rc::Rc;
 
 fn main() {
     let names = vec![
-        Rc::new(RefCell::new(String::from("John"))),
-        Rc::new(RefCell::new(String::from("Paul"))),
-        Rc::new(RefCell::new(String::from("George"))),
-        Rc::new(RefCell::new(String::from("Ringo")))
+        Rc::new(RefCell::new("John")),
+        Rc::new(RefCell::new("Paul")),
+        Rc::new(RefCell::new("George")),
+        Rc::new(RefCell::new("Ringo"))
     ];
     println!("names={:?}", names);
 
@@ -14,7 +14,12 @@ fn main() {
     let b = &names[1..3];
     println!("a={:?} b={:?}", a, b);
 
-    b[0].replace(String::from("XXX"));
+    b[0].replace("XXX");
     println!("a={:?} b={:?}", a, b);
-    println!("names={:?}", names.iter().map(|x| x.borrow().clone()).collect::<Vec<String>>());
+    println!(
+        "names={:?}",
+        names.iter().map(
+            |s| <&str>::clone(&s.borrow())
+        ).collect::<Vec<&str>>()
+    );
 }
