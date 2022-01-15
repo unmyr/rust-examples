@@ -19,7 +19,7 @@ $ cd doubly-linked-list/
 * <<v1.adoc#,v1.x>> +
   There is a memory leak in this code.
 * <<v2.adoc#,v2.x>> +
-  Add a pop_back() method.
+  Fixed an issue where Drop traits couldn't be used.
 
 === References
 * doc.rust-lang.org

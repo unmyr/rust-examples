@@ -1,18 +1,11 @@
-use std::rc::Rc;
-use std::rc::Weak;
+use std::rc::{Rc, Weak};
 use std::cell::RefCell;
-use std::fmt;
-use std::fmt::Debug;
+use std::fmt::{self, Debug};
 
 pub struct Node<T: Debug> {
     value: T,
     prev: Option<Weak<RefCell<Node<T>>>>,
     next: Option<Rc<RefCell<Node<T>>>>,
-}
-
-#[derive(Default)]
-pub struct List<T: Debug> {
-    head: Option<Rc<RefCell<Node<T>>>>,
 }
 
 impl<T: Debug> Node<T> {
@@ -21,16 +14,47 @@ impl<T: Debug> Node<T> {
     }
 }
 
-impl<T: Debug> Drop for List<T> {
-    fn drop(&mut self) {
-        println!("> Dropping: List");
-    }
-}
-
 impl<T: Debug> Drop for Node<T> {
     fn drop(&mut self) {
         println!("> Dropping: Node {:?}", self.value);
     }
+}
+
+impl<T: Debug> fmt::Display for Node<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match (self.prev.as_ref(), self.next.as_ref()) {
+            (None, None) => {
+                write!(f, "Node({:?}, Nil, Nil)", self.value)
+            },
+            (Some(prev), None) => {
+                write!(
+                    f, "Node({:?}, {:?}, Nil)",
+                    self.value,
+                    Rc::clone(&prev.upgrade().unwrap()).borrow().value
+                )
+            },
+            (None, Some(next)) => {
+                write!(
+                    f, "Node({:?}, Nil, {:?}), {}",
+                    self.value, next.borrow().value, next.borrow()
+                )
+            },
+            (Some(prev), Some(next)) => {
+                write!(
+                    f, "Node({:?}, {:?}, {:?}), {}",
+                    self.value,
+                    Rc::clone(&prev.upgrade().unwrap()).borrow().value,
+                    next.borrow().value,
+                    next.borrow()
+                )
+            }
+        }
+    }
+}
+
+#[derive(Default)]
+pub struct List<T: Debug> {
+    head: Option<Rc<RefCell<Node<T>>>>,
 }
 
 impl<T: Debug> List<T> {
@@ -81,35 +105,9 @@ impl<T: Debug + Clone> List<T> {
     }
 }
 
-impl<T: Debug> fmt::Display for Node<T> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match (self.prev.as_ref(), self.next.as_ref()) {
-            (None, None) => {
-                write!(f, "Node({:?}, Nil, Nil)", self.value)
-            },
-            (Some(prev), None) => {
-                write!(
-                    f, "Node({:?}, {:?}, Nil)",
-                    self.value,
-                    Rc::clone(&prev.upgrade().unwrap()).borrow().value
-                )
-            },
-            (None, Some(next)) => {
-                write!(
-                    f, "Node({:?}, Nil, {:?}), {}",
-                    self.value, next.borrow().value, next.borrow()
-                )
-            },
-            (Some(prev), Some(next)) => {
-                write!(
-                    f, "Node({:?}, {:?}, {:?}), {}",
-                    self.value,
-                    Rc::clone(&prev.upgrade().unwrap()).borrow().value,
-                    next.borrow().value,
-                    next.borrow()
-                )
-            }
-        }
+impl<T: Debug> Drop for List<T> {
+    fn drop(&mut self) {
+        println!("> Dropping: List");
     }
 }
 
