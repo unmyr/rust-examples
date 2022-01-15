@@ -58,6 +58,14 @@ pub struct List<T: Debug> {
 }
 
 impl<T: Debug> List<T> {
+    /// # Examples
+    ///
+    /// ```
+    /// use doubly_linked_list::v2::List;
+    /// let mut list: List<u8> = Default::default();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// ```
     pub fn push_back(&mut self, v: T) {
         let mut node_new = Node::new(v);
         let mut cur: Rc<RefCell<Node<T>>>;
@@ -78,6 +86,41 @@ impl<T: Debug> List<T> {
         );
     }
 
+    /// # Examples
+    ///
+    /// ```
+    /// use doubly_linked_list::v2::List;
+    /// let mut list: List<u8> = Default::default();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// assert_eq!(list.pop_front(), Some(1));
+    /// assert_eq!(list.pop_front(), Some(2));
+    /// assert_eq!(list.pop_front(), None);
+    /// ```
+    pub fn pop_front(&mut self) -> Option<T> {
+        let head = match self.head {
+            Some(ref head) => Rc::clone(head),
+            None => return None,
+        };
+        assert_eq!(Rc::strong_count(&head), 2);
+        self.head = None;
+        assert_eq!(Rc::strong_count(&head), 1);
+        let node: Node<T> = Rc::try_unwrap(head).ok().unwrap().into_inner();
+        self.head = node.next.clone();
+        node.value.take()
+    }
+
+    /// # Examples
+    ///
+    /// ```
+    /// use doubly_linked_list::v2::List;
+    /// let mut list: List<u8> = Default::default();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// assert_eq!(list.pop_back(), Some(2));
+    /// assert_eq!(list.pop_back(), Some(1));
+    /// assert_eq!(list.pop_back(), None);
+    /// ```
     pub fn pop_back(&mut self) -> Option<T> {
         let mut cur: Rc<RefCell<Node<T>>>;
         if let Some(ref head) = self.head {
@@ -97,7 +140,6 @@ impl<T: Debug> List<T> {
         }
 
         assert_eq!(Rc::strong_count(&cur), 1);
-        assert_eq!(Rc::weak_count(&cur), 0);
         let last: Node<T> = Rc::try_unwrap(cur).ok().unwrap().into_inner();
         last.value.take()
     }
