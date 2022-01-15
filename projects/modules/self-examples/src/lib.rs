@@ -15,7 +15,7 @@ mod tests {
     #[test]
     fn it_works() {
         assert_eq!(foo::sum(), 3);
-        assert_eq!(foo::a::index(), 1); 
-        assert_eq!(foo::b::index(), 2); 
+        assert_eq!(foo::a::index(), 1);
+        assert_eq!(foo::b::index(), 2);
     }
 }

@@ -13,7 +13,7 @@ fn main() {
     let mut children = vec![];
     use std::sync::Arc;
     use std::thread;
-    
+
     // This variable declaration is where its value is specified.
     let my_bucket = Arc::new(
         MyBucket {
@@ -21,7 +21,7 @@ fn main() {
             count: 0
         }
     );
-    
+
     for i in 0..10 {
         // Here there is no value specification as it is a pointer to a reference
         // in the memory heap.

@@ -52,7 +52,7 @@ impl TspData {
             },
         };
 
-        let mut contents = String::new(); 
+        let mut contents = String::new();
         let _ = file_handle.read_to_string(&mut contents).unwrap();
 
         // Read header
@@ -120,5 +120,5 @@ impl TspData {
         }
 
         return total_dist_cur;
-    }    
+    }
 }

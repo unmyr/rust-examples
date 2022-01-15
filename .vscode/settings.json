@@ -1,4 +1,5 @@
 {
+  "editor.renderWhitespace": "all",
   "[rust]": {
     "editor.tabSize": 4
   },

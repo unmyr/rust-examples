@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use std::cell::RefCell; 
+    use std::cell::RefCell;
 
     #[test]
     fn test_update_some_fields() {

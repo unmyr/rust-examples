@@ -1,6 +1,6 @@
 // If it is an even number, divide by 2.
 /// # Examples
-/// 
+///
 /// ```
 /// use result::halves_if_even;
 /// halves_if_even(2);
@@ -17,7 +17,7 @@ pub fn halves_if_even(i: i32) -> Result<i32, &'static str> {
 // If it is an even number, divide it by 2,
 // and if the number is an even number, add 1.
 /// # Examples
-/// 
+///
 /// ```
 /// use result::halves_number_to_odd;
 /// halves_number_to_odd(2);

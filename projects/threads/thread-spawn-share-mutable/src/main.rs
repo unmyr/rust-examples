@@ -26,7 +26,7 @@ fn main() {
     use std::time::Duration;
 
     let mut children = vec![];
-    
+
     // This variable declaration is where its value is specified.
     let my_bucket = Arc::new(
         MyBucket {
@@ -34,7 +34,7 @@ fn main() {
             count: Mutex::new(0)
         }
     );
-    
+
     for i in 0..10 {
         // Here there is no value specification as it is a pointer to a reference
         // in the memory heap.

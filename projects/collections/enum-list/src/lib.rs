@@ -1,11 +1,11 @@
 use std::rc::Rc;
 
 /// # Examples
-/// 
+///
 /// ```
 /// use std::rc::Rc;
 /// use enum_list::List::{Cons, Nil};
-/// 
+///
 /// let a = Rc::new(Cons(10, Rc::new(Nil)));
 /// ```
 pub enum List {
@@ -25,13 +25,13 @@ mod tests {
         assert_eq!(Rc::strong_count(&a), 1);
 
         // 3
-        // ↓ 
+        // ↓
         // 5 -> 10 -> Nil
         let _b = Cons(3, Rc::clone(&a));
         assert_eq!(Rc::strong_count(&a), 2);
 
         // 3
-        // ↓ 
+        // ↓
         // 5 -> 10 -> Nil
         // ↑
         // 4
@@ -41,7 +41,7 @@ mod tests {
         }
 
         // 3
-        // ↓ 
+        // ↓
         // 5 -> 10 -> Nil
         assert_eq!(Rc::strong_count(&a), 2);
     }

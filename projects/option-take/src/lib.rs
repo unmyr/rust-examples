@@ -16,6 +16,6 @@ mod tests {
         s2.push_str(" world");
 
         let o1: Option<String> = Some(s2);
-        assert_eq!(o1.unwrap(), String::from("Hello world"));        
+        assert_eq!(o1.unwrap(), String::from("Hello world"));
     }
 }

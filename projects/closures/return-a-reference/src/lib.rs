@@ -5,10 +5,10 @@ pub struct Person {
 
 impl Person {
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use return_a_reference::{Person, person_get_name};
-    /// 
+    ///
     /// let p = Person::new("Nobody", 24);
     /// ```
     #[allow(dead_code)]
@@ -18,12 +18,12 @@ impl Person {
 }
 
 /// # Examples
-/// 
+///
 /// ```
 /// use return_a_reference::{Person, person_get_name};
-/// 
+///
 /// let p = Person{ name: "Nobody".to_string(), age : 24};
-/// 
+///
 /// assert_eq!(person_get_name(&p), "Nobody");
 /// ```
 pub fn person_get_name<'a>(person: &'a Person) -> &'a str {
@@ -50,7 +50,7 @@ mod tests {
 
         let age = |p : &Person| p.age;
         let name: for<'a> fn(&'a Person) -> &'a String = |p : &Person| &p.name;
-    
+
         println! ("name={}, age={}" , name(&p), age(&p));
         assert_eq!(name(&p), &"Nobody");
         assert_eq!(age(&p), 24);

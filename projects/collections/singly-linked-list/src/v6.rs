@@ -151,7 +151,7 @@ impl<T> SinglyLinkedList<T> {
         if let Some(ref head) = self.head {
             SinglyLinkedListIterator {
                 cur: Some(Rc::downgrade(&Rc::clone(head)))
-            }    
+            }
         } else {
             SinglyLinkedListIterator { cur: None }
         }

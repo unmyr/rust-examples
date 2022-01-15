@@ -112,7 +112,7 @@ mod tests {
         {
             let mut x: u32 = 5;
             let inc = || x += 1;
-    
+
             call_no_arg_fn_mut(inc);
 
             assert_eq!(x, 7);
@@ -121,7 +121,7 @@ mod tests {
         {
             let mut x: u32 = 5;
             let inc = || x += 1;
-    
+
             call_no_arg_fn_once(inc);
 
             assert_eq!(x, 6);
@@ -140,7 +140,7 @@ mod tests {
         {
             let s = String::from("Hello");
             let consume_and_return_s = || s;
-    
+
             let result = call_and_ret_string_fn_once(consume_and_return_s);
 
             assert_eq!(result, "Hello");

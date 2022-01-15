@@ -1,7 +1,7 @@
 // The adult has seen it all, and can handle any drink well.
 // All drinks are handled explicitly using `match`.
 /// # Examples
-/// 
+///
 /// ```
 /// use unwrap::give_adult;
 /// let result = give_adult(Some("water"));
@@ -20,13 +20,13 @@ pub fn give_adult(drink: Option<&str>) -> String {
 // Others will `panic` before drinking sugary drinks.
 // All drinks are handled implicitly using `unwrap`.
 /// # Examples
-/// 
+///
 /// ```
 /// use unwrap::drink;
 /// let result = drink(Some("water"));
 /// assert_eq!(result, "I love water!!!!!");
 /// ```
-/// 
+///
 /// ```should_panic
 /// use unwrap::drink;
 /// drink(Some("lemonade"));

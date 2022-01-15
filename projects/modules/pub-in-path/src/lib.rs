@@ -14,7 +14,7 @@ pub mod pub_mod {
             assert_eq!(super::inner_two(), 2); // OK
             assert_eq!(super::two(), 2);
         }
-    }    
+    }
 }
 
 pub mod other_mod {

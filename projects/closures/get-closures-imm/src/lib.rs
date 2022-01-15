@@ -1,9 +1,9 @@
 // Rust 1.26 later.
 /// # Examples
-/// 
+///
 /// ```
 /// use get_closures_imm::get_strlen_move;
-/// 
+///
 /// let strlen = get_strlen_move(String::from("immut"));
 /// let len = strlen();
 /// assert_eq!(len, 5);
@@ -15,10 +15,10 @@ pub fn get_strlen_move(s: String) -> impl Fn() -> usize {
 
 // Rust 1.26 later.
 /// # Examples
-/// 
+///
 /// ```
 /// use get_closures_imm::get_strlen_borrow;
-/// 
+///
 /// let hello = String::from("hello");
 /// let strlen = get_strlen_borrow(&hello);
 /// let len = strlen();
@@ -29,10 +29,10 @@ pub fn get_strlen_borrow<'a>(s: &'a str) -> impl 'a + Fn() -> usize {
 }
 
 /// # Examples
-/// 
+///
 /// ```
 /// use get_closures_imm::get_strlen_old_style_move;
-/// 
+///
 /// let hello = String::from("hello");
 /// let strlen = get_strlen_old_style_move(hello);
 /// let len = strlen();

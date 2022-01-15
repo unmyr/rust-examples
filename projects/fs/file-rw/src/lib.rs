@@ -109,7 +109,7 @@ mod tests {
         let mut file = BufReader::new(
             OpenOptions::new().read(true).open(&path).unwrap()
         );
-        let mut contents = String::new(); 
+        let mut contents = String::new();
         let read_size = file.read_to_string(&mut contents).unwrap();
         assert_eq!(read_size, 5);
         assert_eq!(contents, "hello");

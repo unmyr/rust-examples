@@ -20,7 +20,7 @@ mod tests {
     fn test_lifetime_with_fn_same() {
         let string1 = String::from("abcd");
         let string2 = "xyz";
-    
+
         let result = get_longest_slice(string1.as_str(), string2);
         assert_eq!(result, "abcd");
     }

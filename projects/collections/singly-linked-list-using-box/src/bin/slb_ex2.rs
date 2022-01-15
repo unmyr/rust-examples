@@ -55,7 +55,7 @@ fn main() {
             let mut node2_cur = replace(&mut node1_cur.next, None).unwrap();
             if node2_cur.next.is_none() {
                 let node2_cur_next = &mut node2_cur.next;
-                *node2_cur_next = some_boxed_node_3;        
+                *node2_cur_next = some_boxed_node_3;
             }
             let node1_cur_next = &mut node1_cur.next;
             *node1_cur_next = Some(node2_cur);

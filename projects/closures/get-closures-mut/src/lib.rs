@@ -1,13 +1,13 @@
 // Rust 1.26 later.
 /// # Examples
-/// 
+///
 /// ```
 /// use get_closures_mut::get_push_char_move;
-/// 
+///
 /// let initial_str = String::from("hello");
 /// let str_to_append = String::from("!");
 /// let mut push_em = get_push_char_move(initial_str, str_to_append);
-/// 
+///
 /// let new_str = push_em();
 /// assert_eq!(new_str, "hello!");
 /// ```
@@ -23,10 +23,10 @@ pub fn get_push_char_move(
 }
 
 /// # Examples
-/// 
+///
 /// ```
 /// use get_closures_mut::get_push_char_borrow;
-/// 
+///
 /// let mut push_em = get_push_char_borrow("hello", "!");
 /// let count = push_em();
 /// assert_eq!(count, 6);
@@ -42,10 +42,10 @@ pub fn get_push_char_borrow<'a>(
 }
 
 /// # Examples
-/// 
+///
 /// ```
 /// use get_closures_mut::get_counter_old_style;
-/// 
+///
 /// let mut inc = get_counter_old_style(3);
 /// let count = inc();
 /// assert_eq!(count, 4);

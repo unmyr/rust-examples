@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-fn main() { 
+fn main() {
     let n = 11;
     println!("P({},{})", n, n);
     let mut i = 0;

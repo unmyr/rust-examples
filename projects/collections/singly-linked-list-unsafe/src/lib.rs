@@ -159,7 +159,7 @@ impl<T: Clone + Debug> SinglyLinkedList<T> {
         if let Some(head) = self.head {
             SinglyLinkedListIterator {
                 cur: Some(head)
-            }    
+            }
         } else {
             SinglyLinkedListIterator { cur: None }
         }

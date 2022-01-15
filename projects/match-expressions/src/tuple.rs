@@ -1,5 +1,5 @@
 /// # Examples
-/// 
+///
 /// ```
 /// use match_expressions::tuple::get_message_str;
 /// assert_eq!(

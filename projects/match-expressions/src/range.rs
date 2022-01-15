@@ -3,7 +3,7 @@ pub enum Message {
 }
 
 /// # Examples
-/// 
+///
 /// ```
 /// use match_expressions::range::{Message, get_message_str};
 /// get_message_str(&(Message::Hello { id: 5 }));
