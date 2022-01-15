@@ -105,7 +105,7 @@ impl<T: Debug> List<T> {
     /// # Examples
     ///
     /// ```
-    /// use list::v2::List;
+    /// use doubly_linked_list::v2::List;
     /// let mut list: List<u8> = Default::default();
     /// list.push_back(1);
     /// list.push_back(2);

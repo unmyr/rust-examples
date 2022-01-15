@@ -2,9 +2,6 @@
 name = "doubly-linked-list"
 version = "0.1.0"
 edition = "2021"
-
-[lib]
-name = "list"  
-path = "src/lib.rs"
+rust-version = "1.57"
 
 [dependencies]
