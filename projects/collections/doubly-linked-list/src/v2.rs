@@ -5,7 +5,7 @@ use std::fmt;
 use std::fmt::Debug;
 
 pub struct Node<T: Debug> {
-    value: T,
+    value: RefCell<Option<T>>,
     prev: Option<Weak<RefCell<Node<T>>>>,
     next: Option<Rc<RefCell<Node<T>>>>,
 }
@@ -17,7 +17,19 @@ pub struct List<T: Debug> {
 
 impl<T: Debug> Node<T> {
     pub fn new(v: T) -> Node<T> {
-        Node { value: v, next: None, prev: None }
+        Node { value: RefCell::new(Some(v)), next: None, prev: None }
+    }
+}
+
+impl<T: Debug> Drop for List<T> {
+    fn drop(&mut self) {
+        println!("> Dropping: List");
+    }
+}
+
+impl<T: Debug> Drop for Node<T> {
+    fn drop(&mut self) {
+        println!("> Dropping: Node {:?}", self.value);
     }
 }
 
@@ -63,7 +75,7 @@ impl<T: Debug> List<T> {
         assert_eq!(Rc::strong_count(&cur), 1);
         assert_eq!(Rc::weak_count(&cur), 0);
         let last: Node<T> = Rc::try_unwrap(cur).ok().unwrap().into_inner();
-        Some(last.value)
+        last.value.take()
     }
 }
 
@@ -112,7 +124,7 @@ impl<T: Debug> fmt::Display for List<T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::v2::List;
+    use super::List;
 
     #[test]
     fn test_push_back_u8() {
