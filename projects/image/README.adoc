@@ -1,0 +1,7 @@
+== Image
+
+* https://docs.rs/image/latest/image/[image - Rust^]
+
+=== Examples
+
+* <<image-examples/README.adoc#,Image examples>>
