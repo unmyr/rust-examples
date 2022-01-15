@@ -55,6 +55,32 @@ impl<T: Debug> List<T> {
     }
 }
 
+impl<T: Debug + Clone> List<T> {
+    pub fn pop_back(&mut self) -> Option<T> {
+        let mut cur: Rc<RefCell<Node<T>>>;
+        if let Some(ref head) = self.head {
+            cur = Rc::clone(head);
+        } else {
+            return None;
+        };
+
+        while let Some(ref next) = Rc::clone(&cur).borrow().next {
+            cur = Rc::clone(next);
+        }
+
+        if let Some(prev) = &Rc::clone(&cur).borrow_mut().prev {
+            prev.upgrade().unwrap().borrow_mut().next = None;
+        } else {
+            self.head = None;
+        }
+
+        assert_eq!(Rc::strong_count(&cur), 1);
+        assert_eq!(Rc::weak_count(&cur), 0);
+        let last: Node<T> = Rc::try_unwrap(cur).ok().unwrap().into_inner();
+        Some(last.value.clone())
+    }
+}
+
 impl<T: Debug> fmt::Display for Node<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match (self.prev.as_ref(), self.next.as_ref()) {
@@ -100,7 +126,7 @@ impl<T: Debug> fmt::Display for List<T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::v1::List;
+    use super::List;
 
     #[test]
     fn test_push_back_u8() {
@@ -108,5 +134,16 @@ mod tests {
         list.push_back(1);
         list.push_back(2);
         list.push_back(3);
+        assert_eq!(list.pop_back(), Some(3));
+        assert_eq!(list.pop_back(), Some(2));
+        assert_eq!(list.pop_back(), Some(1));
+        assert_eq!(list.pop_back(), None);
+        list.push_back(1);
+        list.push_back(2);
+        list.push_back(3);
+        assert_eq!(list.pop_back(), Some(3));
+        assert_eq!(list.pop_back(), Some(2));
+        assert_eq!(list.pop_back(), Some(1));
+        assert_eq!(list.pop_back(), None);
     }
 }
