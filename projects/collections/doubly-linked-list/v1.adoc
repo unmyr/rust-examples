@@ -369,15 +369,18 @@ List[Node(1, Nil, 2), Node(2, 1, 3), Node(3, 2, Nil)]
 [source,console]
 .Results
 ----
-$ cargo run --bin=db_list_v1
+$ cargo run --bin db_list_v1
    Compiling doubly-linked-list v0.1.0 (.../doubly-linked-list)
-    Finished dev [unoptimized + debuginfo] target(s) in 2.89s
+    Finished dev [unoptimized + debuginfo] target(s) in 2.37s
      Running `.../target/debug/db_list_v1`
 List[Node(1, Nil, 2), Node(2, 1, 3), Node(3, 2, Nil)]
-> Dropping: List
-> Dropping: Node 1
-> Dropping: Node 2
 > Dropping: Node 3
+List[Node(1, Nil, 2), Node(2, 1, Nil)]
+> Dropping: Node 2
+List[Node(1, Nil, Nil)]
+> Dropping: Node 1
+List[]
+> Dropping: List
 ----
 
 === v1.4: Implement Iterator trait
