@@ -29,6 +29,7 @@
     "leveloffset",
     "libc",
     "libthread",
+    "Luma",
     "millis",
     "minigrep",
     "mpsc",

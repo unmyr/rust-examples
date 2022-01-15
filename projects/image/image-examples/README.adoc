@@ -1,0 +1,85 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+:icons: font
+
+ifndef::imagesdir[]
+:imagesdir: images
+endif::[]
+
+endif::[]
+
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new image-examples
+     Created library `image-examples` package
+$ cd image-examples/
+----
+
+=== Codes
+
+.References
+* https://docs.rs/image/latest/image/struct.ImageBuffer.html#method.from_fn[image::ImageBuffer - Rust^]
+* https://docs.rs/image/latest/image/struct.Luma.html[image::Luma - Rust^]
+
+[source,rust]
+.src/bin/gen_gray_images.rs
+----
+use image::{self, ImageBuffer};
+
+fn main() {
+    let width: u32 = 512;
+    let height: u32 = 512;
+
+    // Construct a new by repeated calls to the supplied closure.
+    let img = ImageBuffer::from_fn(
+        width, height,
+        |x, y| {
+            image::Luma([((x/2 + y/2) / 2) as u8])
+        }
+    );
+
+    // Write the contents of this image to the Writer in PNG format.
+    img.save("images/x_plus_y.png").unwrap();
+
+    // Construct a new by repeated calls to the supplied closure.
+    let img = ImageBuffer::from_fn(
+        width, height,
+        |x, y| {
+            image::Luma([((x * y) / 2) as u8])
+        }
+    );
+
+    // Write the contents of this image to the Writer in PNG format.
+    img.save("images/x_times_y.png").unwrap();
+
+    // Construct a new by repeated calls to the supplied closure.
+    let img = ImageBuffer::from_fn(
+        width, height,
+        |x, y| {
+            image::Luma([(x/2 ^ y/2) as u8])
+        }
+    );
+
+    // Write the contents of this image to the Writer in PNG format.
+    img.save("images/x_xor_y.png").unwrap();
+}
+----
+
+[cols="1a,1a,1a" options="autowidth"]
+.Results
+|===
+h| (x + y) / 2
+h| x * y
+h| x ^ y
+
+|
+image::x_plus_y.png[]
+|
+image::x_times_y.png[]
+|
+image::x_xor_y.png[]
+|===
