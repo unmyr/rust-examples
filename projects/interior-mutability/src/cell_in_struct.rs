@@ -7,7 +7,7 @@ pub struct Point {
 
 impl Point {
     pub fn new(x: u8, y: u8) -> Self {
-        Point { x: x, y: Some(Cell::new(y)) }
+        Point { x, y: Some(Cell::new(y)) }
     }
 
     /// # Examples
