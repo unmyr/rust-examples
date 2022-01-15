@@ -380,6 +380,77 @@ List[Node(1, Nil, 2), Node(2, 1, 3), Node(3, 2, Nil)]
 > Dropping: Node 3
 ----
 
+=== v1.4: Implement Iterator trait
+
+[source,diff]
+----
+@@ -105,6 +105,30 @@ impl<T: Debug + Clone> List<T> {
+     }
+ }
+
++impl<T: Debug> List<T> {
++    /// # Examples
++    ///
++    /// ```
++    /// use list::v1::List;
++    /// let mut list: List<u8> = Default::default();
++    /// list.push_back(1);
++    /// list.push_back(2);
++    /// let mut iter = list.iter();
++    /// assert_eq!(iter.next(), Some(1));
++    /// assert_eq!(iter.next(), Some(2));
++    /// assert_eq!(iter.next(), None);
++    /// ```
++    pub fn iter(&self) -> ListIterator<T> {
++        if let Some(ref head) = self.head {
++            ListIterator {
++                cur: Some(Rc::downgrade(&Rc::clone(head)))
++            }
++        } else {
++            ListIterator { cur: None }
++        }
++    }
++}
++
+ impl<T: Debug> Drop for List<T> {
+     fn drop(&mut self) {
+         println!("> Dropping: List");
+@@ -122,6 +146,33 @@ impl<T: Debug> fmt::Display for List<T> {
+     }
+ }
+
++pub struct ListIterator<T: Debug> {
++    cur: Option<Weak<RefCell<Node<T>>>>
++}
++
++impl<T: Clone + Debug> Iterator for ListIterator<T> {
++    type Item = T;
++    fn next(&mut self) -> Option<Self::Item> {
++        let cur_weak = match self.cur {
++            Some(ref cur_weak) => cur_weak,
++            None => return None,
++        };
++
++        let cur_strong = match cur_weak.upgrade() {
++            Some(cur_strong) => cur_strong,
++            None => return None,
++        };
++
++        let cur_val = cur_strong.borrow().value.clone();
++        if let Some(ref next) = cur_strong.borrow().next {
++            self.cur = Some(Rc::downgrade(next))
++        } else {
++            self.cur = None;
++        }
++        Some(cur_val)
++    }
++}
++
+ #[cfg(test)]
+ mod tests {
+     use super::List;
+----
+
 [source,rust]
 .src/v1.rs
 ----
@@ -490,6 +561,30 @@ impl<T: Debug + Clone> List<T> {
     }
 }
 
+impl<T: Debug> List<T> {
+    /// # Examples
+    ///
+    /// ```
+    /// use list::v1::List;
+    /// let mut list: List<u8> = Default::default();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// let mut iter = list.iter();
+    /// assert_eq!(iter.next(), Some(1));
+    /// assert_eq!(iter.next(), Some(2));
+    /// assert_eq!(iter.next(), None);
+    /// ```
+    pub fn iter(&self) -> ListIterator<T> {
+        if let Some(ref head) = self.head {
+            ListIterator {
+                cur: Some(Rc::downgrade(&Rc::clone(head)))
+            }
+        } else {
+            ListIterator { cur: None }
+        }
+    }
+}
+
 impl<T: Debug> Drop for List<T> {
     fn drop(&mut self) {
         println!("> Dropping: List");
@@ -504,6 +599,33 @@ impl<T: Debug> fmt::Display for List<T> {
                 write!(f, "List[{}]", head.borrow())
             }
         }
+    }
+}
+
+pub struct ListIterator<T: Debug> {
+    cur: Option<Weak<RefCell<Node<T>>>>
+}
+
+impl<T: Clone + Debug> Iterator for ListIterator<T> {
+    type Item = T;
+    fn next(&mut self) -> Option<Self::Item> {
+        let cur_weak = match self.cur {
+            Some(ref cur_weak) => cur_weak,
+            None => return None,
+        };
+
+        let cur_strong = match cur_weak.upgrade() {
+            Some(cur_strong) => cur_strong,
+            None => return None,
+        };
+
+        let cur_val = cur_strong.borrow().value.clone();
+        if let Some(ref next) = cur_strong.borrow().next {
+            self.cur = Some(Rc::downgrade(next))
+        } else {
+            self.cur = None;
+        }
+        Some(cur_val)
     }
 }
 
