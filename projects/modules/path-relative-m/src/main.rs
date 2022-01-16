@@ -1,5 +1,5 @@
-use sub_modules::foo::v1::bar;
-use sub_modules::foo::v2::bar as bar_v2;
+use path_relative_m::foo::v1::bar;
+use path_relative_m::foo::v2::bar as bar_v2;
 
 fn main() {
     bar::f1();

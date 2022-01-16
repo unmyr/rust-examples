@@ -1,5 +1,5 @@
 [package]
-name = "parent-module"
+name = "path-super-m"
 version = "0.1.0"
 edition = "2021"
 

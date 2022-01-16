@@ -1,5 +1,5 @@
-use parent_module::foo::v1::depth;
-use parent_module::foo::v2::index;
+use path_super_m::foo::v1::depth;
+use path_super_m::foo::v2::index;
 
 fn main() {
     assert_eq!(depth(), 2);
