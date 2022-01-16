@@ -3,9 +3,9 @@
 +
 [source,console]
 ----
-$ cargo new --lib sub-modules
-     Created library `sub-modules` package
-$ cd sub-modules/
+$ cargo new --lib path-relative-m
+     Created library `path-relative-m` package
+$ cd path-relative-m/
 ----
 
 === Examples
@@ -64,8 +64,8 @@ mod tests {
 [source,rust]
 .src/main.rs
 ----
-use sub_modules::foo::v1::bar;
-use sub_modules::foo::v2::bar as bar_v2;
+use path_relative_m::foo::v1::bar;
+use path_relative_m::foo::v2::bar as bar_v2;
 
 fn main() {
     bar::f1();

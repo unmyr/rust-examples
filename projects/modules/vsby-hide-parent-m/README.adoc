@@ -3,9 +3,9 @@
 +
 [source,console]
 ----
-$ cargo new --lib private-parent
-     Created library `private-parent` package
-$ cd private-parent/
+$ cargo new --lib vsby-hide-parent-m
+     Created library `vsby-hide-parent-m` package
+$ cd vsby-hide-parent-m/
 ----
 
 === Codes
@@ -33,7 +33,7 @@ mod inner_mod { // private
 [source,rust]
 .src/bin.rs
 ----
-use private_parent::one;
+use vsby_hide_parent_m::one;
 
 fn main() {
     assert_eq!(one(), 1);

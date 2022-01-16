@@ -3,9 +3,9 @@
 +
 [source,console]
 ----
-$ cargo new --lib pub-in-path
-     Created library `pub-in-path` package
-$ cd pub-in-path/
+$ cargo new --lib vsby-pub-in-path-m
+     Created library `vsby-pub-in-path-m` package
+$ cd vsby-pub-in-path-m/
 ----
 
 === Codes
@@ -53,9 +53,9 @@ mod tests {
 [source,rust]
 .src/bin.rs
 ----
-// use pub_in_path::pub_mod::inner_two; // NG: function `inner_two` is private
-use pub_in_path::pub_mod::two;
-use pub_in_path::pub_mod::sub_mod::two as sub_two;
+// use vsby_pub_in_path_m::pub_mod::inner_two; // NG: function `inner_two` is private
+use vsby_pub_in_path_m::pub_mod::two;
+use vsby_pub_in_path_m::pub_mod::sub_mod::two as sub_two;
 
 fn main() {
     assert_eq!(two(), 2);
