@@ -1,0 +1,60 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+:icons: font
+endif::[]
+
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --lib test-custom-layout
+     Created library `test-custom-layout` package
+$ cd test-custom-layout/
+----
+
+=== Codes
+
+----
+src
+├── lib.rs
+├── main.rs
+└── tests_custom_loc.rs
+----
+
+[source,rust]
+.src/lib.rs
+----
+/// # Examples
+///
+/// ```
+/// use test_custom_layout::add;
+/// assert_eq!(add(1, 2), 3);
+/// ```
+pub fn add(x: u8, y: u8) -> u8 { x + y }
+
+#[cfg(test)]
+mod tests_custom_loc;
+----
+
+[source,rust]
+.src/main.rs
+----
+use test_custom_layout::add;
+
+fn main() {
+    assert_eq!(add(1, 2), 3);
+}
+----
+
+[source,rust]
+.src/tests_custom_loc.rs
+----
+use super::*;
+
+#[test]
+fn it_works() {
+    assert_eq!(add(1, 3), 4);
+}
+----

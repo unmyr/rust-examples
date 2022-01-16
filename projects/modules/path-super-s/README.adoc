@@ -1,0 +1,96 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+:icons: font
+endif::[]
+
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --lib path-super-s
+     Created library `path-super-s` package
+$ cd path-super-s/
+----
+
+=== Codes
+
+* src/*.rs
++
+[source,rust]
+.src/lib.rs
+----
+fn depth() -> u8 { 0 }
+pub mod foo {
+    fn depth() -> u8 { super::depth() + 1 }
+    pub mod v1 {
+        pub fn depth() -> u8 {
+            super::depth() + 1
+        }
+        pub fn index() -> u8 { 0 }
+
+        #[cfg(test)]
+        mod tests;
+    }
+    pub mod v2;
+}
+----
+
+* src/foo
++
+[source,rust]
+.src/foo/v1/tests.rs
+----
+#[test]
+fn it_works() {
+    assert_eq!(super::depth(), 2);
+    assert_eq!(super::index(), 0);
+}
+----
++
+[source,rust]
+.src/foo/v2.rs
+----
+use super::depth as parent_depth;
+use super::v1::index as prev_index;
+
+pub fn depth() -> u8 {
+    parent_depth() + 1
+}
+
+pub fn index() -> u8 { prev_index() + 1 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_works() {
+        assert_eq!(super::depth(), 2);
+        assert_eq!(super::index(), 1);
+    }
+}
+----
+
+* src/bin/
++
+[source,rust]
+.src/bin/pss_v1.rs
+----
+use path_super_s::foo::v1;
+
+fn main() {
+    assert_eq!(v1::depth(), 2);
+    assert_eq!(v1::index(), 0);
+}
+----
++
+[source,rust]
+.src/bin/pss_v2.rs
+----
+use path_super_s::foo::v2::{depth, index};
+
+fn main() {
+    assert_eq!(depth(), 2);
+    assert_eq!(index(), 1);
+}
+----

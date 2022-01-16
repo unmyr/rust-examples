@@ -3,6 +3,9 @@ members = [
     "path-relative-m",
     "path-self-m",
     "path-super-m",
+    "path-super-s",
+    "separating-modules",
+    "test-custom-layout",
     "vsby-hide-parent-m",
     "vsby-pub-in-path-m",
 ]

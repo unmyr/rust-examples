@@ -1,0 +1,286 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+:icons: font
+endif::[]
+
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --lib separating-modules
+     Created library `separating-modules` package
+$ cd separating-modules/
+----
+
+=== Codes
+
+==== 1. Initial state: using single lib.rs
+
+[source,rust]
+.src/lib.rs
+----
+/// # Examples
+///
+/// ```
+/// use separating_modules::version;
+/// assert_eq!(version(), 1);
+/// ```
+pub fn version() -> u8 { 0 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_works() {
+        assert_eq!(version(), 0);
+    }
+}
+----
+
+==== 2. Using multiple modules
+
+----
+src
+├── bin
+│   ├── sm-v1.rs
+│   └── sm-v2.rs
+└── lib.rs
+----
+
+[source,rust]
+.src/lib.rs
+----
+pub mod v1 {
+    /// # Examples
+    ///
+    /// ```
+    /// use separating_modules::v1::version;
+    /// assert_eq!(version(), 1);
+    /// ```
+    pub fn version() -> u8 { 1 }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn it_works() {
+            assert_eq!(version(), 1);
+        }
+    }
+}
+
+pub mod v2 {
+    /// # Examples
+    ///
+    /// ```
+    /// use separating_modules::v2::version;
+    /// assert_eq!(version(), 2);
+    /// ```
+    pub fn version() -> u8 { 2 }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn it_works() {
+            assert_eq!(version(), 2);
+        }
+    }
+}
+----
+
+[source,rust]
+.src/bin/sm-v1.rs
+----
+use separating_modules::v1::version;
+
+fn main() {
+    assert_eq!(version(), 1);
+}
+----
+
+[source,rust]
+.src/bin/sm-v2.rs
+----
+use separating_modules::v2::version;
+
+fn main() {
+    assert_eq!(version(), 2);
+}
+----
+
+==== 3. Separate modules in lib.rs into different files
+
+----
+src
+├── bin
+│   ├── sm-v1.rs
+│   └── sm-v2.rs
+├── lib.rs
+├── v1.rs
+└── v2.rs
+----
+
+[source,rust]
+.src/lib.rs
+----
+pub mod v1;
+pub mod v2;
+----
+
+[source,rust]
+.src/v1.rs
+----
+/// # Examples
+///
+/// ```
+/// use separating_modules::v1::version;
+/// assert_eq!(version(), 1);
+/// ```
+pub fn version() -> u8 { 1 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_works() {
+        assert_eq!(version(), 1);
+    }
+}
+----
+
+[source,rust]
+.src/v2.rs
+----
+/// # Examples
+///
+/// ```
+/// use separating_modules::v2::version;
+/// assert_eq!(version(), 2);
+/// ```
+pub fn version() -> u8 { 2 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_works() {
+        assert_eq!(version(), 2);
+    }
+}
+----
+
+==== 4. Separate test modules into different files
+
+----
+src
+├── bin
+│   ├── sm-v1.rs
+│   └── sm-v2.rs
+├── lib.rs
+├── v1
+│   └── tests.rs
+├── v1.rs
+├── v2
+│   └── tests.rs
+└── v2.rs
+----
+
+* v1
++
+[source,rust]
+.src/v1.rs
+----
+/// # Examples
+///
+/// ```
+/// use separating_modules::v1::version;
+/// assert_eq!(version(), 1);
+/// ```
+pub fn version() -> u8 { 1 }
+
+#[cfg(test)]
+mod tests;
+----
++
+[source,rust]
+.src/v1/tests.rs
+----
+use super::*;
+
+#[test]
+fn it_works() {
+    assert_eq!(version(), 1);
+}
+----
+
+* v2
++
+[source,rust]
+.src/v2.rs
+----
+/// # Examples
+///
+/// ```
+/// use separating_modules::v2::version;
+/// assert_eq!(version(), 2);
+/// ```
+pub fn version() -> u8 { 2 }
+
+#[cfg(test)]
+mod tests;
+----
++
+[source,rust]
+.src/v2/tests.rs
+----
+use super::*;
+
+#[test]
+fn it_works() {
+    assert_eq!(version(), 2);
+}
+----
+
+* test
++
+[source,console]
+----
+$ cargo test
+   Compiling separating-modules v0.1.0 (.../separating-modules)
+    Finished test [unoptimized + debuginfo] target(s) in 2.06s
+     Running unittests (.../target/debug/deps/separating_modules-06fc57d1c0a2b5e0)
+
+running 2 tests
+test v1::tests::it_works ... ok
+test v2::tests::it_works ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests (.../target/debug/deps/sm_v1-0f5a28a41b8465a2)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests (.../target/debug/deps/sm_v2-cd4b7b00f9be7337)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests separating-modules
+
+running 2 tests
+test src/v2.rs - v2::version (line 3) ... ok
+test src/v1.rs - v1::version (line 3) ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.45s
+----
