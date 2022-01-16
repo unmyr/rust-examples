@@ -32,25 +32,17 @@ impl<K: Clone + Ord> TreeNode<K> {
     pub fn insert(&mut self, key: K) {
         let mut cur: Rc<RefCell<TreeNode<K>>>;
         let node_new: TreeNode<K> = TreeNode::<K>::new(key.clone());
-        cur = match self.key.cmp(&key) {
-            Ordering::Less | Ordering::Equal => {
-                match self.right {
-                    None => {
-                        self.right = Some(Rc::new(RefCell::new(node_new)));
-                        return
-                    },
-                    Some(ref right) => Rc::clone(right),
-                }
+        let cur_ref: &mut Option<Rc<RefCell<TreeNode<K>>>>;
+        cur_ref = match self.key.cmp(&key) {
+            Ordering::Less | Ordering::Equal => &mut self.right,
+            Ordering::Greater => &mut self.left,
+        };
+        cur = match cur_ref {
+            None => {
+                *cur_ref = Some(Rc::new(RefCell::new(node_new)));
+                return
             },
-            Ordering::Greater => {
-                match self.left {
-                    None => {
-                        self.left = Some(Rc::new(RefCell::new(node_new)));
-                        return
-                    },
-                    Some(ref left) => Rc::clone(left),
-                }
-            },
+            Some(ref cur_ref) => Rc::clone(cur_ref),
         };
 
         loop {
