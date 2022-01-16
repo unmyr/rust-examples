@@ -24,27 +24,29 @@ impl<T: Debug> fmt::Display for Node<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match (self.prev.as_ref(), self.next.as_ref()) {
             (None, None) => {
-                write!(f, "Node({:?}, Nil, Nil)", self.value)
+                write!(f, "Node({:?}, Nil, Nil)", self.value.borrow())
             },
             (Some(prev), None) => {
                 write!(
                     f, "Node({:?}, {:?}, Nil)",
-                    self.value,
-                    Rc::clone(&prev.upgrade().unwrap()).borrow().value
+                    self.value.borrow(),
+                    Rc::clone(&prev.upgrade().unwrap()).borrow().value.borrow()
                 )
             },
             (None, Some(next)) => {
                 write!(
                     f, "Node({:?}, Nil, {:?}), {}",
-                    self.value, next.borrow().value, next.borrow()
+                    self.value.borrow(),
+                    next.borrow().value.borrow(),
+                    next.borrow()
                 )
             },
             (Some(prev), Some(next)) => {
                 write!(
                     f, "Node({:?}, {:?}, {:?}), {}",
-                    self.value,
-                    Rc::clone(&prev.upgrade().unwrap()).borrow().value,
-                    next.borrow().value,
+                    self.value.borrow(),
+                    Rc::clone(&prev.upgrade().unwrap()).borrow().value.borrow(),
+                    next.borrow().value.borrow(),
                     next.borrow()
                 )
             }
@@ -105,8 +107,15 @@ impl<T: Debug> List<T> {
         assert_eq!(Rc::strong_count(&head), 2);
         self.head = None;
         assert_eq!(Rc::strong_count(&head), 1);
-        let node: Node<T> = Rc::try_unwrap(head).ok().unwrap().into_inner();
-        self.head = node.next.clone();
+        let mut node: Node<T> = Rc::try_unwrap(head).ok().unwrap().into_inner();
+        if let Some(ref next) = node.next {
+            if let Some(ref prev) = next.borrow().prev {
+                // The previous node has already moved.
+                assert!(prev.upgrade().is_none());
+            }
+            next.borrow_mut().prev = None;
+        }
+        self.head = node.next.take();
         node.value.take()
     }
 

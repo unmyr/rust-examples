@@ -107,8 +107,15 @@ impl<T: Debug + Clone> List<T> {
         assert_eq!(Rc::strong_count(&head), 2);
         self.head = None;
         assert_eq!(Rc::strong_count(&head), 1);
-        let node: Node<T> = Rc::try_unwrap(head).ok().unwrap().into_inner();
-        self.head = node.next.clone();
+        let mut node: Node<T> = Rc::try_unwrap(head).ok().unwrap().into_inner();
+        if let Some(ref next) = node.next {
+            if let Some(ref prev) = next.borrow().prev {
+                // The previous node has already moved.
+                assert!(prev.upgrade().is_none());
+            }
+            next.borrow_mut().prev = None;
+        }
+        self.head = node.next.take();
         Some(node.value.clone())
     }
 

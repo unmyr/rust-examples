@@ -579,6 +579,110 @@ List[Node(1, Nil, 2), Node(2, 1, 3), Node(3, 2, Nil)]
 > Dropping: Node 2
 ----
 
+==== Bugs
+
+[source,rust]
+.src/bin/db_list_v1.rs
+----
+use doubly_linked_list::v1::List;
+
+fn main() {
+    let mut list: List<u8> = Default::default();
+    list.push_back(1);
+    list.push_back(2);
+    assert_eq!(list.pop_front(), Some(1));
+    println!("{}", list);
+}
+----
+
+[source,console]
+----
+$ cargo run --bin db_list_v1
+   Compiling doubly-linked-list v0.1.0 (.../doubly-linked-list)
+    Finished dev [unoptimized + debuginfo] target(s) in 1.59s
+     Running `.../target/debug/db_list_v1`
+> Dropping: Node 1
+thread 'main' panicked at 'called `Option::unwrap()` on a `None` value', .../doubly-linked-list/src/v1.rs:33:47
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+List[> Dropping: List
+> Dropping: Node 2
+----
+
+[source,rust]
+.src/v1.rs
+----
+impl<T: Debug> fmt::Display for Node<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match (self.prev.as_ref(), self.next.as_ref()) {
+            (None, None) => {
+                write!(f, "Node({:?}, Nil, Nil)", self.value)
+            },
+            (Some(prev), None) => {
+                write!(
+                    f, "Node({:?}, {:?}, Nil)",
+                    self.value,
+                    Rc::clone(&prev.upgrade().unwrap()).borrow().value  //<1>
+                )
+            },
+            (None, Some(next)) => {
+                write!(
+                    f, "Node({:?}, Nil, {:?}), {}",
+                    self.value, next.borrow().value, next.borrow()
+                )
+            },
+            (Some(prev), Some(next)) => {
+                write!(
+                    f, "Node({:?}, {:?}, {:?}), {}",
+                    self.value,
+                    Rc::clone(&prev.upgrade().unwrap()).borrow().value,
+                    next.borrow().value,
+                    next.borrow()
+                )
+            }
+        }
+    }
+}
+----
+<1> thread 'main' panicked at 'called `Option::unwrap()` on a `None` value'
+
+=== v1.6: Fix pop_front failure
+
+Displayトレイトを修正しても良いが、早期に None 判定をできるように pop_front() で
+ノードを取り出す段階で prev に None を入れておくことにした。
+
+[source,diff]
+----
+@@ -107,8 +107,15 @@ impl<T: Debug + Clone> List<T> {
+         assert_eq!(Rc::strong_count(&head), 2);
+         self.head = None;
+         assert_eq!(Rc::strong_count(&head), 1);
+-        let node: Node<T> = Rc::try_unwrap(head).ok().unwrap().into_inner();
+-        self.head = node.next.clone();
++        let mut node: Node<T> = Rc::try_unwrap(head).ok().unwrap().into_inner();
++        if let Some(ref next) = node.next {
++            if let Some(ref prev) = next.borrow().prev {
++                // The previous node has already moved.
++                assert!(prev.upgrade().is_none());
++            }
++            next.borrow_mut().prev = None;  //<1>
++        }
++        self.head = node.next.take();
+         Some(node.value.clone())
+     }
+----
+<1> If the weak reference is None, set prev to None.
+
+[source,console]
+----
+$ cargo run --bin db_list_v1
+   Compiling doubly-linked-list v0.1.0 (.../doubly-linked-list)
+    Finished dev [unoptimized + debuginfo] target(s) in 1.67s
+     Running `.../target/debug/db_list_v1`
+> Dropping: Node 1
+List[Node(2, Nil, Nil)]
+> Dropping: List
+----
+
 [source,rust]
 .src/v1.rs
 ----
@@ -691,8 +795,15 @@ impl<T: Debug + Clone> List<T> {
         assert_eq!(Rc::strong_count(&head), 2);
         self.head = None;
         assert_eq!(Rc::strong_count(&head), 1);
-        let node: Node<T> = Rc::try_unwrap(head).ok().unwrap().into_inner();
-        self.head = node.next.clone();
+        let mut node: Node<T> = Rc::try_unwrap(head).ok().unwrap().into_inner();
+        if let Some(ref next) = node.next {
+            if let Some(ref prev) = next.borrow().prev {
+                // The previous node has already moved.
+                assert!(prev.upgrade().is_none());
+            }
+            next.borrow_mut().prev = None;
+        }
+        self.head = node.next.take();
         Some(node.value.clone())
     }
 
@@ -802,69 +913,3 @@ impl<T: Clone + Debug> Iterator for ListIterator<T> {
 #[cfg(test)]
 mod tests;
 ----
-
-==== Bugs
-
-[source,rust]
-.src/bin/db_list_v1.rs
-----
-use doubly_linked_list::v1::List;
-
-fn main() {
-    let mut list: List<u8> = Default::default();
-    list.push_back(1);
-    list.push_back(2);
-    assert_eq!(list.pop_front(), Some(1));
-    println!("{}", list);
-}
-----
-
-[source,console]
-----
-$ cargo run --bin db_list_v1
-   Compiling doubly-linked-list v0.1.0 (.../doubly-linked-list)
-    Finished dev [unoptimized + debuginfo] target(s) in 1.59s
-     Running `.../target/debug/db_list_v1`
-> Dropping: Node 1
-thread 'main' panicked at 'called `Option::unwrap()` on a `None` value', .../doubly-linked-list/src/v1.rs:33:47
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
-List[> Dropping: List
-> Dropping: Node 2
-----
-
-[source,rust]
-.src/v1.rs
-----
-impl<T: Debug> fmt::Display for Node<T> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match (self.prev.as_ref(), self.next.as_ref()) {
-            (None, None) => {
-                write!(f, "Node({:?}, Nil, Nil)", self.value)
-            },
-            (Some(prev), None) => {
-                write!(
-                    f, "Node({:?}, {:?}, Nil)",
-                    self.value,
-                    Rc::clone(&prev.upgrade().unwrap()).borrow().value  //<1>
-                )
-            },
-            (None, Some(next)) => {
-                write!(
-                    f, "Node({:?}, Nil, {:?}), {}",
-                    self.value, next.borrow().value, next.borrow()
-                )
-            },
-            (Some(prev), Some(next)) => {
-                write!(
-                    f, "Node({:?}, {:?}, {:?}), {}",
-                    self.value,
-                    Rc::clone(&prev.upgrade().unwrap()).borrow().value,
-                    next.borrow().value,
-                    next.borrow()
-                )
-            }
-        }
-    }
-}
-----
-<1> thread 'main' panicked at 'called `Option::unwrap()` on a `None` value'
