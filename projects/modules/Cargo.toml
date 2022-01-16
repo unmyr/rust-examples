@@ -1,8 +1,8 @@
 [workspace]
 members = [
-    "parent-module",
-    "private-parent",
-    "pub-in-path",
-    "self-examples",
-    "sub-modules",
+    "path-relative-m",
+    "path-self-m",
+    "path-super-m",
+    "vsby-hide-parent-m",
+    "vsby-pub-in-path-m",
 ]
