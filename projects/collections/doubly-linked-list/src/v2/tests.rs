@@ -99,3 +99,12 @@ fn test_iter_and_pop_front1() {
     assert_eq!(iter.next(), Some(2));      // The next pointer points to None.
     assert_eq!(iter.next(), None);
 }
+
+#[test]
+fn test_pop_front_and_display() {
+    let mut list: List<u8> = Default::default();
+    list.push_back(1);
+    list.push_back(2);
+    assert_eq!(list.pop_front(), Some(1));
+    assert_eq!(format!("{}", list), "List[Node(2, Nil, Nil)]");
+}

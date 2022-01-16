@@ -910,3 +910,68 @@ impl<T: Clone + Debug> Iterator for ListIterator<T> {
 #[cfg(test)]
 mod tests;
 ----
+
+==== Bugs
+
+[source,rust]
+.src/bin/db_list_v2.rs
+----
+use doubly_linked_list::v2::List;
+
+fn main() {
+    let mut list: List<u8> = Default::default();
+    list.push_back(1);
+    list.push_back(2);
+    assert_eq!(list.pop_front(), Some(1));
+    println!("{}", list);
+}
+----
+
+[source,console]
+----
+$ cargo run --bin db_list_v2
+   Compiling doubly-linked-list v0.1.0 (.../doubly-linked-list)
+    Finished dev [unoptimized + debuginfo] target(s) in 1.93s
+     Running `.../target/debug/db_list_v2`
+> Dropping: Node RefCell { value: None }
+thread 'main' panicked at 'called `Option::unwrap()` on a `None` value', .../doubly-linked-list/src/v2.rs:33:47
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+List[> Dropping: List
+> Dropping: Node RefCell { value: Some(2) }
+----
+
+[source,rust]
+----
+impl<T: Debug> fmt::Display for Node<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match (self.prev.as_ref(), self.next.as_ref()) {
+            (None, None) => {
+                write!(f, "Node({:?}, Nil, Nil)", self.value)
+            },
+            (Some(prev), None) => {
+                write!(
+                    f, "Node({:?}, {:?}, Nil)",
+                    self.value,
+                    Rc::clone(&prev.upgrade().unwrap()).borrow().value  //<1>
+                )
+            },
+            (None, Some(next)) => {
+                write!(
+                    f, "Node({:?}, Nil, {:?}), {}",
+                    self.value, next.borrow().value, next.borrow()
+                )
+            },
+            (Some(prev), Some(next)) => {
+                write!(
+                    f, "Node({:?}, {:?}, {:?}), {}",
+                    self.value,
+                    Rc::clone(&prev.upgrade().unwrap()).borrow().value,
+                    next.borrow().value,
+                    next.borrow()
+                )
+            }
+        }
+    }
+}
+----
+<1> thread 'main' panicked at 'called `Option::unwrap()` on a `None` value'
