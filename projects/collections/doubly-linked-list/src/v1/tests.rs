@@ -79,7 +79,7 @@ fn test_iter_last_add() {
 }
 
 #[test]
-fn test_iter_and_pop_front_1() {
+fn test_iter_drop_next_item() {
     let mut list: List<u8> = Default::default();
     list.push_back(1);
     list.push_back(2);
@@ -89,7 +89,7 @@ fn test_iter_and_pop_front_1() {
 }
 
 #[test]
-fn test_iter_and_pop_front1() {
+fn test_iter_drop_prev_item() {
     let mut list: List<u8> = Default::default();
     list.push_back(1);
     list.push_back(2);

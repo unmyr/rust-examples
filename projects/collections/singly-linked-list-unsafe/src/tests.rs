@@ -81,7 +81,7 @@ fn test_iter_last_add() {
 
 #[ignore]
 #[test]
-fn test_iter_and_pop_front_1() {
+fn test_iter_drop_next_item() {
     let mut list: SinglyLinkedList<u8> = Default::default();
     list.push_back(1);
     list.push_back(2);
@@ -91,7 +91,7 @@ fn test_iter_and_pop_front_1() {
 }
 
 #[test]
-fn test_iter_and_pop_front1() {
+fn test_iter_drop_prev_item() {
     let mut list: SinglyLinkedList<u8> = Default::default();
     list.push_back(1);
     list.push_back(2);
@@ -100,4 +100,23 @@ fn test_iter_and_pop_front1() {
     assert_eq!(list.pop_front(), Some(1)); // node 1 is dropped.
     assert_eq!(iter.next(), Some(2));      // The next pointer points to None.
     assert_eq!(iter.next(), None);
+}
+
+#[test]
+fn test_pop_front_and_display_1() {
+    let mut list: SinglyLinkedList<u8> = Default::default();
+    list.push_back(1);
+    list.push_back(2);
+    assert_eq!(list.pop_front(), Some(1));
+    assert_eq!(format!("{}", list), "SinglyLinkedList[ListNode(2)]");
+}
+
+#[test]
+fn test_pop_front_and_display_2() {
+    let mut list: SinglyLinkedList<u8> = Default::default();
+    list.push_back(1);
+    list.push_back(2);
+    list.push_back(3);
+    assert_eq!(list.pop_front(), Some(1));
+    assert_eq!(format!("{}", list), "SinglyLinkedList[ListNode(2), ListNode(3)]");
 }
