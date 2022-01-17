@@ -5,5 +5,6 @@ fn main() {
     node.insert("A");
     node.insert("S");
     node.insert("Y");
+    node.insert("Z");
     println!("{:?}", node);
 }

@@ -209,36 +209,7 @@ mod tests {
                 }
             },
         };
-----
 
-* After
-+
-[source,rust]
-----
-    pub fn insert(&mut self, key: K) {
-        let mut cur: Rc<RefCell<TreeNode<K>>>;
-        let node_new: TreeNode<K> = TreeNode::<K>::new(key.clone());
-        let cur_ref: &mut Option<Rc<RefCell<TreeNode<K>>>>;
-        cur_ref = match self.key.cmp(&key) {
-            Ordering::Less | Ordering::Equal => &mut self.right,
-            Ordering::Greater => &mut self.left,
-        };
-        cur = match cur_ref {
-            None => {
-                *cur_ref = Some(Rc::new(RefCell::new(node_new)));
-                return
-            },
-            Some(ref cur_ref) => Rc::clone(cur_ref),
-        };
-----
-
-[NOTE]
-====
-ただ、これができるのが TreeNode 型だからで、 `Rc<RefCell<TreeNode<K>>>` では
-`RefCell` で `cur.borrow().left` のポインターを保持しようとすると、コンパイラーとなる。
-
-[source,rust]
-----
         loop {
             enum TreeArm {Left, Right}
             let hand: TreeArm;
@@ -269,6 +240,55 @@ mod tests {
                 }
             };
         }
+    }
 ----
 
-====
+* After
++
+[source,rust]
+----
+    pub fn insert(&mut self, key: K) {
+        let mut cur: Rc<RefCell<TreeNode<K>>>;
+        let node_new: TreeNode<K> = TreeNode::<K>::new(key.clone());
+        let cur_ref: &mut Option<Rc<RefCell<TreeNode<K>>>>;
+        cur_ref = match self.key.cmp(&key) {
+            Ordering::Less | Ordering::Equal => &mut self.right,
+            Ordering::Greater => &mut self.left,
+        };
+        cur = match cur_ref {
+            None => {
+                *cur_ref = Some(Rc::new(RefCell::new(node_new)));
+                return
+            },
+            Some(ref cur_ref) => Rc::clone(cur_ref),
+        };
+
+        loop {
+            {
+                let cur_ref_mut: RefMut<TreeNode<K>> = cur.borrow_mut();
+                let mut some_leaf_ref_mut: RefMut<Option<_>> = RefMut::map(cur_ref_mut, |n|
+                    if n.key.cmp(&key) == Ordering::Greater {
+                        &mut n.left
+                    } else {
+                        &mut n.right
+                    }
+                );
+                if some_leaf_ref_mut.is_none() {
+                    *some_leaf_ref_mut = Some(Rc::new(RefCell::new(node_new)));
+                    return;
+                }
+                drop(some_leaf_ref_mut);
+            }
+
+            let cur_ref: Ref<TreeNode<K>> = cur.borrow();
+            let some_leaf: Option<Rc<RefCell<TreeNode<K>>>> = Ref::map(cur_ref, |n| {
+                if n.key.cmp(&key) == Ordering::Greater {
+                    &n.left
+                } else {
+                    &n.right
+                }
+            }).clone();
+            cur = Rc::clone(&some_leaf.unwrap());
+        }
+    }
+----

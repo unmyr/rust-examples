@@ -1,6 +1,6 @@
 use std::fmt::{self};
 use std::rc::Rc;
-use std::cell::RefCell;
+use std::cell::{Ref, RefCell, RefMut};
 use std::cmp::Ordering;
 
 pub struct TreeNode<K> {
@@ -46,34 +46,31 @@ impl<K: Clone + Ord> TreeNode<K> {
         };
 
         loop {
-            enum TreeArm {Left, Right}
-            let hand: TreeArm;
-            hand = match cur.borrow().key.cmp(&key) {
-                Ordering::Less | Ordering::Equal => TreeArm::Right,
-                Ordering::Greater => TreeArm::Left,
-            };
-            cur = match hand {
-                TreeArm::Left => {
-                    if cur.borrow().left.is_none() {
-                        cur.borrow_mut().left = Some(Rc::new(RefCell::new(node_new)));
-                        return;
+            {
+                let cur_ref_mut: RefMut<TreeNode<K>> = cur.borrow_mut();
+                let mut some_leaf_ref_mut: RefMut<Option<_>> = RefMut::map(cur_ref_mut, |n|
+                    if n.key.cmp(&key) == Ordering::Greater {
+                        &mut n.left
+                    } else {
+                        &mut n.right
                     }
-                    match cur.borrow().left {
-                        None => return (),
-                        Some(ref next) => Rc::clone(next)
-                    }
-                },
-                TreeArm::Right => {
-                    if cur.borrow().right.is_none() {
-                        cur.borrow_mut().right = Some(Rc::new(RefCell::new(node_new)));
-                        return;
-                    }
-                    match cur.borrow().right {
-                        None => return (),
-                        Some(ref next) => Rc::clone(next)
-                    }
+                );
+                if some_leaf_ref_mut.is_none() {
+                    *some_leaf_ref_mut = Some(Rc::new(RefCell::new(node_new)));
+                    return;
                 }
-            };
+                drop(some_leaf_ref_mut);
+            }
+
+            let cur_ref: Ref<TreeNode<K>> = cur.borrow();
+            let some_leaf: Option<Rc<RefCell<TreeNode<K>>>> = Ref::map(cur_ref, |n| {
+                if n.key.cmp(&key) == Ordering::Greater {
+                    &n.left
+                } else {
+                    &n.right
+                }
+            }).clone();
+            cur = Rc::clone(&some_leaf.unwrap());
         }
     }
 }
