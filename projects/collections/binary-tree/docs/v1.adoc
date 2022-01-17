@@ -248,35 +248,33 @@ mod tests {
         };
         cur = match cur_ref {
             None => {
-                *cur_ref = Some(Rc::new(RefCell::new(node_new)));
+                cur_ref.replace(Rc::new(RefCell::new(node_new)));
                 return
             },
             Some(ref cur_ref) => Rc::clone(cur_ref),
         };
 
         loop {
-            {
-                let cur_ref_mut: RefMut<TreeNode<K>> = cur.borrow_mut();
-                let mut some_leaf_ref_mut: RefMut<Option<_>> = RefMut::map(cur_ref_mut, |n|
+            let cur_ref: Ref<TreeNode<K>> = cur.borrow();
+            let some_leaf: Option<Rc<RefCell<TreeNode<K>>>> = Ref::map(
+                cur_ref,
+                |n| {
                     match n.key.cmp(&key) {
+                        Ordering::Greater => &n.left,
+                    _ => &n.right,
+                }
+            }).clone();
+            if some_leaf.is_none() {
+                let mut some_leaf_ref_mut: RefMut<Option<_>> = RefMut::map(
+                    cur.borrow_mut(),
+                    |n| match n.key.cmp(&key) {
                         Ordering::Greater => &mut n.left,
                         _  => &mut n.right,
                     }
                 );
-                if some_leaf_ref_mut.is_none() {
-                    *some_leaf_ref_mut = Some(Rc::new(RefCell::new(node_new)));
-                    return;
-                }
-                drop(some_leaf_ref_mut);
+                some_leaf_ref_mut.replace(Rc::new(RefCell::new(node_new)));
+                return;
             }
-
-            let cur_ref: Ref<TreeNode<K>> = cur.borrow();
-            let some_leaf: Option<Rc<RefCell<TreeNode<K>>>> = Ref::map(cur_ref, |n| {
-                match n.key.cmp(&key) {
-                    Ordering::Greater => &n.left,
-                    _ => &n.right,
-                }
-            }).clone();
             cur = Rc::clone(&some_leaf.unwrap());
         }
     }
