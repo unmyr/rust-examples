@@ -41,7 +41,9 @@ impl<K: Clone + Ord> TreeNode<K> {
             *cur_ref = RefCell::new(Some(Rc::new(node_new)));
             return;
         }
-        cur = cur_ref.borrow().clone().unwrap();
+        cur = Rc::clone(
+            cur_ref.borrow().as_ref().unwrap()
+        );
 
         loop {
             let cur_ref_cell: &RefCell<_> = match cur.key.cmp(&key) {
@@ -52,7 +54,9 @@ impl<K: Clone + Ord> TreeNode<K> {
                 cur_ref_cell.replace(Some(Rc::new(node_new)));
                 return;
             }
-            let work: Rc<TreeNode<K>> = cur_ref_cell.borrow().clone().unwrap();
+            let work: Rc<TreeNode<K>> = Rc::clone(
+                cur_ref_cell.borrow().as_ref().unwrap()
+            );
             cur = work;
         }
     }
