@@ -1,4 +1,4 @@
-use binary_tree::v1::TreeNode;
+use binary_tree::v2::TreeNode;
 
 fn main() {
     let mut node = TreeNode::new("E");
