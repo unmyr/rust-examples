@@ -34,8 +34,8 @@ impl<K: Clone + Ord> TreeNode<K> {
         let node_new: TreeNode<K> = TreeNode::<K>::new(key.clone());
         let cur_ref: &mut Option<Rc<RefCell<TreeNode<K>>>>;
         cur_ref = match self.key.cmp(&key) {
-            Ordering::Less | Ordering::Equal => &mut self.right,
             Ordering::Greater => &mut self.left,
+            _ => &mut self.right,
         };
         cur = match cur_ref {
             None => {
@@ -49,10 +49,9 @@ impl<K: Clone + Ord> TreeNode<K> {
             {
                 let cur_ref_mut: RefMut<TreeNode<K>> = cur.borrow_mut();
                 let mut some_leaf_ref_mut: RefMut<Option<_>> = RefMut::map(cur_ref_mut, |n|
-                    if n.key.cmp(&key) == Ordering::Greater {
-                        &mut n.left
-                    } else {
-                        &mut n.right
+                    match n.key.cmp(&key) {
+                        Ordering::Greater => &mut n.left,
+                        _  => &mut n.right,
                     }
                 );
                 if some_leaf_ref_mut.is_none() {
@@ -64,10 +63,9 @@ impl<K: Clone + Ord> TreeNode<K> {
 
             let cur_ref: Ref<TreeNode<K>> = cur.borrow();
             let some_leaf: Option<Rc<RefCell<TreeNode<K>>>> = Ref::map(cur_ref, |n| {
-                if n.key.cmp(&key) == Ordering::Greater {
-                    &n.left
-                } else {
-                    &n.right
+                match n.key.cmp(&key) {
+                    Ordering::Greater => &n.left,
+                    _ => &n.right,
                 }
             }).clone();
             cur = Rc::clone(&some_leaf.unwrap());

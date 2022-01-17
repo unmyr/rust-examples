@@ -72,32 +72,25 @@ impl<K: Clone + Ord> TreeNode<K> {
         let node_new: TreeNode<K> = TreeNode::<K>::new(key.clone());
         let cur_ref: &mut RefCell<Option<Rc<TreeNode<K>>>>;
         cur_ref = match self.key.cmp(&key) {
-            Ordering::Less | Ordering::Equal => &mut self.right,
             Ordering::Greater => &mut self.left,
+            _ => &mut self.right,
         };
         if cur_ref.borrow().is_none() {
             *cur_ref = RefCell::new(Some(Rc::new(node_new)));
             return;
         }
-        cur = match cur_ref.borrow().clone() {
-            Some(v) => v,
-            None => return,
-        };
+        cur = cur_ref.borrow().clone().unwrap();
 
         loop {
-            let cur_ref_cell = if cur.key.cmp(&key) == Ordering::Greater {
-                &cur.left
-            } else {
-                &cur.right
+            let cur_ref_cell: &RefCell<_> = match cur.key.cmp(&key) {
+                Ordering::Greater => &cur.left,
+                _ => &cur.right,
             };
             if cur_ref_cell.borrow().is_none() {
                 cur_ref_cell.replace(Some(Rc::new(node_new)));
                 return;
             }
-            let work = match cur_ref_cell.borrow().clone() {
-                Some(v) => Rc::clone(&v),
-                None => return,
-            };
+            let work: Rc<TreeNode<K>> = cur_ref_cell.borrow().clone().unwrap();
             cur = work;
         }
     }
