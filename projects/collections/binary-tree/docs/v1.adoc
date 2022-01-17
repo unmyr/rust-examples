@@ -130,19 +130,19 @@ impl<T: fmt::Debug> fmt::Debug for TreeNode<T> {
             (None, None) => {
                 write!(f, "TreeNode(Nil,{:?},Nil)", self.key)
             },
-            (Some(ref left), Some(ref right)) => {
+            (Some(left), Some(right)) => {
                 write!(f,
                     "{:?}, TreeNode({:?},{:?},{:?}), {:?}",
                     left.borrow(), left.borrow().key, self.key, right.borrow().key, right.borrow()
                 )
             },
-            (None, Some(ref right)) => {
+            (None, Some(right)) => {
                 write!(f,
                     "TreeNode(Nil,{:?},{:?}), {:?}",
                     self.key, right.borrow().key, right.borrow()
                 )
             },
-            (Some(ref left), None) => {
+            (Some(left), None) => {
                 write!(f,
                     "{:?}, TreeNode({:?},{:?},Nil)",
                     left.borrow(), self.key, left.borrow().key
