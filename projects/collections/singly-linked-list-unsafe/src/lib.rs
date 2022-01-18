@@ -8,11 +8,6 @@ pub struct ListNode<T: Debug> {
     next: Option<NonNull<ListNode<T>>>,
 }
 
-#[derive(Default, Debug)]
-pub struct SinglyLinkedList<T: Debug> {
-    head: Option<NonNull<ListNode<T>>>,
-}
-
 impl<T: Debug> ListNode<T> {
     pub fn new(v: T) -> ListNode<T> {
         ListNode { value: v, next: None }
@@ -32,17 +27,9 @@ impl<T: Debug> Display for ListNode<T> {
     }
 }
 
-impl<T: Debug> Display for SinglyLinkedList<T> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        match self.head {
-            Some(ref head) => {
-                unsafe {
-                    write!(f, "SinglyLinkedList[{}]", head.as_ref())
-                }
-            }
-            None => write!(f, "SinglyLinkedList[]")
-        }
-    }
+#[derive(Default, Debug)]
+pub struct SinglyLinkedList<T: Debug> {
+    head: Option<NonNull<ListNode<T>>>,
 }
 
 impl<T: Clone + Debug> SinglyLinkedList<T> {
@@ -162,6 +149,19 @@ impl<T: Clone + Debug> SinglyLinkedList<T> {
             }
         } else {
             SinglyLinkedListIterator { cur: None }
+        }
+    }
+}
+
+impl<T: Debug> Display for SinglyLinkedList<T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        match self.head {
+            Some(ref head) => {
+                unsafe {
+                    write!(f, "SinglyLinkedList[{}]", head.as_ref())
+                }
+            }
+            None => write!(f, "SinglyLinkedList[]")
         }
     }
 }

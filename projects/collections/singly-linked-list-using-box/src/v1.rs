@@ -6,15 +6,6 @@ struct ListNode<T> {
     next: Option<Box<ListNode<T>>>,
 }
 
-#[derive(Default, Debug)]
-pub struct SinglyLinkedList<T> {
-    head: Option<Box<ListNode<T>>>,
-}
-
-pub struct SinglyLinkedListIterator<'a, T:'a> {
-    next: Option<&'a ListNode<T>>
-}
-
 impl<T: fmt::Debug> ListNode<T> {
     fn new(v: T) -> ListNode<T> {
         ListNode { value: v, next: None }
@@ -28,6 +19,22 @@ impl<T: fmt::Debug> ListNode<T> {
             Some(ref mut next) => next.push_back(v),
         }
     }
+}
+
+impl<T: fmt::Debug> fmt::Display for ListNode<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.next {
+            Some(ref next) => {
+                write!(f, "ListNode({:?}), {}", self.value, next)
+            },
+            None => write!(f, "ListNode({:?})", self.value)
+        }
+    }
+}
+
+#[derive(Default, Debug)]
+pub struct SinglyLinkedList<T> {
+    head: Option<Box<ListNode<T>>>,
 }
 
 impl<T: fmt::Debug> SinglyLinkedList<T> {
@@ -128,17 +135,6 @@ impl<T: fmt::Debug> SinglyLinkedList<T> {
     }
 }
 
-impl<T: fmt::Debug> fmt::Display for ListNode<T> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.next {
-            Some(ref next) => {
-                write!(f, "ListNode({:?}), {}", self.value, next)
-            },
-            None => write!(f, "ListNode({:?})", self.value)
-        }
-    }
-}
-
 impl<T: fmt::Debug> fmt::Display for SinglyLinkedList<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.head {
@@ -146,6 +142,10 @@ impl<T: fmt::Debug> fmt::Display for SinglyLinkedList<T> {
             None => write!(f, "SinglyLinkedList[]")
         }
     }
+}
+
+pub struct SinglyLinkedListIterator<'a, T:'a> {
+    next: Option<&'a ListNode<T>>
 }
 
 impl<'a, T: fmt::Debug> Iterator for SinglyLinkedListIterator<'a,T> {

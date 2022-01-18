@@ -108,7 +108,7 @@ fn main() {
 $ cargo run
    Compiling singly-linked-list v0.1.0 (.../singly-linked-list)
     Finished dev [unoptimized + debuginfo] target(s) in 2.23s
-     Running `/home/guest/tmp_rust/rust-examples/projects/collections/target/debug/singly-linked-list`
+     Running `.../target/debug/singly-linked-list`
 thread 'main' panicked at 'already borrowed: BorrowMutError', .../singly-linked-list/src/lib.rs:68:32
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
 ----
@@ -148,9 +148,10 @@ pub struct ListNode<T> {
     next: Option<Rc<RefCell<ListNode<T>>>>,
 }
 
-#[derive(Default)]
-pub struct SinglyLinkedList<T> {
-    head: Option<Rc<RefCell<ListNode<T>>>>,
+impl<T> ListNode<T> {
+    pub fn new(v: T) -> ListNode<T> {
+        ListNode { value: v, next: None }
+    }
 }
 
 impl<T: fmt::Debug> fmt::Display for ListNode<T> {
@@ -164,21 +165,9 @@ impl<T: fmt::Debug> fmt::Display for ListNode<T> {
     }
 }
 
-impl<T: fmt::Debug> fmt::Display for SinglyLinkedList<T> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.head {
-            Some(ref head) => {
-                write!(f, "SinglyLinkedList[{}]", head.borrow())
-            }
-            None => write!(f, "SinglyLinkedList[]")
-        }
-    }
-}
-
-impl<T> ListNode<T> {
-    pub fn new(v: T) -> ListNode<T> {
-        ListNode { value: v, next: None }
-    }
+#[derive(Default)]
+pub struct SinglyLinkedList<T> {
+    head: Option<Rc<RefCell<ListNode<T>>>>,
 }
 
 impl<T> SinglyLinkedList<T> {
@@ -217,6 +206,17 @@ impl<T> SinglyLinkedList<T> {
                     return;
                 }
             };
+        }
+    }
+}
+
+impl<T: fmt::Debug> fmt::Display for SinglyLinkedList<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.head {
+            Some(ref head) => {
+                write!(f, "SinglyLinkedList[{}]", head.borrow())
+            }
+            None => write!(f, "SinglyLinkedList[]")
         }
     }
 }

@@ -7,9 +7,10 @@ pub struct ListNode<T: fmt::Debug> {
     next: Option<Rc<RefCell<ListNode<T>>>>,
 }
 
-#[derive(Default)]
-pub struct SinglyLinkedList<T: fmt::Debug> {
-    head: Option<Rc<RefCell<ListNode<T>>>>,
+impl<T: fmt::Debug> ListNode<T> {
+    pub fn new(v: T) -> ListNode<T> {
+        ListNode { value: v, next: None }
+    }
 }
 
 impl<T: fmt::Debug> fmt::Display for ListNode<T> {
@@ -23,21 +24,9 @@ impl<T: fmt::Debug> fmt::Display for ListNode<T> {
     }
 }
 
-impl<T: fmt::Debug> fmt::Display for SinglyLinkedList<T> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.head {
-            Some(ref head) => {
-                write!(f, "SinglyLinkedList[{}]", head.borrow())
-            }
-            None => write!(f, "SinglyLinkedList[]")
-        }
-    }
-}
-
-impl<T: fmt::Debug> ListNode<T> {
-    pub fn new(v: T) -> ListNode<T> {
-        ListNode { value: v, next: None }
-    }
+#[derive(Default)]
+pub struct SinglyLinkedList<T: fmt::Debug> {
+    head: Option<Rc<RefCell<ListNode<T>>>>,
 }
 
 impl<T: fmt::Debug + Clone> SinglyLinkedList<T> {
@@ -104,5 +93,16 @@ impl<T: fmt::Debug> Drop for SinglyLinkedList<T> {
 impl<T:fmt::Debug> Drop for ListNode<T> {
     fn drop(&mut self) {
         println!("> Dropping: {:?}", self.value);
+    }
+}
+
+impl<T: fmt::Debug> fmt::Display for SinglyLinkedList<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.head {
+            Some(ref head) => {
+                write!(f, "SinglyLinkedList[{}]", head.borrow())
+            }
+            None => write!(f, "SinglyLinkedList[]")
+        }
     }
 }

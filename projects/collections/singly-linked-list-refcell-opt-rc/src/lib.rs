@@ -30,17 +30,6 @@ pub struct SinglyLinkedList<T> {
     head: RefCell<Option<Rc<ListNode<T>>>>,
 }
 
-impl<T: fmt::Debug> fmt::Display for SinglyLinkedList<T> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.head.borrow().as_ref() {
-            Some(ref head) => {
-                write!(f, "SinglyLinkedList[{}]", head)
-            }
-            None => write!(f, "SinglyLinkedList[]")
-        }
-    }
-}
-
 impl<T> SinglyLinkedList<T> {
     /// # Examples
     ///
@@ -145,6 +134,17 @@ impl<T> SinglyLinkedList<T> {
             }
         } else {
             SinglyLinkedListIterator { cur: RefCell::new(None) }
+        }
+    }
+}
+
+impl<T: fmt::Debug> fmt::Display for SinglyLinkedList<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.head.borrow().as_ref() {
+            Some(ref head) => {
+                write!(f, "SinglyLinkedList[{}]", head)
+            }
+            None => write!(f, "SinglyLinkedList[]")
         }
     }
 }

@@ -7,9 +7,10 @@ pub struct ListNode<T> {
     next: Option<Rc<RefCell<ListNode<T>>>>,
 }
 
-#[derive(Default)]
-pub struct SinglyLinkedList<T> {
-    head: Option<Rc<RefCell<ListNode<T>>>>,
+impl<T> ListNode<T> {
+    pub fn new(v: T) -> ListNode<T> {
+        ListNode { value: v, next: None }
+    }
 }
 
 impl<T: fmt::Debug> fmt::Display for ListNode<T> {
@@ -23,21 +24,9 @@ impl<T: fmt::Debug> fmt::Display for ListNode<T> {
     }
 }
 
-impl<T: fmt::Debug> fmt::Display for SinglyLinkedList<T> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.head {
-            Some(ref head) => {
-                write!(f, "SinglyLinkedList[{}]", head.borrow())
-            }
-            None => write!(f, "SinglyLinkedList[]")
-        }
-    }
-}
-
-impl<T> ListNode<T> {
-    pub fn new(v: T) -> ListNode<T> {
-        ListNode { value: v, next: None }
-    }
+#[derive(Default)]
+pub struct SinglyLinkedList<T> {
+    head: Option<Rc<RefCell<ListNode<T>>>>,
 }
 
 impl<T> SinglyLinkedList<T> {
@@ -111,5 +100,16 @@ impl<T> SinglyLinkedList<T> {
         let last: ListNode<T> = Rc::try_unwrap(cur).ok().unwrap().into_inner();
         println!("pop_back(): END");
         Some(last.value)
+    }
+}
+
+impl<T: fmt::Debug> fmt::Display for SinglyLinkedList<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.head {
+            Some(ref head) => {
+                write!(f, "SinglyLinkedList[{}]", head.borrow())
+            }
+            None => write!(f, "SinglyLinkedList[]")
+        }
     }
 }
