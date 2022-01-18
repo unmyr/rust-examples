@@ -3,7 +3,7 @@ members = [
     "binary-tree",
     "doubly-linked-list",
     "enum-list",
-    "singly-linked-list",
+    "singly-linked-list-opt-rc-refcell",
     "singly-linked-list-unsafe",
     "singly-linked-list-using-box",
 ]
