@@ -3,14 +3,14 @@ use std::rc::Rc;
 use std::cell::{Ref, RefCell, RefMut};
 use std::cmp::Ordering;
 
-pub struct TreeNode<K> {
-    key: K,
-    left: Option<Rc<RefCell<TreeNode<K>>>>,
-    right: Option<Rc<RefCell<TreeNode<K>>>>,
+pub struct TreeNode<'a, K> {
+    key: &'a K,
+    left: Option<Rc<RefCell<TreeNode<'a, K>>>>,
+    right: Option<Rc<RefCell<TreeNode<'a, K>>>>,
 }
 
-impl<K> TreeNode<K> {
-    pub fn new(key: K) -> Self {
+impl<'a, K> TreeNode<'a, K> {
+    pub fn new(key: &'a K) -> Self {
         TreeNode {
             key,
             left: None,
@@ -19,21 +19,21 @@ impl<K> TreeNode<K> {
     }
 }
 
-impl<K: Clone + Ord> TreeNode<K> {
+impl<'a, K: Ord> TreeNode<'a, K> {
     /// # Examples
     ///
     /// ```
     /// use binary_tree::v1::TreeNode;
-    /// let mut node = TreeNode::new("E");
-    /// node.insert("A");
-    /// node.insert("S");
-    /// println!("{:?}", node);
+    /// let mut node = TreeNode::new(&"E");
+    /// node.insert(&"A");
+    /// node.insert(&"S");
+    /// println!("{:?}", &node);
     /// ```
-    pub fn insert(&mut self, key: K) {
+    pub fn insert(&mut self, key_ref: &'a K) {
         let mut cur: Rc<RefCell<TreeNode<K>>>;
-        let node_new: TreeNode<K> = TreeNode::<K>::new(key.clone());
+        let node_new: TreeNode<K> = TreeNode::<K>::new(key_ref);
         let cur_ref: &mut Option<Rc<RefCell<TreeNode<K>>>>;
-        cur_ref = match self.key.cmp(&key) {
+        cur_ref = match self.key.cmp(key_ref) {
             Ordering::Greater => &mut self.left,
             _ => &mut self.right,
         };
@@ -50,7 +50,7 @@ impl<K: Clone + Ord> TreeNode<K> {
             let some_leaf: Option<Rc<RefCell<TreeNode<K>>>> = Ref::map(
                 cur_ref,
                 |n| {
-                    match n.key.cmp(&key) {
+                    match n.key.cmp(key_ref) {
                         Ordering::Greater => &n.left,
                     _ => &n.right,
                 }
@@ -58,7 +58,7 @@ impl<K: Clone + Ord> TreeNode<K> {
             if some_leaf.is_none() {
                 let mut some_leaf_ref_mut: RefMut<Option<_>> = RefMut::map(
                     cur.borrow_mut(),
-                    |n| match n.key.cmp(&key) {
+                    |n| match n.key.cmp(key_ref) {
                         Ordering::Greater => &mut n.left,
                         _  => &mut n.right,
                     }
@@ -71,7 +71,7 @@ impl<K: Clone + Ord> TreeNode<K> {
     }
 }
 
-impl<T: fmt::Debug> fmt::Debug for TreeNode<T> {
+impl<'a, T: fmt::Debug> fmt::Debug for TreeNode<'a, T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match (self.left.as_ref(), self.right.as_ref()) {
             (None, None) => {

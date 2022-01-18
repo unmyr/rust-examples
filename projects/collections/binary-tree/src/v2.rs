@@ -3,14 +3,14 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::cmp::Ordering;
 
-pub struct TreeNode<K> {
-    key: K,
-    left: RefCell<Option<Rc<TreeNode<K>>>>,
-    right: RefCell<Option<Rc<TreeNode<K>>>>,
+pub struct TreeNode<'a, K> {
+    key: &'a K,
+    left: RefCell<Option<Rc<TreeNode<'a, K>>>>,
+    right: RefCell<Option<Rc<TreeNode<'a, K>>>>,
 }
 
-impl<K> TreeNode<K> {
-    pub fn new(key: K) -> Self {
+impl<'a, K> TreeNode<'a, K> {
+    pub fn new(key: &'a K) -> Self {
         TreeNode {
             key,
             left: RefCell::new(None),
@@ -19,21 +19,21 @@ impl<K> TreeNode<K> {
     }
 }
 
-impl<K: Clone + Ord> TreeNode<K> {
+impl<'a, K: Ord> TreeNode<'a, K> {
     /// # Examples
     ///
     /// ```
     /// use binary_tree::v2::TreeNode;
-    /// let mut node = TreeNode::new("E");
-    /// node.insert("A");
-    /// node.insert("S");
-    /// println!("{:?}", node);
+    /// let mut node = TreeNode::new(&"E");
+    /// node.insert(&"A");
+    /// node.insert(&"S");
+    /// println!("{:?}", &node);
     /// ```
-    pub fn insert(&mut self, key: K) {
+    pub fn insert(&mut self, key_ref: &'a K) {
         let mut cur: Rc<TreeNode<K>>;
-        let node_new: TreeNode<K> = TreeNode::<K>::new(key.clone());
+        let node_new: TreeNode<K> = TreeNode::<K>::new(key_ref);
         let cur_cell_ref: &RefCell<Option<Rc<TreeNode<K>>>>;
-        cur_cell_ref = match self.key.cmp(&key) {
+        cur_cell_ref = match self.key.cmp(key_ref) {
             Ordering::Greater => &mut self.left,
             _ => &mut self.right,
         };
@@ -46,7 +46,7 @@ impl<K: Clone + Ord> TreeNode<K> {
         );
 
         loop {
-            let cur_cell_ref = match cur.key.cmp(&key) {
+            let cur_cell_ref = match cur.key.cmp(key_ref) {
                 Ordering::Greater => &cur.left,
                 _ => &cur.right,
             };
@@ -62,7 +62,7 @@ impl<K: Clone + Ord> TreeNode<K> {
     }
 }
 
-impl<T: fmt::Debug> fmt::Debug for TreeNode<T> {
+impl<'a, T: fmt::Debug> fmt::Debug for TreeNode<'a, T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match (self.left.borrow().clone(), self.right.borrow().clone()) {
             (None, None) => {
