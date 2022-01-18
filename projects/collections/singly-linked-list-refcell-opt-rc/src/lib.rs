@@ -46,7 +46,7 @@ impl<T> SinglyLinkedList<T> {
             self.head.replace(Some(Rc::new(node_new)));
             return;
         }
-        cur = Rc::clone(&self.head.borrow().clone().unwrap());
+        cur = self.head.borrow().clone().unwrap();
 
         while let Some(next) = Rc::clone(&cur).next.borrow().as_ref() {
             cur = Rc::clone(next);
@@ -130,10 +130,10 @@ impl<T> SinglyLinkedList<T> {
     pub fn iter(&self) -> SinglyLinkedListIterator<T> {
         if let Some(ref head) = self.head.borrow().as_ref() {
             SinglyLinkedListIterator {
-                cur: RefCell::new(Some(Rc::downgrade(&Rc::clone(head))))
+                cur: Some(Rc::downgrade(&Rc::clone(head)))
             }
         } else {
-            SinglyLinkedListIterator { cur: RefCell::new(None) }
+            SinglyLinkedListIterator { cur: None }
         }
     }
 }
@@ -150,27 +150,21 @@ impl<T: fmt::Debug> fmt::Display for SinglyLinkedList<T> {
 }
 
 pub struct SinglyLinkedListIterator<T> {
-    cur: RefCell<Option<Weak<ListNode<T>>>>
+    cur: Option<Weak<ListNode<T>>>
 }
 
 impl<T:Clone> Iterator for SinglyLinkedListIterator<T> {
     type Item = T;
     fn next(&mut self) -> Option<Self::Item> {
-        if self.cur.borrow().as_ref().is_none() {
-            return None;
-        }
-        let cur_weak = self.cur.borrow().clone().unwrap();
-
-        let cur_strong = match cur_weak.upgrade() {
-            Some(cur_strong) => cur_strong,
-            None => return None,
-        };
+        self.cur.as_ref()?;
+        let cur_weak = self.cur.as_ref().unwrap();
+        let cur_strong = cur_weak.upgrade()?;
 
         let cur_val = cur_strong.value.clone();
         if let Some(ref next) = cur_strong.next.borrow().as_ref() {
-            self.cur = RefCell::new(Some(Rc::downgrade(next)));
+            self.cur = Some(Rc::downgrade(next));
         } else {
-            self.cur = RefCell::new(None);
+            self.cur = None;
         }
         Some(cur_val)
     }
