@@ -69,7 +69,7 @@ impl<T> SinglyLinkedList<T> {
     pub fn pop_back(&mut self) -> Option<T> {
         let mut some_prev: Option<Rc<ListNode<T>>> = None;
         let mut cur: Rc<ListNode<T>>;
-        if let Some(ref head) = self.head.borrow().as_ref() {
+        if let Some(head) = self.head.borrow().as_ref() {
             cur = Rc::clone(head);
         } else {
             // You can't pop the head of the list.
@@ -128,7 +128,7 @@ impl<T> SinglyLinkedList<T> {
     /// assert_eq!(iter.next(), None);
     /// ```
     pub fn iter(&self) -> SinglyLinkedListIterator<T> {
-        if let Some(ref head) = self.head.borrow().as_ref() {
+        if let Some(head) = self.head.borrow().as_ref() {
             SinglyLinkedListIterator {
                 cur: Some(Rc::downgrade(&Rc::clone(head)))
             }
@@ -158,10 +158,17 @@ impl<T:Clone> Iterator for SinglyLinkedListIterator<T> {
     fn next(&mut self) -> Option<Self::Item> {
         self.cur.as_ref()?;
         let cur_weak = self.cur.as_ref().unwrap();
-        let cur_strong = cur_weak.upgrade()?;
+
+        let cur_strong = match cur_weak.upgrade() {
+            Some(cur_strong) => cur_strong,
+            None => {
+                self.cur = None;
+                return None;
+            },
+        };
 
         let cur_val = cur_strong.value.clone();
-        if let Some(ref next) = cur_strong.next.borrow().as_ref() {
+        if let Some(next) = cur_strong.next.borrow().as_ref() {
             self.cur = Some(Rc::downgrade(next));
         } else {
             self.cur = None;
