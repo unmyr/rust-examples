@@ -23,7 +23,7 @@ impl<'a, K: Ord> TreeNode<'a, K> {
     /// # Examples
     ///
     /// ```
-    /// use binary_tree::v1::TreeNode;
+    /// use bt_opt_rc_refcell::kr::TreeNode;
     /// let mut node = TreeNode::new(&"E");
     /// node.insert(&"A");
     /// node.insert(&"S");

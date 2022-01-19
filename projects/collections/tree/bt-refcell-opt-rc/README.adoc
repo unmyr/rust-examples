@@ -27,7 +27,7 @@ fn main() {
 .Results
 ----
 $ cargo run --bin bt_v2
-   Compiling binary-tree v0.1.0 (.../binary-tree)
+   Compiling bt-refcell-opt-rc v0.1.0 (.../bt-refcell-opt-rc)
     Finished dev [unoptimized + debuginfo] target(s) in 2.95s
      Running `.../target/debug/bt_v2`
 TreeNode(Nil,"A",Nil), TreeNode("A","E","S"), TreeNode(Nil,"S","Y"), TreeNode(Nil,"Y","Z"), TreeNode(Nil,"Z",Nil)
@@ -152,10 +152,10 @@ fn main() {
 [source,console]
 ----
 $ cargo run --bin bt_v2
-   Compiling binary-tree v0.1.0 (.../binary-tree)
+   Compiling bt-refcell-opt-rc v0.1.0 (.../bt-refcell-opt-rc)
     Finished dev [unoptimized + debuginfo] target(s) in 3.61s
      Running `.../target/debug/bt_v2`
-[binary-tree/src/bin/bt_v2.rs:9] &node = TreeNode(Nil,"A",Nil), TreeNode("A","E","S"), TreeNode(Nil,"S","Y"), TreeNode(Nil,"Y","Z"), TreeNode(Nil,"Z",Nil)
+[bt-refcell-opt-rc/src/bin/bt_v2.rs:9] &node = TreeNode(Nil,"A",Nil), TreeNode("A","E","S"), TreeNode(Nil,"S","Y"), TreeNode(Nil,"Y","Z"), TreeNode(Nil,"Z",Nil)
 ----
 
 [source,diff]

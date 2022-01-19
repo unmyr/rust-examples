@@ -1,10 +1,11 @@
 [workspace]
 members = [
-    "binary-tree",
     "doubly-linked-list",
     "enum-list",
     "singly-linked-list-opt-rc-refcell",
     "singly-linked-list-refcell-opt-rc",
     "singly-linked-list-unsafe",
     "singly-linked-list-using-box",
+    "tree/bt-opt-rc-refcell",
+    "tree/bt-refcell-opt-rc",
 ]

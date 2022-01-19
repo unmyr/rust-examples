@@ -11,12 +11,11 @@ endif::[]
 +
 [source,console]
 ----
-$ cargo new --lib binary-tree
-     Created library `binary-tree` package
-$ cd binary-tree/
+$ cargo new --lib bt-opt-rc-refcell
+     Created library `bt-opt-rc-refcell` package
+$ cd bt-opt-rc-refcell/
 ----
 
 === Files
 
-* <<docs/v1.adoc#,v1>>
-* <<docs/v2.adoc#,v2>>
+* <<docs/kr.adoc#,ref Key>>
