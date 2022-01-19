@@ -9,7 +9,7 @@ endif::[]
 === v1.0: First commit
 
 [source,rust]
-.src/bin/bt_v2.rs
+.src/bin/bt_ro_kc.rs
 ----
 use binary_tree::v2::TreeNode;
 
@@ -26,10 +26,10 @@ fn main() {
 [source,console]
 .Results
 ----
-$ cargo run --bin bt_v2
+$ cargo run --bin bt_ro_kc
    Compiling bt-refcell-opt-rc v0.1.0 (.../bt-refcell-opt-rc)
     Finished dev [unoptimized + debuginfo] target(s) in 2.95s
-     Running `.../target/debug/bt_v2`
+     Running `.../target/debug/bt_ro_kc`
 TreeNode(Nil,"A",Nil), TreeNode("A","E","S"), TreeNode(Nil,"S","Y"), TreeNode(Nil,"Y","Z"), TreeNode(Nil,"Z",Nil)
 ----
 
