@@ -25,17 +25,16 @@ fn main() {
 
 [source,console]
 ----
-$ cargo run --bin bt_v2
-   Compiling bt-refcell-opt-rc v0.1.0 (.../bt-refcell-opt-rc)
-    Finished dev [unoptimized + debuginfo] target(s) in 3.61s
-     Running `.../target/debug/bt_v2`
-[bt-refcell-opt-rc/src/bin/bt_ro_kr.rs:9] &node = TreeNode(Nil,"A",Nil), TreeNode("A","E","S"), TreeNode(Nil,"S","Y"), TreeNode(Nil,"Y","Z"), TreeNode(Nil,"Z",Nil)
+$ cargo run --bin bt_ro_kr
+    Finished dev [unoptimized + debuginfo] target(s) in 0.03s
+     Running `.../target/debug/bt_ro_kr`
+[tree/bt-refcell-opt-rc/src/bin/bt_ro_kr.rs:9] &node = TreeNode(Nil,"A",Nil), TreeNode("A","E","S"), TreeNode(Nil,"S","Y"), TreeNode(Nil,"Y","Z"), TreeNode(Nil,"Z",Nil)
 ----
 
 [source,diff]
-.git diff src/v2.rs
+.diff -u src/kc.rs src/kr.rs
 ----
-@@ -3,14 +3,14 @@ use std::rc::Rc;
+@@ -3,14 +3,14 @@
  use std::cell::RefCell;
  use std::cmp::Ordering;
 
@@ -56,24 +55,24 @@ $ cargo run --bin bt_v2
          TreeNode {
              key,
              left: RefCell::new(None),
-@@ -19,21 +19,21 @@ impl<K> TreeNode<K> {
+@@ -19,21 +19,21 @@
      }
  }
 
--impl<K: Clone + Ord> TreeNode<K> {
+-impl<K: Ord + Clone> TreeNode<K> {
 +impl<'a, K: Ord> TreeNode<'a, K> {
      /// # Examples
      ///
      /// ```
-     /// use binary_tree::v2::TreeNode;
+-    /// use bt_refcell_opt_rc::kc::TreeNode;
 -    /// let mut node = TreeNode::new("E");
 -    /// node.insert("A");
 -    /// node.insert("S");
--    /// println!("{:?}", node);
++    /// use bt_refcell_opt_rc::kr::TreeNode;
 +    /// let mut node = TreeNode::new(&"E");
 +    /// node.insert(&"A");
 +    /// node.insert(&"S");
-+    /// println!("{:?}", &node);
+     /// println!("{:?}", &node);
      /// ```
 -    pub fn insert(&mut self, key: K) {
 +    pub fn insert(&mut self, key_ref: &'a K) {
@@ -86,7 +85,7 @@ $ cargo run --bin bt_v2
              Ordering::Greater => &mut self.left,
              _ => &mut self.right,
          };
-@@ -46,7 +46,7 @@ impl<K: Clone + Ord> TreeNode<K> {
+@@ -46,7 +46,7 @@
          );
 
          loop {
@@ -95,7 +94,7 @@ $ cargo run --bin bt_v2
                  Ordering::Greater => &cur.left,
                  _ => &cur.right,
              };
-@@ -62,7 +62,7 @@ impl<K: Clone + Ord> TreeNode<K> {
+@@ -62,7 +62,7 @@
      }
  }
 
@@ -107,7 +106,7 @@ $ cargo run --bin bt_v2
 ----
 
 [source,rust]
-.src/v2.rs
+.src/kr.rs
 ----
 use std::fmt::{self};
 use std::rc::Rc;
@@ -134,7 +133,7 @@ impl<'a, K: Ord> TreeNode<'a, K> {
     /// # Examples
     ///
     /// ```
-    /// use binary_tree::v2::TreeNode;
+    /// use bt_refcell_opt_rc::kr::TreeNode;
     /// let mut node = TreeNode::new(&"E");
     /// node.insert(&"A");
     /// node.insert(&"S");
