@@ -52,9 +52,10 @@ impl<K: Ord + Clone> TreeNode<K> {
                 |n| {
                     match n.key.cmp(&key) {
                         Ordering::Greater => &n.left,
-                    _ => &n.right,
+                        _ => &n.right,
+                    }
                 }
-            }).clone();
+            ).clone();
             if some_leaf.is_none() {
                 let mut some_leaf_ref_mut: RefMut<Option<_>> = RefMut::map(
                     cur.borrow_mut(),
