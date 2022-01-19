@@ -18,4 +18,5 @@ $ cd bt-opt-rc-refcell/
 
 === Files
 
+* <<docs/kc.adoc#,use key.clone()>>
 * <<docs/kr.adoc#,ref Key>>
