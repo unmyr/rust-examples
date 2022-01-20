@@ -7,5 +7,6 @@ members = [
     "singly-linked-list-unsafe",
     "singly-linked-list-using-box",
     "tree/bt-opt-rc-refcell",
+    "tree/bt-rc-refcell-opt",
     "tree/bt-refcell-opt-rc",
 ]

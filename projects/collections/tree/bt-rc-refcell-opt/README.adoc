@@ -1,0 +1,21 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+:icons: font
+endif::[]
+
+== Binary tree
+
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --lib bt-rc-refcell-opt
+     Created library `bt-rc-refcell-opt` package
+$ cd bt-rc-refcell-opt/
+----
+
+=== Files
+
+* <<docs/kc.adoc#,Move key>>
