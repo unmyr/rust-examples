@@ -245,11 +245,11 @@ fn main() {
 [source,console]
 .Results
 ----
-$ cargo run --bin bt_or_kr
-   Compiling bt-opt-rc-refcell v0.1.0 (.../tree/bt-opt-rc-refcell)
-    Finished dev [unoptimized + debuginfo] target(s) in 3.82s
-     Running `.../target/debug/bt_or_kr`
-BTree={TreeNode(Nil,"A",Nil), TreeNode("A","E","S"), TreeNode(Nil,"S","Y"), TreeNode(Nil,"Y","Z"), TreeNode(Nil,"Z",Nil)}
+$ cargo run --bin bt_ro_kr
+   Compiling bt-refcell-opt-rc v0.1.0 (.../tree/bt-refcell-opt-rc)
+    Finished dev [unoptimized + debuginfo] target(s) in 3.58s
+     Running `.../target/debug/bt_ro_kr`
+[tree/bt-refcell-opt-rc/src/bin/bt_ro_kr.rs:10] &tree = BTree={TreeNode(Nil,"A",Nil), TreeNode("A","E","S"), TreeNode(Nil,"S","Y"), TreeNode(Nil,"Y","Z"), TreeNode(Nil,"Z",Nil)}
 ----
 
 [source,rust]

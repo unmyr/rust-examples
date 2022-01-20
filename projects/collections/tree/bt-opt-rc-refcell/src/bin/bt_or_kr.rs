@@ -7,5 +7,5 @@ fn main() {
     tree.insert(&"S");
     tree.insert(&"Y");
     tree.insert(&"Z");
-    println!("{:?}", tree);
+    dbg!(&tree);
 }
