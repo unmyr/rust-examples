@@ -48,16 +48,9 @@ impl<T: fmt::Debug> fmt::Debug for TreeNode<T> {
     }
 }
 
+#[derive(Default)]
 pub struct BTree<K> {
     head: Rc<RefCell<Option<TreeNode<K>>>>,
-}
-
-impl<K> BTree<K> {
-    pub fn new() -> Self {
-        BTree {
-            head: Rc::new(RefCell::new(None)),
-        }
-    }
 }
 
 impl<K: Ord> BTree<K> {
@@ -65,7 +58,7 @@ impl<K: Ord> BTree<K> {
     ///
     /// ```
     /// use bt_rc_refcell_opt::kc::BTree;
-    /// let tree = BTree::new();
+    /// let tree: BTree<&str> = Default::default();
     /// tree.insert("E");
     /// tree.insert("A");
     /// tree.insert("S");
@@ -114,11 +107,10 @@ impl<K: Clone> BTree<K> {
 
         let mut queue: VecDeque<Rc<RefCell<Option<TreeNode<K>>>>> = VecDeque::new();
         let mut cur = Rc::clone(cur_ref);
-        drop(cur_ref);
 
         let mut results: Vec<K> = vec!();
 
-        while queue.len() > 0 || cur.borrow().is_some() {
+        while !queue.is_empty() || cur.borrow().is_some() {
             if cur.borrow().is_some() {
                 let cur_ref = cur.borrow();
                 queue.push_back(Rc::clone(&cur));
