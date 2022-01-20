@@ -47,6 +47,7 @@ impl<T: fmt::Debug> fmt::Debug for TreeNode<T> {
     }
 }
 
+#[derive(Default)]
 pub struct BTree<K> {
     head: Option<Rc<RefCell<TreeNode<K>>>>,
 }
@@ -64,7 +65,7 @@ impl<K: Ord> BTree<K> {
     ///
     /// ```
     /// use bt_opt_rc_refcell::kc::BTree;
-    /// let mut tree = BTree::new();
+    /// let mut tree: BTree<&str> = Default::default();
     /// tree.insert("E");
     /// tree.insert("A");
     /// tree.insert("S");
@@ -78,7 +79,7 @@ impl<K: Ord> BTree<K> {
             return;
         }
         let cur_ref: &Rc<RefCell<TreeNode<K>>>;
-        cur_ref = &self.head.as_ref().unwrap();
+        cur_ref = self.head.as_ref().unwrap();
 
         let mut cur: Rc<RefCell<TreeNode<K>>>;
         cur = Rc::clone(cur_ref);
