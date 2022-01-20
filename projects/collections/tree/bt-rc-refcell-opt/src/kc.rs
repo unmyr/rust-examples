@@ -2,6 +2,7 @@ use std::fmt::{self};
 use std::rc::Rc;
 use std::cell::{Ref, RefCell};
 use std::cmp::Ordering;
+use std::collections::VecDeque;
 
 pub struct TreeNode<K> {
     key: K,
@@ -15,44 +16,6 @@ impl<K> TreeNode<K> {
             key,
             left: Rc::new(RefCell::new(None)),
             right: Rc::new(RefCell::new(None)),
-        }
-    }
-}
-
-impl<K: Ord> TreeNode<K> {
-    /// # Examples
-    ///
-    /// ```
-    /// use bt_rc_refcell_opt::kc::TreeNode;
-    /// let node = TreeNode::new("E");
-    /// node.insert("A");
-    /// node.insert("S");
-    /// println!("{:?}", &node);
-    /// ```
-    pub fn insert(&self, key: K) {
-        let cur_ref: &Rc<RefCell<Option<TreeNode<K>>>>;
-        cur_ref = match self.key.cmp(&key) {
-            Ordering::Greater => &self.left,
-            _ => &self.right,
-        };
-
-        let mut cur: Rc<RefCell<Option<TreeNode<K>>>>;
-        cur = Rc::clone(cur_ref);
-
-        loop {
-            if cur.borrow().is_none() {
-                cur.borrow_mut().replace(TreeNode::<K>::new(key));
-                return;
-            }
-
-            let cur_ref: Ref<Option<TreeNode<K>>> = cur.borrow();
-            let next = match cur_ref.as_ref().unwrap().key.cmp(&key) {
-                Ordering::Greater => &cur_ref.as_ref().unwrap().left,
-                _ => &cur_ref.as_ref().unwrap().right,
-            }.clone();
-            drop(cur_ref);
-
-            cur = next;
         }
     }
 }
@@ -81,6 +44,123 @@ impl<T: fmt::Debug> fmt::Debug for TreeNode<T> {
                     left, self.key, left.key
                 )
             },
+        }
+    }
+}
+
+pub struct BTree<K> {
+    head: Rc<RefCell<Option<TreeNode<K>>>>,
+}
+
+impl<K> BTree<K> {
+    pub fn new() -> Self {
+        BTree {
+            head: Rc::new(RefCell::new(None)),
+        }
+    }
+}
+
+impl<K: Ord> BTree<K> {
+    /// # Examples
+    ///
+    /// ```
+    /// use bt_rc_refcell_opt::kc::BTree;
+    /// let tree = BTree::new();
+    /// tree.insert("E");
+    /// tree.insert("A");
+    /// tree.insert("S");
+    /// println!("{:?}", &tree);
+    /// ```
+    pub fn insert(&self, key: K) {
+        let cur_ref: &Rc<RefCell<Option<TreeNode<K>>>>;
+        cur_ref = &self.head;
+
+        let mut cur: Rc<RefCell<Option<TreeNode<K>>>>;
+        cur = Rc::clone(cur_ref);
+
+        loop {
+            if cur.borrow().is_none() {
+                cur.borrow_mut().replace(TreeNode::<K>::new(key));
+                return;
+            }
+
+            let cur_ref: Ref<Option<TreeNode<K>>> = cur.borrow();
+            let next = match cur_ref.as_ref().unwrap().key.cmp(&key) {
+                Ordering::Greater => &cur_ref.as_ref().unwrap().left,
+                _ => &cur_ref.as_ref().unwrap().right,
+            }.clone();
+            drop(cur_ref);
+
+            cur = next;
+        }
+    }
+}
+
+pub struct BTreeIterator<K> {
+    results: Vec<K>,
+    cur: Option<usize>,
+}
+
+impl<K: Clone> BTree<K> {
+    pub fn iter(&self) -> BTreeIterator<K> {
+        if self.head.borrow().is_none() {
+            return BTreeIterator {
+                results: Vec::<K>::new(),
+                cur: None,
+            };
+        }
+        let cur_ref: &Rc<RefCell<Option<TreeNode<K>>>>;
+        cur_ref = &self.head;
+
+        let mut queue: VecDeque<Rc<RefCell<Option<TreeNode<K>>>>> = VecDeque::new();
+        let mut cur = Rc::clone(cur_ref);
+        drop(cur_ref);
+
+        let mut results: Vec<K> = vec!();
+
+        while queue.len() > 0 || cur.borrow().is_some() {
+            if cur.borrow().is_some() {
+                let cur_ref = cur.borrow();
+                queue.push_back(Rc::clone(&cur));
+                let next = Rc::clone(&cur_ref.as_ref().unwrap().left);
+                drop(cur_ref);
+                cur = next;
+                continue;
+            }
+            cur = queue.pop_back().unwrap();
+            let cur_ref = cur.borrow();
+            results.push(
+                cur_ref.as_ref().unwrap().key.clone()
+            );
+            let next = Rc::clone(&cur_ref.as_ref().unwrap().right);
+            drop(cur_ref);
+            cur = next;
+        }
+        BTreeIterator { results, cur: Some(0) }
+    }
+}
+
+impl<K:Clone> Iterator for BTreeIterator<K> {
+    type Item = K;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.cur.as_ref()?;
+        let mut i = self.cur.unwrap();
+        if i >= self.results.len() {
+            self.cur = None;
+            return None;
+        }
+        let cur_key = &self.results[i];
+        i += 1;
+        self.cur.replace(i);
+        Some(cur_key.clone())
+    }
+}
+
+impl<T: fmt::Debug> fmt::Debug for BTree<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.head.borrow().as_ref() {
+            None => write!(f, "BTree {{}}"),
+            Some(head) => write!(f, "BTree={{{:?}}}", head),
         }
     }
 }

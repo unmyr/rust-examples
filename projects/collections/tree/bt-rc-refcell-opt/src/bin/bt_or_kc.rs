@@ -1,10 +1,14 @@
-use bt_rc_refcell_opt::kc::TreeNode;
+use bt_rc_refcell_opt::kc::BTree;
 
 fn main() {
-    let node = TreeNode::new("E");
-    node.insert("A");
-    node.insert("S");
-    node.insert("Y");
-    node.insert("Z");
-    println!("{:?}", node);
+    let tree = BTree::new();
+    tree.insert("E");
+    tree.insert("A");
+    tree.insert("S");
+    tree.insert("Y");
+    tree.insert("Z");
+    println!("{:?}", tree);
+    for n in tree.iter() {
+        println!("{}", n);
+    }
 }
