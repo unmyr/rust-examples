@@ -19,59 +19,6 @@ impl<K> TreeNode<K> {
     }
 }
 
-impl<K: Ord + Clone> TreeNode<K> {
-    /// # Examples
-    ///
-    /// ```
-    /// use bt_opt_rc_refcell::kc::TreeNode;
-    /// let mut node = TreeNode::new("E");
-    /// node.insert("A");
-    /// node.insert("S");
-    /// println!("{:?}", &node);
-    /// ```
-    pub fn insert(&mut self, key: K) {
-        let mut cur: Rc<RefCell<TreeNode<K>>>;
-        let node_new: TreeNode<K> = TreeNode::<K>::new(key.clone());
-        let cur_ref: &mut Option<Rc<RefCell<TreeNode<K>>>>;
-        cur_ref = match self.key.cmp(&key) {
-            Ordering::Greater => &mut self.left,
-            _ => &mut self.right,
-        };
-        cur = match cur_ref {
-            None => {
-                cur_ref.replace(Rc::new(RefCell::new(node_new)));
-                return
-            },
-            Some(ref cur_ref) => Rc::clone(cur_ref),
-        };
-
-        loop {
-            let cur_ref: Ref<TreeNode<K>> = cur.borrow();
-            let some_leaf: Option<Rc<RefCell<TreeNode<K>>>> = Ref::map(
-                cur_ref,
-                |n| {
-                    match n.key.cmp(&key) {
-                        Ordering::Greater => &n.left,
-                        _ => &n.right,
-                    }
-                }
-            ).clone();
-            if some_leaf.is_none() {
-                let mut some_leaf_ref_mut: RefMut<Option<_>> = RefMut::map(
-                    cur.borrow_mut(),
-                    |n| match n.key.cmp(&key) {
-                        Ordering::Greater => &mut n.left,
-                        _  => &mut n.right,
-                    }
-                );
-                some_leaf_ref_mut.replace(Rc::new(RefCell::new(node_new)));
-                return;
-            }
-            cur = Rc::clone(&some_leaf.unwrap());
-        }
-    }
-}
-
 impl<T: fmt::Debug> fmt::Debug for TreeNode<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match (self.left.as_ref(), self.right.as_ref()) {
@@ -96,6 +43,80 @@ impl<T: fmt::Debug> fmt::Debug for TreeNode<T> {
                     left.borrow(), self.key, left.borrow().key
                 )
             },
+        }
+    }
+}
+
+pub struct BTree<K> {
+    head: Option<Rc<RefCell<TreeNode<K>>>>,
+}
+
+impl<K> BTree<K> {
+    pub fn new() -> Self {
+        BTree {
+            head: None,
+        }
+    }
+}
+
+impl<K: Ord> BTree<K> {
+    /// # Examples
+    ///
+    /// ```
+    /// use bt_opt_rc_refcell::kc::BTree;
+    /// let mut tree = BTree::new();
+    /// tree.insert("E");
+    /// tree.insert("A");
+    /// tree.insert("S");
+    /// println!("{:?}", &tree);
+    /// ```
+    pub fn insert(&mut self, key: K) {
+        if self.head.is_none() {
+            self.head.replace(
+                Rc::new(RefCell::new(TreeNode::new(key)))
+            );
+            return;
+        }
+        let cur_ref: &Rc<RefCell<TreeNode<K>>>;
+        cur_ref = &self.head.as_ref().unwrap();
+
+        let mut cur: Rc<RefCell<TreeNode<K>>>;
+        cur = Rc::clone(cur_ref);
+
+        loop {
+            let cur_ref: Ref<TreeNode<K>> = cur.borrow();
+            let some_leaf: Option<Rc<RefCell<TreeNode<K>>>> = Ref::map(
+                cur_ref,
+                |n| {
+                    match n.key.cmp(&key) {
+                        Ordering::Greater => &n.left,
+                        _ => &n.right,
+                    }
+                }
+            ).clone();
+            if some_leaf.is_none() {
+                let mut some_leaf_ref_mut: RefMut<Option<_>> = RefMut::map(
+                    cur.borrow_mut(),
+                    |n| match n.key.cmp(&key) {
+                        Ordering::Greater => &mut n.left,
+                        _  => &mut n.right,
+                    }
+                );
+                some_leaf_ref_mut.replace(
+                    Rc::new(RefCell::new(TreeNode::new(key)))
+                );
+                return;
+            }
+            cur = Rc::clone(&some_leaf.unwrap());
+        }
+    }
+}
+
+impl<T: fmt::Debug> fmt::Debug for BTree<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &self.head {
+            None => write!(f, "BTree {{}}"),
+            Some(head) => write!(f, "BTree={{{:?}}}", head.borrow()),
         }
     }
 }
