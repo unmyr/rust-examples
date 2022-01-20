@@ -95,7 +95,7 @@ pub struct BTreeIterator<K> {
 }
 
 impl<K: Clone> BTree<K> {
-    pub fn iter(&self) -> BTreeIterator<K> {
+    pub fn iter_in_order(&self) -> BTreeIterator<K> {
         if self.head.borrow().is_none() {
             return BTreeIterator {
                 results: Vec::<K>::new(),

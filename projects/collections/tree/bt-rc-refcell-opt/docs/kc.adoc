@@ -142,9 +142,11 @@ fn main() {
     tree.insert("Y");
     tree.insert("Z");
     println!("{:?}", tree);
-    for n in tree.iter() {
-        println!("{}", n);
-    }
+
+    assert_eq!(
+        tree.iter_in_order().collect::<Vec<&str>>(),
+        vec!["A", "E", "S", "Y", "Z"]
+    );
 }
 ----
 
@@ -153,15 +155,10 @@ fn main() {
 .Results
 ----
 $ cargo run
-   Compiling bt-rc-refcell-opt v0.1.0 (.../bt-rc-refcell-opt)
-    Finished dev [unoptimized + debuginfo] target(s) in 4.05s
+   Compiling bt-rc-refcell-opt v0.1.0 (.../tree/bt-rc-refcell-opt)
+    Finished dev [unoptimized + debuginfo] target(s) in 4.30s
      Running `.../target/debug/bt_rro_kc`
 BTree={TreeNode(Nil,"A",Nil), TreeNode("A","E","S"), TreeNode(Nil,"S","Y"), TreeNode(Nil,"Y","Z"), TreeNode(Nil,"Z",Nil)}
-A
-E
-S
-Y
-Z
 ----
 
 [source,rust]
@@ -264,7 +261,7 @@ pub struct BTreeIterator<K> {
 }
 
 impl<K: Clone> BTree<K> {
-    pub fn iter(&self) -> BTreeIterator<K> {
+    pub fn iter_in_order(&self) -> BTreeIterator<K> {
         if self.head.borrow().is_none() {
             return BTreeIterator {
                 results: Vec::<K>::new(),

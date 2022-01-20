@@ -8,7 +8,9 @@ fn main() {
     tree.insert("Y");
     tree.insert("Z");
     println!("{:?}", tree);
-    for n in tree.iter() {
-        println!("{}", n);
-    }
+
+    assert_eq!(
+        tree.iter_in_order().collect::<Vec<&str>>(),
+        vec!["A", "E", "S", "Y", "Z"]
+    );
 }

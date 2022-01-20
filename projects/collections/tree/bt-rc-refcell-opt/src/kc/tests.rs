@@ -11,3 +11,17 @@ fn test_insert() {
         "BTree={TreeNode(Nil,\"A\",Nil), TreeNode(\"A\",\"E\",\"S\"), TreeNode(Nil,\"S\",\"Y\"), TreeNode(Nil,\"Y\",Nil)}"
     );
 }
+
+#[test]
+fn test_iter_in_order() {
+    let tree: BTree<u8> = Default::default();
+    tree.insert(4);
+    tree.insert(2);
+    tree.insert(1);
+    tree.insert(6);
+    tree.insert(5);
+    assert_eq!(
+        tree.iter_in_order().collect::<Vec<u8>>(),
+        vec![1, 2, 4, 5, 6]
+    );
+}
