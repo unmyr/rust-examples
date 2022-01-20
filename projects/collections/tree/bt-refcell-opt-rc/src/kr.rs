@@ -19,49 +19,6 @@ impl<'a, K> TreeNode<'a, K> {
     }
 }
 
-impl<'a, K: Ord> TreeNode<'a, K> {
-    /// # Examples
-    ///
-    /// ```
-    /// use bt_refcell_opt_rc::kr::TreeNode;
-    /// let mut node = TreeNode::new(&"E");
-    /// node.insert(&"A");
-    /// node.insert(&"S");
-    /// println!("{:?}", &node);
-    /// ```
-    pub fn insert(&mut self, key_ref: &'a K) {
-        let mut cur: Rc<TreeNode<K>>;
-        let node_new: TreeNode<K> = TreeNode::<K>::new(key_ref);
-        let cur_cell_ref: &RefCell<Option<Rc<TreeNode<K>>>>;
-        cur_cell_ref = match self.key.cmp(key_ref) {
-            Ordering::Greater => &mut self.left,
-            _ => &mut self.right,
-        };
-        if cur_cell_ref.borrow().is_none() {
-            cur_cell_ref.replace(Some(Rc::new(node_new)));
-            return;
-        }
-        cur = Rc::clone(
-            cur_cell_ref.borrow().as_ref().unwrap()
-        );
-
-        loop {
-            let cur_cell_ref = match cur.key.cmp(key_ref) {
-                Ordering::Greater => &cur.left,
-                _ => &cur.right,
-            };
-            if cur_cell_ref.borrow().is_none() {
-                cur_cell_ref.replace(Some(Rc::new(node_new)));
-                return;
-            }
-            let work: Rc<TreeNode<K>> = Rc::clone(
-                cur_cell_ref.borrow().as_ref().unwrap()
-            );
-            cur = work;
-        }
-    }
-}
-
 impl<'a, T: fmt::Debug> fmt::Debug for TreeNode<'a, T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match (self.left.borrow().clone(), self.right.borrow().clone()) {
@@ -86,6 +43,64 @@ impl<'a, T: fmt::Debug> fmt::Debug for TreeNode<'a, T> {
                     left, self.key, left.key
                 )
             },
+        }
+    }
+}
+
+#[derive(Default)]
+pub struct BTree<'a, K> {
+    head: RefCell<Option<Rc<TreeNode<'a, K>>>>,
+}
+
+impl<'a, K: Ord> BTree<'a, K> {
+    /// # Examples
+    ///
+    /// ```
+    /// use bt_refcell_opt_rc::kr::BTree;
+    /// let mut tree: BTree<&str> = Default::default();
+    /// tree.insert(&"E");
+    /// tree.insert(&"A");
+    /// tree.insert(&"S");
+    /// println!("{:?}", &tree);
+    /// ```
+    pub fn insert(&mut self, key_ref: &'a K) {
+        if self.head.borrow().as_ref().is_none() {
+            self.head.borrow_mut().replace(
+                Rc::new(TreeNode::new(key_ref))
+            );
+            return;
+        }
+        let cur_cell_ref = self.head.borrow();
+        let cur_ref: &Rc<TreeNode<K>>;
+        cur_ref = cur_cell_ref.as_ref().unwrap();
+
+        let mut cur: Rc<TreeNode<K>> = Rc::clone(cur_ref);
+        drop(cur_cell_ref);
+
+        loop {
+            let cur_cell_ref = match cur.key.cmp(key_ref) {
+                Ordering::Greater => &cur.left,
+                _ => &cur.right,
+            };
+            if cur_cell_ref.borrow().is_none() {
+                cur_cell_ref.replace(
+                    Some(Rc::new(TreeNode::new(key_ref))
+                ));
+                return;
+            }
+            let work: Rc<TreeNode<K>> = Rc::clone(
+                cur_cell_ref.borrow().as_ref().unwrap()
+            );
+            cur = work;
+        }
+    }
+}
+
+impl<'a, K: fmt::Debug> fmt::Debug for BTree<'a, K> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &self.head.borrow().as_ref() {
+            None => write!(f, "BTree {{}}"),
+            Some(head) => write!(f, "BTree={{{:?}}}", head),
         }
     }
 }

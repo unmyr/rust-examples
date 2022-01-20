@@ -1,10 +1,11 @@
-use  bt_refcell_opt_rc::kc::TreeNode;
+use bt_refcell_opt_rc::kc::BTree;
 
 fn main() {
-    let mut node = TreeNode::new("E");
-    node.insert("A");
-    node.insert("S");
-    node.insert("Y");
-    node.insert("Z");
-    dbg!(&node);
+    let mut tree: BTree<&str> = Default::default();
+    tree.insert("E");
+    tree.insert("A");
+    tree.insert("S");
+    tree.insert("Y");
+    tree.insert("Z");
+    dbg!(&tree);
 }

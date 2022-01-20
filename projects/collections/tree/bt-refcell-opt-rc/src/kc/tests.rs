@@ -1,12 +1,13 @@
 use super::*;
 #[test]
 fn test_insert() {
-    let mut node = TreeNode::new("E");
-    node.insert("A");
-    node.insert("S");
-    node.insert("Y");
+    let mut tree: BTree<&str> = Default::default();
+    tree.insert("E");
+    tree.insert("A");
+    tree.insert("S");
+    tree.insert("Y");
     assert_eq!(
-        format!("{:?}", node),
-        "TreeNode(Nil,\"A\",Nil), TreeNode(\"A\",\"E\",\"S\"), TreeNode(Nil,\"S\",\"Y\"), TreeNode(Nil,\"Y\",Nil)"
+        format!("{:?}", tree),
+        "BTree={TreeNode(Nil,\"A\",Nil), TreeNode(\"A\",\"E\",\"S\"), TreeNode(Nil,\"S\",\"Y\"), TreeNode(Nil,\"Y\",Nil)}"
     );
 }
