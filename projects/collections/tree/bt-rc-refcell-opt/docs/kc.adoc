@@ -9,7 +9,7 @@ endif::[]
 === v1.0: First commit
 
 [source,rust]
-.src/bin/bt_or_kc.rs
+.src/bin/bt_rro_kc.rs
 ----
 use bt_rc_refcell_opt::kc::TreeNode;
 
@@ -29,7 +29,7 @@ fn main() {
 $ cargo run
    Compiling bt-rc-refcell-opt v0.1.0 (.../bt-rc-refcell-opt)
     Finished dev [unoptimized + debuginfo] target(s) in 4.19s
-     Running `.../target/debug/bt_or_kc`
+     Running `.../target/debug/bt_rro_kc`
 TreeNode(Nil,"A",Nil), TreeNode("A","E","S"), TreeNode(Nil,"S","Y"), TreeNode(Nil,"Y","Z"), TreeNode(Nil,"Z",Nil)
 ----
 
@@ -130,7 +130,7 @@ mod tests;
 === v1.1: Add Iterator
 
 [source,rust]
-.src/bin/bt_or_kc.rs
+.src/bin/bt_rro_kc.rs
 ----
 use bt_rc_refcell_opt::kc::BTree;
 
@@ -155,7 +155,7 @@ fn main() {
 $ cargo run
    Compiling bt-rc-refcell-opt v0.1.0 (.../bt-rc-refcell-opt)
     Finished dev [unoptimized + debuginfo] target(s) in 4.05s
-     Running `.../target/debug/bt_or_kc`
+     Running `.../target/debug/bt_rro_kc`
 BTree={TreeNode(Nil,"A",Nil), TreeNode("A","E","S"), TreeNode(Nil,"S","Y"), TreeNode(Nil,"Y","Z"), TreeNode(Nil,"Z",Nil)}
 A
 E

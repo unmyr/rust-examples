@@ -9,7 +9,7 @@ endif::[]
 === v1.0: First commit
 
 [source,rust]
-.src/bin/bt_ro_kc.rs
+.src/bin/bt_ror_kc.rs
 ----
 use binary_tree::v2::TreeNode;
 
@@ -26,10 +26,10 @@ fn main() {
 [source,console]
 .Results
 ----
-$ cargo run --bin bt_ro_kc
+$ cargo run --bin bt_ror_kc
     Finished dev [unoptimized + debuginfo] target(s) in 0.04s
-     Running `.../target/debug/bt_ro_kc`
-[tree/bt-refcell-opt-rc/src/bin/bt_ro_kc.rs:9] &node = TreeNode(Nil,"A",Nil), TreeNode("A","E","S"), TreeNode(Nil,"S","Y"), TreeNode(Nil,"Y","Z"), TreeNode(Nil,"Z",Nil)
+     Running `.../target/debug/bt_ror_kc`
+[tree/bt-refcell-opt-rc/src/bin/bt_ror_kc.rs:9] &node = TreeNode(Nil,"A",Nil), TreeNode("A","E","S"), TreeNode(Nil,"S","Y"), TreeNode(Nil,"Y","Z"), TreeNode(Nil,"Z",Nil)
 ----
 
 [source,rust]
@@ -134,7 +134,7 @@ mod tests;
 === v1.1: Add a head node
 
 [source,rust]
-.src/bin/bt_ro_kc.rs
+.src/bin/bt_ror_kc.rs
 ----
 use bt_refcell_opt_rc::kc::BTree;
 
@@ -152,11 +152,11 @@ fn main() {
 [source,console]
 .Results
 ----
-$ cargo run --bin bt_ro_kc
+$ cargo run --bin bt_ror_kc
    Compiling bt-refcell-opt-rc v0.1.0 (.../tree/bt-refcell-opt-rc)
     Finished dev [unoptimized + debuginfo] target(s) in 5.07s
-     Running `.../target/debug/bt_ro_kc`
-[tree/bt-refcell-opt-rc/src/bin/bt_ro_kc.rs:10] &tree = BTree={TreeNode(Nil,"A",Nil), TreeNode("A","E","S"), TreeNode(Nil,"S","Y"), TreeNode(Nil,"Y","Z"), TreeNode(Nil,"Z",Nil)}
+     Running `.../target/debug/bt_ror_kc`
+[tree/bt-refcell-opt-rc/src/bin/bt_ror_kc.rs:10] &tree = BTree={TreeNode(Nil,"A",Nil), TreeNode("A","E","S"), TreeNode(Nil,"S","Y"), TreeNode(Nil,"Y","Z"), TreeNode(Nil,"Z",Nil)}
 ----
 
 [source,rust]

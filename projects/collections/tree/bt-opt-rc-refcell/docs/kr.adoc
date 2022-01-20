@@ -9,7 +9,7 @@ endif::[]
 === v1.0: Remove Clone
 
 [source,rust]
-.src/bin/bt_or_kr.rs
+.src/bin/bt_orr_kr.rs
 ----
 use binary_tree::v1::TreeNode;
 
@@ -25,11 +25,11 @@ fn main() {
 
 [source,console]
 ----
-$ cargo run --bin bt_or_kr
+$ cargo run --bin bt_orr_kr
    Compiling bt-opt-rc-refcell v0.1.0 (.../bt-opt-rc-refcell)
     Finished dev [unoptimized + debuginfo] target(s) in 1.84s
-     Running `.../target/debug/bt_or_kr`
-[bt-opt-rc-refcell/src/bin/bt_or_kr.rs:9] &node = TreeNode(Nil,"A",Nil), TreeNode("A","E","S"), TreeNode(Nil,"S","Y"), TreeNode(Nil,"Y","Z"), TreeNode(Nil,"Z",Nil)
+     Running `.../target/debug/bt_orr_kr`
+[bt-opt-rc-refcell/src/bin/bt_orr_kr.rs:9] &node = TreeNode(Nil,"A",Nil), TreeNode("A","E","S"), TreeNode(Nil,"S","Y"), TreeNode(Nil,"Y","Z"), TreeNode(Nil,"Z",Nil)
 ----
 
 [source,diff]
@@ -227,7 +227,7 @@ mod tests;
 === v1.1: Add a head node
 
 [source,rust]
-.src/bin/bt_or_kr.rs
+.src/bin/bt_orr_kr.rs
 ----
 use bt_opt_rc_refcell::kr::BTree;
 
