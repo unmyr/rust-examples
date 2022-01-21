@@ -263,6 +263,54 @@ impl<K: Clone> BTree<K> {
     /// tree.insert("E");
     /// tree.insert("A");
     /// tree.insert("S");
+    /// assert_eq!(tree.to_vec_pre_order(), vec!["E", "A", "S"]);
+    /// ```
+    pub fn to_vec_pre_order(&self) -> Vec<K> {
+        if self.head.borrow().is_none() {
+            return Vec::new();
+        }
+
+        let cur_ref: &Rc<RefCell<Option<TreeNode<K>>>>;
+        cur_ref = &self.head;
+
+        let mut stack: Vec<Rc<RefCell<Option<TreeNode<K>>>>>;
+        stack = Vec::new();
+        let mut cur = Rc::clone(cur_ref);
+
+        let mut results: Vec<K> = vec!();
+
+        'outer: loop {
+            while let Some(node) = Rc::clone(&cur).borrow().as_ref() {
+                results.push(node.key.clone());
+                stack.push(Rc::clone(&cur));
+                cur = Rc::clone(&node.left);
+            }
+
+            loop {
+                let cur_right = match stack.pop() {
+                    Some(cur_right) => cur_right,
+                    None => break 'outer,
+                };
+
+                if let Some(node) = cur_right.borrow().as_ref() {
+                    if node.right.borrow().is_some() {
+                        cur = Rc::clone(&node.right);
+                        continue 'outer;
+                    }
+                };
+            }
+        }
+        results
+    }
+
+    /// # Examples
+    ///
+    /// ```
+    /// use bt_rc_refcell_opt::kc::BTree;
+    /// let tree: BTree<&str> = Default::default();
+    /// tree.insert("E");
+    /// tree.insert("A");
+    /// tree.insert("S");
     /// assert_eq!(tree.to_vec_in_order(), vec!["A", "E", "S"]);
     /// ```
     pub fn to_vec_in_order(&self) -> Vec<K> {

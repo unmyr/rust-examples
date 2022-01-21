@@ -41,6 +41,35 @@ fn test_to_vec_in_order() {
     );
 }
 
+
+#[test]
+fn test_to_vec_pre_order() {
+    let tree: BTree<u8> = Default::default();
+    tree.insert(4);
+    assert_eq!(tree.to_vec_pre_order(), vec![4]);
+
+    let tree: BTree<u8> = Default::default();
+    tree.insert(4);
+    tree.insert(2);
+    assert_eq!(tree.to_vec_pre_order(), vec![4, 2]);
+
+    let tree: BTree<u8> = Default::default();
+    tree.insert(4);
+    tree.insert(6);
+    assert_eq!(tree.to_vec_pre_order(), vec![4, 6]);
+
+    let tree: BTree<u8> = Default::default();
+    tree.insert(4);
+    tree.insert(2);
+    tree.insert(1);
+    tree.insert(6);
+    tree.insert(5);
+    assert_eq!(
+        tree.to_vec_pre_order(),
+        vec![4, 2, 1, 6, 5]
+    );
+}
+
 #[test]
 fn test_iter_in_order() {
     let tree: BTree<u8> = Default::default();
