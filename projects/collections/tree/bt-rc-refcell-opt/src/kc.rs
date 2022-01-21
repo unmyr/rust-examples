@@ -2,7 +2,6 @@ use std::fmt::{self};
 use std::rc::Rc;
 use std::cell::{Ref, RefCell};
 use std::cmp::Ordering;
-use std::collections::VecDeque;
 
 pub struct TreeNode<K> {
     key: K,
@@ -105,28 +104,32 @@ impl<K: Clone> BTree<K> {
         let cur_ref: &Rc<RefCell<Option<TreeNode<K>>>>;
         cur_ref = &self.head;
 
-        let mut queue: VecDeque<Rc<RefCell<Option<TreeNode<K>>>>> = VecDeque::new();
+        let mut stack: Vec<Rc<RefCell<Option<TreeNode<K>>>>>;
+        stack = Vec::new();
         let mut cur = Rc::clone(cur_ref);
 
         let mut results: Vec<K> = vec!();
 
-        while !queue.is_empty() || cur.borrow().is_some() {
-            if cur.borrow().is_some() {
-                let cur_ref = cur.borrow();
-                queue.push_back(Rc::clone(&cur));
-                let next = Rc::clone(&cur_ref.as_ref().unwrap().left);
-                drop(cur_ref);
-                cur = next;
-                continue;
+        'outer: loop {
+            while cur.borrow().as_ref().unwrap().left.borrow().is_some() {
+                stack.push(Rc::clone(&cur));
+                cur = Rc::clone(
+                    &Rc::clone(&cur).borrow().as_ref().unwrap().left
+                );
             }
-            cur = queue.pop_back().unwrap();
-            let cur_ref = cur.borrow();
-            results.push(
-                cur_ref.as_ref().unwrap().key.clone()
-            );
-            let next = Rc::clone(&cur_ref.as_ref().unwrap().right);
-            drop(cur_ref);
-            cur = next;
+            loop {
+                if let Some(node) = Rc::clone(&cur).borrow().as_ref() {
+                    results.push(node.key.clone());
+                    if node.right.borrow().is_some() {
+                        cur = Rc::clone(&node.right);
+                        continue 'outer;
+                    }
+                }
+                cur = match stack.pop() {
+                    Some(cur) => cur,
+                    None => break 'outer,
+                };
+            }
         }
         BTreeIterator { results, cur: Some(0) }
     }
