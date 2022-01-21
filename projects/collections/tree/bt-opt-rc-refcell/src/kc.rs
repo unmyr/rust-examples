@@ -40,7 +40,7 @@ impl<T: fmt::Debug> fmt::Debug for TreeNode<T> {
             (Some(left), None) => {
                 write!(f,
                     "{:?}, TreeNode({:?},{:?},Nil)",
-                    left.borrow(), self.key, left.borrow().key
+                    left.borrow(), left.borrow().key, self.key
                 )
             },
         }
@@ -110,6 +110,65 @@ impl<K: Ord> BTree<K> {
             }
             cur = Rc::clone(&some_leaf.unwrap());
         }
+    }
+}
+
+impl<K: Clone> BTree<K> {
+    /// # Examples
+    ///
+    /// ```
+    /// use bt_opt_rc_refcell::kc::BTree;
+    /// let mut tree: BTree<&str> = Default::default();
+    /// tree.insert("E");
+    /// tree.insert("A");
+    /// tree.insert("S");
+    /// assert_eq!(tree.to_vec_in_order(), vec!["A", "E", "S"]);
+    /// ```
+    pub fn to_vec_in_order(&self) -> Vec<K> {
+        if self.head.is_none() {
+            return Vec::new();
+        }
+        let cur_ref: &Option<Rc<RefCell<TreeNode<K>>>>;
+        cur_ref = &self.head;
+
+        let mut stack: Vec<Rc<RefCell<TreeNode<K>>>>;
+        stack = Vec::new();
+        let mut cur = Some(Rc::clone(cur_ref.as_ref().unwrap()));
+
+        let mut results: Vec<K> = vec!();
+
+        'outer: loop {
+            // Traverse the subtree on the left while adding nodes to the stack.
+            while cur.is_some() {
+                stack.push(Rc::clone(cur.as_ref().unwrap()));
+                if Rc::clone(cur.as_ref().unwrap()).borrow().left.is_none() {
+                    cur = None;
+                } else {
+                    // cur = Rc::clone(cur.as_ref().unwrap()).borrow().left;
+                    cur = Some(
+                        Rc::clone(
+                            Rc::clone(cur.as_ref().unwrap()).borrow().left.as_ref().unwrap()
+                        )
+                    )
+                }
+            }
+
+            // It pops elements from the stack and continues to output,
+            // returning to traversing the left side
+            // if a node is found on the current right side.
+            loop {
+                let cur_right = match stack.pop() {
+                    Some(cur_right) => cur_right,
+                    None => break 'outer,
+                };
+                results.push(cur_right.borrow().key.clone());
+                if cur_right.borrow().right.is_some() {
+                    cur = Some(Rc::clone(cur_right.borrow().right.as_ref().unwrap()));
+                    continue 'outer;
+                }
+            }
+        }
+        results
     }
 }
 
