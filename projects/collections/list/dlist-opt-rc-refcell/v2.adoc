@@ -953,28 +953,6 @@ impl<T: Debug> DList<T> {
         let last: DListNode<T> = Rc::try_unwrap(cur).ok().unwrap().into_inner();
         last.value.take()
     }
-
-    /// # Examples
-    ///
-    /// ```
-    /// use dlist_opt_rc_refcell::v2::DList;
-    /// let mut list: DList<u8> = Default::default();
-    /// list.push_back(1);
-    /// list.push_back(2);
-    /// let mut iter = list.iter();
-    /// assert_eq!(iter.next(), Some(1));
-    /// assert_eq!(iter.next(), Some(2));
-    /// assert_eq!(iter.next(), None);
-    /// ```
-    pub fn iter(&self) -> DListIterator<T> {
-        if let Some(ref head) = self.head {
-            DListIterator {
-                cur: Some(Rc::downgrade(&Rc::clone(head)))
-            }
-        } else {
-            DListIterator { cur: None }
-        }
-    }
 }
 
 impl<T: Debug> Drop for DList<T> {
@@ -996,6 +974,30 @@ impl<T: Debug> fmt::Display for DList<T> {
 
 pub struct DListIterator<T: Debug> {
     cur: Option<Weak<RefCell<DListNode<T>>>>
+}
+
+impl<T: Debug> DList<T> {
+    /// # Examples
+    ///
+    /// ```
+    /// use dlist_opt_rc_refcell::v2::DList;
+    /// let mut list: DList<u8> = Default::default();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// let mut iter = list.iter();
+    /// assert_eq!(iter.next(), Some(1));
+    /// assert_eq!(iter.next(), Some(2));
+    /// assert_eq!(iter.next(), None);
+    /// ```
+    pub fn iter(&self) -> DListIterator<T> {
+        if let Some(ref head) = self.head {
+            DListIterator {
+                cur: Some(Rc::downgrade(&Rc::clone(head)))
+            }
+        } else {
+            DListIterator { cur: None }
+        }
+    }
 }
 
 impl<T: Clone + Debug> Iterator for DListIterator<T> {

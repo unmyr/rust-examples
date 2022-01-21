@@ -154,6 +154,27 @@ impl<T: Debug + Clone> DList<T> {
     }
 }
 
+impl<T: Debug> Drop for DList<T> {
+    fn drop(&mut self) {
+        println!("> Dropping: DList");
+    }
+}
+
+impl<T: Debug> fmt::Display for DList<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.head {
+            None => write!(f, "DList[]"),
+            Some(ref head) => {
+                write!(f, "DList[{}]", head.borrow())
+            }
+        }
+    }
+}
+
+pub struct DListIterator<T: Debug> {
+    cur: Option<Weak<RefCell<DListNode<T>>>>
+}
+
 impl<T: Debug> DList<T> {
     /// # Examples
     ///
@@ -176,27 +197,6 @@ impl<T: Debug> DList<T> {
             DListIterator { cur: None }
         }
     }
-}
-
-impl<T: Debug> Drop for DList<T> {
-    fn drop(&mut self) {
-        println!("> Dropping: DList");
-    }
-}
-
-impl<T: Debug> fmt::Display for DList<T> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.head {
-            None => write!(f, "DList[]"),
-            Some(ref head) => {
-                write!(f, "DList[{}]", head.borrow())
-            }
-        }
-    }
-}
-
-pub struct DListIterator<T: Debug> {
-    cur: Option<Weak<RefCell<DListNode<T>>>>
 }
 
 impl<T: Clone + Debug> Iterator for DListIterator<T> {
