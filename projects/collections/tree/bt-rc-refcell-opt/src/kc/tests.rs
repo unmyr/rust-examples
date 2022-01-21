@@ -17,6 +17,20 @@ fn test_insert() {
 fn test_to_vec_in_order() {
     let tree: BTree<u8> = Default::default();
     tree.insert(4);
+    assert_eq!(tree.to_vec_in_order(), vec![4]);
+
+    let tree: BTree<u8> = Default::default();
+    tree.insert(4);
+    tree.insert(2);
+    assert_eq!(tree.to_vec_in_order(), vec![2, 4]);
+
+    let tree: BTree<u8> = Default::default();
+    tree.insert(4);
+    tree.insert(6);
+    assert_eq!(tree.to_vec_in_order(), vec![4, 6]);
+
+    let tree: BTree<u8> = Default::default();
+    tree.insert(4);
     tree.insert(2);
     tree.insert(1);
     tree.insert(6);
