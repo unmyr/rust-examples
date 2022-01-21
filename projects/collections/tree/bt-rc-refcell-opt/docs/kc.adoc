@@ -279,23 +279,27 @@ impl<K: Clone> BTree<K> {
         let mut results: Vec<K> = vec!();
 
         'outer: loop {
-            while cur.borrow().as_ref().unwrap().left.borrow().is_some() {
+            // Traverse the subtree on the left while adding nodes to the stack.
+            while let Some(node) = Rc::clone(&cur).borrow().as_ref() {
                 stack.push(Rc::clone(&cur));
-                cur = Rc::clone(
-                    &Rc::clone(&cur).borrow().as_ref().unwrap().left
-                );
+                cur = Rc::clone(&node.left);
             }
+
+            // It pops elements from the stack and continues to output,
+            // returning to traversing the left side
+            // if a node is found on the current right side.
             loop {
-                if let Some(node) = Rc::clone(&cur).borrow().as_ref() {
+                let cur_right = match stack.pop() {
+                    Some(cur_right) => cur_right,
+                    None => break 'outer,
+                };
+
+                if let Some(node) = cur_right.borrow().as_ref() {
                     results.push(node.key.clone());
                     if node.right.borrow().is_some() {
                         cur = Rc::clone(&node.right);
                         continue 'outer;
                     }
-                }
-                cur = match stack.pop() {
-                    Some(cur) => cur,
-                    None => break 'outer,
                 };
             }
         }
