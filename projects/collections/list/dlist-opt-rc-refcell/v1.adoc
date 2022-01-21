@@ -8,7 +8,7 @@ endif::[]
 
 === v1.1 There is a memory leak in this code
 
-This code does not free the Node objects, resulting in a memory leak.
+This code does not free the DListNode objects, resulting in a memory leak.
 
 [source,rust]
 .src/v1.rs
@@ -18,20 +18,20 @@ use std::cell::RefCell;
 use std::fmt;
 use std::fmt::Debug;
 
-pub struct Node<T: Debug> {
+pub struct DListNode<T: Debug> {
     value: T,
-    prev: Option<Rc<RefCell<Node<T>>>>,
-    next: Option<Rc<RefCell<Node<T>>>>,
+    prev: Option<Rc<RefCell<DListNode<T>>>>,
+    next: Option<Rc<RefCell<DListNode<T>>>>,
 }
 
 #[derive(Default)]
 pub struct DList<T: Debug> {
-    head: Option<Rc<RefCell<Node<T>>>>,
+    head: Option<Rc<RefCell<DListNode<T>>>>,
 }
 
-impl<T: Debug> Node<T> {
-    pub fn new(v: T) -> Node<T> {
-        Node { value: v, next: None, prev: None }
+impl<T: Debug> DListNode<T> {
+    pub fn new(v: T) -> DListNode<T> {
+        DListNode { value: v, next: None, prev: None }
     }
 }
 
@@ -41,16 +41,16 @@ impl<T: Debug> Drop for DList<T> {
     }
 }
 
-impl<T: Debug> Drop for Node<T> {
+impl<T: Debug> Drop for DListNode<T> {
     fn drop(&mut self) {
-        println!("> Dropping: Node {:?}", self.value);
+        println!("> Dropping: DListNode {:?}", self.value);
     }
 }
 
 impl<T: Debug> DList<T> {
     pub fn push_back(&mut self, v: T) {
-        let mut node_new = Node::new(v);
-        let mut cur: Rc<RefCell<Node<T>>>;
+        let mut node_new = DListNode::new(v);
+        let mut cur: Rc<RefCell<DListNode<T>>>;
         if let Some(ref head) = self.head {
             cur = Rc::clone(head);
         } else {
@@ -69,27 +69,27 @@ impl<T: Debug> DList<T> {
     }
 }
 
-impl<T: Debug> fmt::Display for Node<T> {
+impl<T: Debug> fmt::Display for DListNode<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match (self.prev.as_ref(), self.next.as_ref()) {
             (None, None) => {
-                write!(f, "Node({:?}, Nil, Nil)", self.value)
+                write!(f, "DListNode({:?}, Nil, Nil)", self.value)
             },
             (Some(prev), None) => {
                 write!(
-                    f, "Node({:?}, {:?}, Nil)",
+                    f, "DListNode({:?}, {:?}, Nil)",
                     self.value, prev.borrow().value
                 )
             },
             (None, Some(next)) => {
                 write!(
-                    f, "Node({:?}, Nil, {:?}), {}",
+                    f, "DListNode({:?}, Nil, {:?}), {}",
                     self.value, next.borrow().value, next.borrow()
                 )
             },
             (Some(prev), Some(next)) => {
                 write!(
-                    f, "Node({:?}, {:?}, {:?}), {}",
+                    f, "DListNode({:?}, {:?}, {:?}), {}",
                     self.value, prev.borrow().value, next.borrow().value, next.borrow()
                 )
             }
@@ -143,7 +143,7 @@ $ cargo run --bin db_list_v1
    Compiling doubly-linked-list v0.1.0 (.../doubly-linked-list)
     Finished dev [unoptimized + debuginfo] target(s) in 1.41s
      Running `.../target/debug/db_list_v1`
-DList[Node(1, Nil, 2), Node(2, 1, 3), Node(3, 2, Nil)]
+DList[DListNode(1, Nil, 2), DListNode(2, 1, 3), DListNode(3, 2, Nil)]
 > Dropping: DList
 ----
 
@@ -159,11 +159,11 @@ DList[Node(1, Nil, 2), Node(2, 1, 3), Node(3, 2, Nil)]
  use std::fmt;
  use std::fmt::Debug;
 
- pub struct Node<T: Debug> {
+ pub struct DListNode<T: Debug> {
      value: T,
--    prev: Option<Rc<RefCell<Node<T>>>>,
-+    prev: Option<Weak<RefCell<Node<T>>>>,
-     next: Option<Rc<RefCell<Node<T>>>>,
+-    prev: Option<Rc<RefCell<DListNode<T>>>>,
++    prev: Option<Weak<RefCell<DListNode<T>>>>,
+     next: Option<Rc<RefCell<DListNode<T>>>>,
  }
 
 @@ -46,7 +47,7 @@ impl<T: Debug> DList<T> {
@@ -175,20 +175,20 @@ DList[Node(1, Nil, 2), Node(2, 1, 3), Node(3, 2, Nil)]
 
          cur.borrow_mut().next = Some(
              Rc::new(RefCell::new(node_new))
-@@ -63,7 +64,8 @@ impl<T: Debug> fmt::Display for Node<T> {
+@@ -63,7 +64,8 @@ impl<T: Debug> fmt::Display for DListNode<T> {
              (Some(prev), None) => {
                  write!(
-                     f, "Node({:?}, {:?}, Nil)",
+                     f, "DListNode({:?}, {:?}, Nil)",
 -                    self.value, prev.borrow().value
 +                    self.value,
 +                    Rc::clone(&prev.upgrade().unwrap()).borrow().value
                  )
              },
              (None, Some(next)) => {
-@@ -75,7 +77,10 @@ impl<T: Debug> fmt::Display for Node<T> {
+@@ -75,7 +77,10 @@ impl<T: Debug> fmt::Display for DListNode<T> {
              (Some(prev), Some(next)) => {
                  write!(
-                     f, "Node({:?}, {:?}, {:?}), {}",
+                     f, "DListNode({:?}, {:?}, {:?}), {}",
 -                    self.value, prev.borrow().value, next.borrow().value, next.borrow()
 +                    self.value,
 +                    Rc::clone(&prev.upgrade().unwrap()).borrow().value,
@@ -208,20 +208,20 @@ use std::cell::RefCell;
 use std::fmt;
 use std::fmt::Debug;
 
-pub struct Node<T: Debug> {
+pub struct DListNode<T: Debug> {
     value: T,
-    prev: Option<Weak<RefCell<Node<T>>>>,
-    next: Option<Rc<RefCell<Node<T>>>>,
+    prev: Option<Weak<RefCell<DListNode<T>>>>,
+    next: Option<Rc<RefCell<DListNode<T>>>>,
 }
 
 #[derive(Default)]
 pub struct DList<T: Debug> {
-    head: Option<Rc<RefCell<Node<T>>>>,
+    head: Option<Rc<RefCell<DListNode<T>>>>,
 }
 
-impl<T: Debug> Node<T> {
-    pub fn new(v: T) -> Node<T> {
-        Node { value: v, next: None, prev: None }
+impl<T: Debug> DListNode<T> {
+    pub fn new(v: T) -> DListNode<T> {
+        DListNode { value: v, next: None, prev: None }
     }
 }
 
@@ -231,16 +231,16 @@ impl<T: Debug> Drop for DList<T> {
     }
 }
 
-impl<T: Debug> Drop for Node<T> {
+impl<T: Debug> Drop for DListNode<T> {
     fn drop(&mut self) {
-        println!("> Dropping: Node {:?}", self.value);
+        println!("> Dropping: DListNode {:?}", self.value);
     }
 }
 
 impl<T: Debug> DList<T> {
     pub fn push_back(&mut self, v: T) {
-        let mut node_new = Node::new(v);
-        let mut cur: Rc<RefCell<Node<T>>>;
+        let mut node_new = DListNode::new(v);
+        let mut cur: Rc<RefCell<DListNode<T>>>;
         if let Some(ref head) = self.head {
             cur = Rc::clone(head);
         } else {
@@ -259,28 +259,28 @@ impl<T: Debug> DList<T> {
     }
 }
 
-impl<T: Debug> fmt::Display for Node<T> {
+impl<T: Debug> fmt::Display for DListNode<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match (self.prev.as_ref(), self.next.as_ref()) {
             (None, None) => {
-                write!(f, "Node({:?}, Nil, Nil)", self.value)
+                write!(f, "DListNode({:?}, Nil, Nil)", self.value)
             },
             (Some(prev), None) => {
                 write!(
-                    f, "Node({:?}, {:?}, Nil)",
+                    f, "DListNode({:?}, {:?}, Nil)",
                     self.value,
                     Rc::clone(&prev.upgrade().unwrap()).borrow().value
                 )
             },
             (None, Some(next)) => {
                 write!(
-                    f, "Node({:?}, Nil, {:?}), {}",
+                    f, "DListNode({:?}, Nil, {:?}), {}",
                     self.value, next.borrow().value, next.borrow()
                 )
             },
             (Some(prev), Some(next)) => {
                 write!(
-                    f, "Node({:?}, {:?}, {:?}), {}",
+                    f, "DListNode({:?}, {:?}, {:?}), {}",
                     self.value,
                     Rc::clone(&prev.upgrade().unwrap()).borrow().value,
                     next.borrow().value,
@@ -323,11 +323,11 @@ $ cargo run --bin db_list_v1
    Compiling doubly-linked-list v0.1.0 (.../doubly-linked-list)
     Finished dev [unoptimized + debuginfo] target(s) in 2.05s
      Running `.../target/debug/db_list_v1`
-DList[Node(1, Nil, 2), Node(2, 1, 3), Node(3, 2, Nil)]
+DList[DListNode(1, Nil, 2), DListNode(2, 1, 3), DListNode(3, 2, Nil)]
 > Dropping: DList
-> Dropping: Node 1
-> Dropping: Node 2
-> Dropping: Node 3
+> Dropping: DListNode 1
+> Dropping: DListNode 2
+> Dropping: DListNode 3
 ----
 
 === v1.3: Add `pop_back()` method
@@ -340,7 +340,7 @@ DList[Node(1, Nil, 2), Node(2, 1, 3), Node(3, 2, Nil)]
 
 +impl<T: Debug + Clone> DList<T> {
 +    pub fn pop_back(&mut self) -> Option<T> {
-+        let mut cur: Rc<RefCell<Node<T>>>;
++        let mut cur: Rc<RefCell<DListNode<T>>>;
 +        if let Some(ref head) = self.head {
 +            cur = Rc::clone(head);
 +        } else {
@@ -359,7 +359,7 @@ DList[Node(1, Nil, 2), Node(2, 1, 3), Node(3, 2, Nil)]
 +
 +        assert_eq!(Rc::strong_count(&cur), 1);
 +        assert_eq!(Rc::weak_count(&cur), 0);
-+        let last: Node<T> = Rc::try_unwrap(cur).ok().unwrap().into_inner();
++        let last: DListNode<T> = Rc::try_unwrap(cur).ok().unwrap().into_inner();
 +        Some(last.value.clone())
 +    }
 +}
@@ -373,12 +373,12 @@ $ cargo run --bin db_list_v1
    Compiling doubly-linked-list v0.1.0 (.../doubly-linked-list)
     Finished dev [unoptimized + debuginfo] target(s) in 2.37s
      Running `.../target/debug/db_list_v1`
-DList[Node(1, Nil, 2), Node(2, 1, 3), Node(3, 2, Nil)]
-> Dropping: Node 3
-DList[Node(1, Nil, 2), Node(2, 1, Nil)]
-> Dropping: Node 2
-DList[Node(1, Nil, Nil)]
-> Dropping: Node 1
+DList[DListNode(1, Nil, 2), DListNode(2, 1, 3), DListNode(3, 2, Nil)]
+> Dropping: DListNode 3
+DList[DListNode(1, Nil, 2), DListNode(2, 1, Nil)]
+> Dropping: DListNode 2
+DList[DListNode(1, Nil, Nil)]
+> Dropping: DListNode 1
 DList[]
 > Dropping: DList
 ----
@@ -423,7 +423,7 @@ DList[]
  }
 
 +pub struct DListIterator<T: Debug> {
-+    cur: Option<Weak<RefCell<Node<T>>>>
++    cur: Option<Weak<RefCell<DListNode<T>>>>
 +}
 +
 +impl<T: Clone + Debug> Iterator for DListIterator<T> {
@@ -471,8 +471,8 @@ DList[]
 +    /// list.push_back(2);
 +    /// ```
      pub fn push_back(&mut self, v: T) {
-         let mut node_new = Node::new(v);
-         let mut cur: Rc<RefCell<Node<T>>>;
+         let mut node_new = DListNode::new(v);
+         let mut cur: Rc<RefCell<DListNode<T>>>;
 @@ -80,6 +88,41 @@ impl<T: Debug> DList<T> {
  }
 
@@ -496,7 +496,7 @@ DList[]
 +        assert_eq!(Rc::strong_count(&head), 2);
 +        self.head = None;
 +        assert_eq!(Rc::strong_count(&head), 1);
-+        let node: Node<T> = Rc::try_unwrap(head).ok().unwrap().into_inner();
++        let node: DListNode<T> = Rc::try_unwrap(head).ok().unwrap().into_inner();
 +        self.head = node.next.clone();
 +        Some(node.value.clone())
 +    }
@@ -513,14 +513,14 @@ DList[]
 +    /// assert_eq!(list.pop_back(), None);
 +    /// ```
      pub fn pop_back(&mut self) -> Option<T> {
-         let mut cur: Rc<RefCell<Node<T>>>;
+         let mut cur: Rc<RefCell<DListNode<T>>>;
          if let Some(ref head) = self.head {
 @@ -99,7 +142,6 @@ impl<T: Debug + Clone> DList<T> {
          }
 
          assert_eq!(Rc::strong_count(&cur), 1);
 -        assert_eq!(Rc::weak_count(&cur), 0);
-         let last: Node<T> = Rc::try_unwrap(cur).ok().unwrap().into_inner();
+         let last: DListNode<T> = Rc::try_unwrap(cur).ok().unwrap().into_inner();
          Some(last.value.clone())
      }
 ----
@@ -566,17 +566,17 @@ $ cargo run --bin db_list_v1
    Compiling doubly-linked-list v0.1.0 (.../doubly-linked-list)
     Finished dev [unoptimized + debuginfo] target(s) in 3.13s
      Running `.../target/debug/db_list_v1`
-> Dropping: Node 2
-DList[Node(1, Nil, 2), Node(2, 1, 3), Node(3, 2, Nil)]
+> Dropping: DListNode 2
+DList[DListNode(1, Nil, 2), DListNode(2, 1, 3), DListNode(3, 2, Nil)]
 1
 2
 3
-> Dropping: Node 3
-> Dropping: Node 2
-> Dropping: Node 1
-> Dropping: Node 1
+> Dropping: DListNode 3
+> Dropping: DListNode 2
+> Dropping: DListNode 1
+> Dropping: DListNode 1
 > Dropping: DList
-> Dropping: Node 2
+> Dropping: DListNode 2
 ----
 
 ==== Bugs
@@ -601,38 +601,38 @@ $ cargo run --bin db_list_v1
    Compiling doubly-linked-list v0.1.0 (.../doubly-linked-list)
     Finished dev [unoptimized + debuginfo] target(s) in 1.59s
      Running `.../target/debug/db_list_v1`
-> Dropping: Node 1
+> Dropping: DListNode 1
 thread 'main' panicked at 'called `Option::unwrap()` on a `None` value', .../doubly-linked-list/src/v1.rs:33:47
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
 DList[> Dropping: DList
-> Dropping: Node 2
+> Dropping: DListNode 2
 ----
 
 [source,rust]
 .src/v1.rs
 ----
-impl<T: Debug> fmt::Display for Node<T> {
+impl<T: Debug> fmt::Display for DListNode<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match (self.prev.as_ref(), self.next.as_ref()) {
             (None, None) => {
-                write!(f, "Node({:?}, Nil, Nil)", self.value)
+                write!(f, "DListNode({:?}, Nil, Nil)", self.value)
             },
             (Some(prev), None) => {
                 write!(
-                    f, "Node({:?}, {:?}, Nil)",
+                    f, "DListNode({:?}, {:?}, Nil)",
                     self.value,
                     Rc::clone(&prev.upgrade().unwrap()).borrow().value  //<1>
                 )
             },
             (None, Some(next)) => {
                 write!(
-                    f, "Node({:?}, Nil, {:?}), {}",
+                    f, "DListNode({:?}, Nil, {:?}), {}",
                     self.value, next.borrow().value, next.borrow()
                 )
             },
             (Some(prev), Some(next)) => {
                 write!(
-                    f, "Node({:?}, {:?}, {:?}), {}",
+                    f, "DListNode({:?}, {:?}, {:?}), {}",
                     self.value,
                     Rc::clone(&prev.upgrade().unwrap()).borrow().value,
                     next.borrow().value,
@@ -656,9 +656,9 @@ Displayトレイトを修正しても良いが、早期に None 判定をでき�
          assert_eq!(Rc::strong_count(&head), 2);
          self.head = None;
          assert_eq!(Rc::strong_count(&head), 1);
--        let node: Node<T> = Rc::try_unwrap(head).ok().unwrap().into_inner();
+-        let node: DListNode<T> = Rc::try_unwrap(head).ok().unwrap().into_inner();
 -        self.head = node.next.clone();
-+        let mut node: Node<T> = Rc::try_unwrap(head).ok().unwrap().into_inner();
++        let mut node: DListNode<T> = Rc::try_unwrap(head).ok().unwrap().into_inner();
 +        if let Some(ref next) = node.next {
 +            if let Some(ref prev) = next.borrow().prev {
 +                // The previous node has already moved.
@@ -678,8 +678,8 @@ $ cargo run --bin db_list_v1
    Compiling doubly-linked-list v0.1.0 (.../doubly-linked-list)
     Finished dev [unoptimized + debuginfo] target(s) in 1.67s
      Running `.../target/debug/db_list_v1`
-> Dropping: Node 1
-DList[Node(2, Nil, Nil)]
+> Dropping: DListNode 1
+DList[DListNode(2, Nil, Nil)]
 > Dropping: DList
 ----
 
@@ -690,46 +690,46 @@ use std::rc::{Rc, Weak};
 use std::cell::RefCell;
 use std::fmt::{self, Debug};
 
-pub struct Node<T: Debug> {
+pub struct DListNode<T: Debug> {
     value: T,
-    prev: Option<Weak<RefCell<Node<T>>>>,
-    next: Option<Rc<RefCell<Node<T>>>>,
+    prev: Option<Weak<RefCell<DListNode<T>>>>,
+    next: Option<Rc<RefCell<DListNode<T>>>>,
 }
 
-impl<T: Debug> Node<T> {
-    pub fn new(v: T) -> Node<T> {
-        Node { value: v, next: None, prev: None }
+impl<T: Debug> DListNode<T> {
+    pub fn new(v: T) -> DListNode<T> {
+        DListNode { value: v, next: None, prev: None }
     }
 }
 
-impl<T: Debug> Drop for Node<T> {
+impl<T: Debug> Drop for DListNode<T> {
     fn drop(&mut self) {
-        println!("> Dropping: Node {:?}", self.value);
+        println!("> Dropping: DListNode {:?}", self.value);
     }
 }
 
-impl<T: Debug> fmt::Display for Node<T> {
+impl<T: Debug> fmt::Display for DListNode<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match (self.prev.as_ref(), self.next.as_ref()) {
             (None, None) => {
-                write!(f, "Node({:?}, Nil, Nil)", self.value)
+                write!(f, "DListNode({:?}, Nil, Nil)", self.value)
             },
             (Some(prev), None) => {
                 write!(
-                    f, "Node({:?}, {:?}, Nil)",
+                    f, "DListNode({:?}, {:?}, Nil)",
                     self.value,
                     Rc::clone(&prev.upgrade().unwrap()).borrow().value
                 )
             },
             (None, Some(next)) => {
                 write!(
-                    f, "Node({:?}, Nil, {:?}), {}",
+                    f, "DListNode({:?}, Nil, {:?}), {}",
                     self.value, next.borrow().value, next.borrow()
                 )
             },
             (Some(prev), Some(next)) => {
                 write!(
-                    f, "Node({:?}, {:?}, {:?}), {}",
+                    f, "DListNode({:?}, {:?}, {:?}), {}",
                     self.value,
                     Rc::clone(&prev.upgrade().unwrap()).borrow().value,
                     next.borrow().value,
@@ -742,7 +742,7 @@ impl<T: Debug> fmt::Display for Node<T> {
 
 #[derive(Default)]
 pub struct DList<T: Debug> {
-    head: Option<Rc<RefCell<Node<T>>>>,
+    head: Option<Rc<RefCell<DListNode<T>>>>,
 }
 
 impl<T: Debug> DList<T> {
@@ -755,8 +755,8 @@ impl<T: Debug> DList<T> {
     /// list.push_back(2);
     /// ```
     pub fn push_back(&mut self, v: T) {
-        let mut node_new = Node::new(v);
-        let mut cur: Rc<RefCell<Node<T>>>;
+        let mut node_new = DListNode::new(v);
+        let mut cur: Rc<RefCell<DListNode<T>>>;
         if let Some(ref head) = self.head {
             cur = Rc::clone(head);
         } else {
@@ -795,7 +795,7 @@ impl<T: Debug + Clone> DList<T> {
         assert_eq!(Rc::strong_count(&head), 2);
         self.head = None;
         assert_eq!(Rc::strong_count(&head), 1);
-        let mut node: Node<T> = Rc::try_unwrap(head).ok().unwrap().into_inner();
+        let mut node: DListNode<T> = Rc::try_unwrap(head).ok().unwrap().into_inner();
         if let Some(ref next) = node.next {
             if let Some(ref prev) = next.borrow().prev {
                 // The previous node has already moved.
@@ -819,7 +819,7 @@ impl<T: Debug + Clone> DList<T> {
     /// assert_eq!(list.pop_back(), None);
     /// ```
     pub fn pop_back(&mut self) -> Option<T> {
-        let mut cur: Rc<RefCell<Node<T>>>;
+        let mut cur: Rc<RefCell<DListNode<T>>>;
         if let Some(ref head) = self.head {
             cur = Rc::clone(head);
         } else {
@@ -837,7 +837,7 @@ impl<T: Debug + Clone> DList<T> {
         }
 
         assert_eq!(Rc::strong_count(&cur), 1);
-        let last: Node<T> = Rc::try_unwrap(cur).ok().unwrap().into_inner();
+        let last: DListNode<T> = Rc::try_unwrap(cur).ok().unwrap().into_inner();
         Some(last.value.clone())
     }
 }
@@ -884,7 +884,7 @@ impl<T: Debug> fmt::Display for DList<T> {
 }
 
 pub struct DListIterator<T: Debug> {
-    cur: Option<Weak<RefCell<Node<T>>>>
+    cur: Option<Weak<RefCell<DListNode<T>>>>
 }
 
 impl<T: Clone + Debug> Iterator for DListIterator<T> {

@@ -2,46 +2,46 @@ use std::rc::{Rc, Weak};
 use std::cell::RefCell;
 use std::fmt::{self, Debug};
 
-pub struct Node<T: Debug> {
+pub struct DListNode<T: Debug> {
     value: T,
-    prev: Option<Weak<RefCell<Node<T>>>>,
-    next: Option<Rc<RefCell<Node<T>>>>,
+    prev: Option<Weak<RefCell<DListNode<T>>>>,
+    next: Option<Rc<RefCell<DListNode<T>>>>,
 }
 
-impl<T: Debug> Node<T> {
-    pub fn new(v: T) -> Node<T> {
-        Node { value: v, next: None, prev: None }
+impl<T: Debug> DListNode<T> {
+    pub fn new(v: T) -> DListNode<T> {
+        DListNode { value: v, next: None, prev: None }
     }
 }
 
-impl<T: Debug> Drop for Node<T> {
+impl<T: Debug> Drop for DListNode<T> {
     fn drop(&mut self) {
-        println!("> Dropping: Node {:?}", self.value);
+        println!("> Dropping: DListNode {:?}", self.value);
     }
 }
 
-impl<T: Debug> fmt::Display for Node<T> {
+impl<T: Debug> fmt::Display for DListNode<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match (self.prev.as_ref(), self.next.as_ref()) {
             (None, None) => {
-                write!(f, "Node({:?}, Nil, Nil)", self.value)
+                write!(f, "DListNode({:?}, Nil, Nil)", self.value)
             },
             (Some(prev), None) => {
                 write!(
-                    f, "Node({:?}, {:?}, Nil)",
+                    f, "DListNode({:?}, {:?}, Nil)",
                     self.value,
                     Rc::clone(&prev.upgrade().unwrap()).borrow().value
                 )
             },
             (None, Some(next)) => {
                 write!(
-                    f, "Node({:?}, Nil, {:?}), {}",
+                    f, "DListNode({:?}, Nil, {:?}), {}",
                     self.value, next.borrow().value, next.borrow()
                 )
             },
             (Some(prev), Some(next)) => {
                 write!(
-                    f, "Node({:?}, {:?}, {:?}), {}",
+                    f, "DListNode({:?}, {:?}, {:?}), {}",
                     self.value,
                     Rc::clone(&prev.upgrade().unwrap()).borrow().value,
                     next.borrow().value,
@@ -54,7 +54,7 @@ impl<T: Debug> fmt::Display for Node<T> {
 
 #[derive(Default)]
 pub struct DList<T: Debug> {
-    head: Option<Rc<RefCell<Node<T>>>>,
+    head: Option<Rc<RefCell<DListNode<T>>>>,
 }
 
 impl<T: Debug> DList<T> {
@@ -67,8 +67,8 @@ impl<T: Debug> DList<T> {
     /// list.push_back(2);
     /// ```
     pub fn push_back(&mut self, v: T) {
-        let mut node_new = Node::new(v);
-        let mut cur: Rc<RefCell<Node<T>>>;
+        let mut node_new = DListNode::new(v);
+        let mut cur: Rc<RefCell<DListNode<T>>>;
         if let Some(ref head) = self.head {
             cur = Rc::clone(head);
         } else {
@@ -107,7 +107,7 @@ impl<T: Debug + Clone> DList<T> {
         assert_eq!(Rc::strong_count(&head), 2);
         self.head = None;
         assert_eq!(Rc::strong_count(&head), 1);
-        let mut node: Node<T> = Rc::try_unwrap(head).ok().unwrap().into_inner();
+        let mut node: DListNode<T> = Rc::try_unwrap(head).ok().unwrap().into_inner();
         if let Some(ref next) = node.next {
             if let Some(ref prev) = next.borrow().prev {
                 // The previous node has already moved.
@@ -131,7 +131,7 @@ impl<T: Debug + Clone> DList<T> {
     /// assert_eq!(list.pop_back(), None);
     /// ```
     pub fn pop_back(&mut self) -> Option<T> {
-        let mut cur: Rc<RefCell<Node<T>>>;
+        let mut cur: Rc<RefCell<DListNode<T>>>;
         if let Some(ref head) = self.head {
             cur = Rc::clone(head);
         } else {
@@ -149,7 +149,7 @@ impl<T: Debug + Clone> DList<T> {
         }
 
         assert_eq!(Rc::strong_count(&cur), 1);
-        let last: Node<T> = Rc::try_unwrap(cur).ok().unwrap().into_inner();
+        let last: DListNode<T> = Rc::try_unwrap(cur).ok().unwrap().into_inner();
         Some(last.value.clone())
     }
 }
@@ -196,7 +196,7 @@ impl<T: Debug> fmt::Display for DList<T> {
 }
 
 pub struct DListIterator<T: Debug> {
-    cur: Option<Weak<RefCell<Node<T>>>>
+    cur: Option<Weak<RefCell<DListNode<T>>>>
 }
 
 impl<T: Clone + Debug> Iterator for DListIterator<T> {

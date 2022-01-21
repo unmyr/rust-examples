@@ -106,7 +106,7 @@ fn test_pop_front_and_display_1() {
     list.push_back(1);
     list.push_back(2);
     assert_eq!(list.pop_front(), Some(1));
-    assert_eq!(format!("{}", list), "DList[Node(2, Nil, Nil)]");
+    assert_eq!(format!("{}", list), "DList[DListNode(2, Nil, Nil)]");
 }
 
 #[test]
@@ -116,5 +116,5 @@ fn test_pop_front_and_display_2() {
     list.push_back(2);
     list.push_back(3);
     assert_eq!(list.pop_front(), Some(1));
-    assert_eq!(format!("{}", list), "DList[Node(2, Nil, 3), Node(3, 2, Nil)]");
+    assert_eq!(format!("{}", list), "DList[DListNode(2, Nil, 3), DListNode(3, 2, Nil)]");
 }
