@@ -88,18 +88,20 @@ impl<K: Ord> BTree<K> {
     }
 }
 
-pub struct BTreeIterator<K> {
-    results: Vec<K>,
-    cur: Option<usize>,
-}
-
 impl<K: Clone> BTree<K> {
-    pub fn iter_in_order(&self) -> BTreeIterator<K> {
+    /// # Examples
+    ///
+    /// ```
+    /// use bt_rc_refcell_opt::kc::BTree;
+    /// let tree: BTree<&str> = Default::default();
+    /// tree.insert("E");
+    /// tree.insert("A");
+    /// tree.insert("S");
+    /// assert_eq!(tree.to_vec_in_order(), vec!["A", "E", "S"]);
+    /// ```
+    pub fn to_vec_in_order(&self) -> Vec<K> {
         if self.head.borrow().is_none() {
-            return BTreeIterator {
-                results: Vec::<K>::new(),
-                cur: None,
-            };
+            return Vec::new();
         }
         let cur_ref: &Rc<RefCell<Option<TreeNode<K>>>>;
         cur_ref = &self.head;
@@ -131,7 +133,21 @@ impl<K: Clone> BTree<K> {
                 };
             }
         }
-        BTreeIterator { results, cur: Some(0) }
+        results
+    }
+}
+
+pub struct BTreeIterator<K> {
+    results: Vec<K>,
+    cur: Option<usize>,
+}
+
+impl<K: Clone> BTree<K> {
+    pub fn iter_in_order(&self) -> BTreeIterator<K> {
+        BTreeIterator {
+            results: self.to_vec_in_order(),
+            cur: Some(0)
+        }
     }
 }
 
