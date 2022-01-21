@@ -1,8 +1,8 @@
-use super::List;
+use super::DList;
 
 #[test]
 fn test_push_pop_1() {
-    let mut list: List<u8> = Default::default();
+    let mut list: DList<u8> = Default::default();
     list.push_back(1);
     assert_eq!(list.pop_back(), Some(1));
     assert_eq!(list.pop_back(), None);
@@ -13,7 +13,7 @@ fn test_push_pop_1() {
 
 #[test]
 fn test_push_pop_2() {
-    let mut list: List<&str> = Default::default();
+    let mut list: DList<&str> = Default::default();
     list.push_back("hello");
     list.push_back("world");
     assert_eq!(list.pop_back(), Some("world"));
@@ -28,7 +28,7 @@ fn test_push_pop_2() {
 
 #[test]
 fn test_pop_front_1() {
-    let mut list: List<u8> = Default::default();
+    let mut list: DList<u8> = Default::default();
     assert_eq!(list.pop_front(), None);
 
     list.push_back(1);
@@ -42,7 +42,7 @@ fn test_pop_front_1() {
 
 #[test]
 fn test_pop_front_2() {
-    let mut list: List<u8> = Default::default();
+    let mut list: DList<u8> = Default::default();
     list.push_back(1);
     list.push_back(2);
     assert_eq!(list.pop_front(), Some(1));
@@ -52,7 +52,7 @@ fn test_pop_front_2() {
 
 #[test]
 fn test_iter_unwrap_failed() {
-    let mut list: List<u8> = Default::default();
+    let mut list: DList<u8> = Default::default();
     list.push_back(1);
     list.push_back(2);
     let mut iter = list.iter();
@@ -69,7 +69,7 @@ fn test_iter_unwrap_failed() {
 
 #[test]
 fn test_iter_last_add() {
-    let mut list: List<u8> = Default::default();
+    let mut list: DList<u8> = Default::default();
     list.push_back(1);
     let mut iter = list.iter();
     assert_eq!(iter.next(), Some(1));
@@ -80,7 +80,7 @@ fn test_iter_last_add() {
 
 #[test]
 fn test_iter_drop_next_item() {
-    let mut list: List<u8> = Default::default();
+    let mut list: DList<u8> = Default::default();
     list.push_back(1);
     list.push_back(2);
     let mut iter = list.iter();             // The next pointer points to 1.
@@ -90,7 +90,7 @@ fn test_iter_drop_next_item() {
 
 #[test]
 fn test_iter_drop_prev_item() {
-    let mut list: List<u8> = Default::default();
+    let mut list: DList<u8> = Default::default();
     list.push_back(1);
     list.push_back(2);
     let mut iter = list.iter();            // The next pointer points to 1.
@@ -102,19 +102,19 @@ fn test_iter_drop_prev_item() {
 
 #[test]
 fn test_pop_front_and_display_1() {
-    let mut list: List<u8> = Default::default();
+    let mut list: DList<u8> = Default::default();
     list.push_back(1);
     list.push_back(2);
     assert_eq!(list.pop_front(), Some(1));
-    assert_eq!(format!("{}", list), "List[Node(2, Nil, Nil)]");
+    assert_eq!(format!("{}", list), "DList[Node(2, Nil, Nil)]");
 }
 
 #[test]
 fn test_pop_front_and_display_2() {
-    let mut list: List<u8> = Default::default();
+    let mut list: DList<u8> = Default::default();
     list.push_back(1);
     list.push_back(2);
     list.push_back(3);
     assert_eq!(list.pop_front(), Some(1));
-    assert_eq!(format!("{}", list), "List[Node(2, Nil, 3), Node(3, 2, Nil)]");
+    assert_eq!(format!("{}", list), "DList[Node(2, Nil, 3), Node(3, 2, Nil)]");
 }

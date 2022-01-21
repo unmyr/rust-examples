@@ -6,7 +6,7 @@ endif::[]
 
 == v2: Add pop_back
 
-=== v2.1: List requires Clone trait.
+=== v2.1: DList requires Clone trait.
 
 [source,rust]
 .src/v2.rs
@@ -24,7 +24,7 @@ pub struct Node<T: Debug> {
 }
 
 #[derive(Default)]
-pub struct List<T: Debug> {
+pub struct DList<T: Debug> {
     head: Option<Rc<RefCell<Node<T>>>>,
 }
 
@@ -34,9 +34,9 @@ impl<T: Debug> Node<T> {
     }
 }
 
-impl<T: Debug> Drop for List<T> {
+impl<T: Debug> Drop for DList<T> {
     fn drop(&mut self) {
-        println!("> Dropping: List");
+        println!("> Dropping: DList");
     }
 }
 
@@ -46,7 +46,7 @@ impl<T: Debug> Drop for Node<T> {
     }
 }
 
-impl<T: Debug + Clone> List<T> {
+impl<T: Debug + Clone> DList<T> {
     pub fn push_back(&mut self, v: T) {
         let mut node_new = Node::new(v);
         let mut cur: Rc<RefCell<Node<T>>>;
@@ -125,12 +125,12 @@ impl<T: Debug> fmt::Display for Node<T> {
     }
 }
 
-impl<T: Debug> fmt::Display for List<T> {
+impl<T: Debug> fmt::Display for DList<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.head {
-            None => write!(f, "List[]"),
+            None => write!(f, "DList[]"),
             Some(ref head) => {
-                write!(f, "List[{}]", head.borrow())
+                write!(f, "DList[{}]", head.borrow())
             }
         }
     }
@@ -138,11 +138,11 @@ impl<T: Debug> fmt::Display for List<T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::v2::List;
+    use crate::v2::DList;
 
     #[test]
     fn test_push_back_u8() {
-        let mut list: List<u8> = Default::default();
+        let mut list: DList<u8> = Default::default();
         list.push_back(1);
         list.push_back(2);
         list.push_back(3);
@@ -164,10 +164,10 @@ mod tests {
 [source,rust]
 .src/bin/db_list_v2.rs
 ----
-use list::v2::List;
+use list::v2::DList;
 
 fn main() {
-    let mut list: List<u8> = Default::default();
+    let mut list: DList<u8> = Default::default();
     list.push_back(1);
     list.push_back(2);
     list.push_back(3);
@@ -188,14 +188,14 @@ $ cargo run --bin db_list_v2
    Compiling doubly-linked-list v0.1.0 (.../doubly-linked-list)s
     Finished dev [unoptimized + debuginfo] target(s) in 3.09s
      Running `.../target/debug/db_list_v2`
-List[Node(1, Nil, 2), Node(2, 1, 3), Node(3, 2, Nil)]
+DList[Node(1, Nil, 2), Node(2, 1, 3), Node(3, 2, Nil)]
 > Dropping: Node 3
-List[Node(1, Nil, 2), Node(2, 1, Nil)]
+DList[Node(1, Nil, 2), Node(2, 1, Nil)]
 > Dropping: Node 2
-List[Node(1, Nil, Nil)]
+DList[Node(1, Nil, Nil)]
 > Dropping: Node 1
-List[]
-> Dropping: List
+DList[]
+> Dropping: DList
 ----
 
 === v2.2: could not compile
@@ -206,12 +206,12 @@ List[]
      }
  }
 
--impl<T: Debug + Clone> List<T> {
-+impl<T: Debug> List<T> {
+-impl<T: Debug + Clone> DList<T> {
++impl<T: Debug> DList<T> {
      pub fn push_back(&mut self, v: T) {
          let mut node_new = Node::new(v);
          let mut cur: Rc<RefCell<Node<T>>>;
-@@ -74,9 +74,8 @@ impl<T: Debug + Clone> List<T> {
+@@ -74,9 +74,8 @@ impl<T: Debug + Clone> DList<T> {
 
          assert_eq!(Rc::strong_count(&cur), 1);
          assert_eq!(Rc::weak_count(&cur), 0);
@@ -251,9 +251,9 @@ Remove the implementation of Drop for Node<T> to remove the Clone trait from pop
      }
  }
 
--impl<T: Debug> Drop for List<T> {
+-impl<T: Debug> Drop for DList<T> {
 -    fn drop(&mut self) {
--        println!("> Dropping: List");
+-        println!("> Dropping: DList");
 -    }
 -}
 -
@@ -263,12 +263,12 @@ Remove the implementation of Drop for Node<T> to remove the Clone trait from pop
 -    }
 -}
 -
--impl<T: Debug + Clone> List<T> {
-+impl<T: Debug> List<T> {
+-impl<T: Debug + Clone> DList<T> {
++impl<T: Debug> DList<T> {
      pub fn push_back(&mut self, v: T) {
          let mut node_new = Node::new(v);
          let mut cur: Rc<RefCell<Node<T>>>;
-@@ -74,9 +62,8 @@ impl<T: Debug + Clone> List<T> {
+@@ -74,9 +62,8 @@ impl<T: Debug + Clone> DList<T> {
 
          assert_eq!(Rc::strong_count(&cur), 1);
          assert_eq!(Rc::weak_count(&cur), 0);
@@ -297,7 +297,7 @@ pub struct Node<T: Debug> {
 }
 
 #[derive(Default)]
-pub struct List<T: Debug> {
+pub struct DList<T: Debug> {
     head: Option<Rc<RefCell<Node<T>>>>,
 }
 
@@ -307,7 +307,7 @@ impl<T: Debug> Node<T> {
     }
 }
 
-impl<T: Debug> List<T> {
+impl<T: Debug> DList<T> {
     pub fn push_back(&mut self, v: T) {
         let mut node_new = Node::new(v);
         let mut cur: Rc<RefCell<Node<T>>>;
@@ -385,12 +385,12 @@ impl<T: Debug> fmt::Display for Node<T> {
     }
 }
 
-impl<T: Debug> fmt::Display for List<T> {
+impl<T: Debug> fmt::Display for DList<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.head {
-            None => write!(f, "List[]"),
+            None => write!(f, "DList[]"),
             Some(ref head) => {
-                write!(f, "List[{}]", head.borrow())
+                write!(f, "DList[{}]", head.borrow())
             }
         }
     }
@@ -398,11 +398,11 @@ impl<T: Debug> fmt::Display for List<T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::v2::List;
+    use crate::v2::DList;
 
     #[test]
     fn test_push_back_u8() {
-        let mut list: List<u8> = Default::default();
+        let mut list: DList<u8> = Default::default();
         list.push_back(1);
         list.push_back(2);
         list.push_back(3);
@@ -428,10 +428,10 @@ $ cargo run --bin db_list_v2
    Compiling doubly-linked-list v0.1.0 (.../doubly-linked-list)
     Finished dev [unoptimized + debuginfo] target(s) in 3.71s
      Running `.../target/debug/db_list_v2`
-List[Node(1, Nil, 2), Node(2, 1, 3), Node(3, 2, Nil)]
-List[Node(1, Nil, 2), Node(2, 1, Nil)]
-List[Node(1, Nil, Nil)]
-List[]
+DList[Node(1, Nil, 2), Node(2, 1, 3), Node(3, 2, Nil)]
+DList[Node(1, Nil, 2), Node(2, 1, Nil)]
+DList[Node(1, Nil, Nil)]
+DList[]
 ----
 
 === v2.4: Revert the drop trait back 
@@ -449,7 +449,7 @@ Revert the drop trait back by using `RefCell<Option<T>>`.
      prev: Option<Weak<RefCell<Node<T>>>>,
      next: Option<Rc<RefCell<Node<T>>>>,
  }
-@@ -17,7 +17,19 @@ pub struct List<T: Debug> {
+@@ -17,7 +17,19 @@ pub struct DList<T: Debug> {
 
  impl<T: Debug> Node<T> {
      pub fn new(v: T) -> Node<T> {
@@ -458,9 +458,9 @@ Revert the drop trait back by using `RefCell<Option<T>>`.
 +    }
 +}
 +
-+impl<T: Debug> Drop for List<T> {
++impl<T: Debug> Drop for DList<T> {
 +    fn drop(&mut self) {
-+        println!("> Dropping: List");
++        println!("> Dropping: DList");
 +    }
 +}
 +
@@ -470,7 +470,7 @@ Revert the drop trait back by using `RefCell<Option<T>>`.
      }
  }
 
-@@ -63,7 +75,7 @@ impl<T: Debug> List<T> {
+@@ -63,7 +75,7 @@ impl<T: Debug> DList<T> {
          assert_eq!(Rc::strong_count(&cur), 1);
          assert_eq!(Rc::weak_count(&cur), 0);
          let last: Node<T> = Rc::try_unwrap(cur).ok().unwrap().into_inner();
@@ -487,21 +487,21 @@ $ cargo run --bin=db_list_v2
    Compiling doubly-linked-list v0.1.0 (.../doubly-linked-list)
     Finished dev [unoptimized + debuginfo] target(s) in 2.52s
      Running `.../target/debug/db_list_v2`
-List[Node(RefCell { value: Some(1) }, Nil, RefCell { value: Some(2) }), Node(RefCell { value: Some(2) }, RefCell { value: Some(1) }, RefCell { value: Some(3) }), Node(RefCell { value: Some(3) }, RefCell { value: Some(2) }, Nil)]
+DList[Node(RefCell { value: Some(1) }, Nil, RefCell { value: Some(2) }), Node(RefCell { value: Some(2) }, RefCell { value: Some(1) }, RefCell { value: Some(3) }), Node(RefCell { value: Some(3) }, RefCell { value: Some(2) }, Nil)]
 > Dropping: Node RefCell { value: None }
-List[Node(RefCell { value: Some(1) }, Nil, RefCell { value: Some(2) }), Node(RefCell { value: Some(2) }, RefCell { value: Some(1) }, Nil)]
+DList[Node(RefCell { value: Some(1) }, Nil, RefCell { value: Some(2) }), Node(RefCell { value: Some(2) }, RefCell { value: Some(1) }, Nil)]
 > Dropping: Node RefCell { value: None }
-List[Node(RefCell { value: Some(1) }, Nil, Nil)]
+DList[Node(RefCell { value: Some(1) }, Nil, Nil)]
 > Dropping: Node RefCell { value: None }
-List[]
-> Dropping: List
+DList[]
+> Dropping: DList
 ----
 
 === v2.5: Implement Iterator trait
 
 [source,diff]
 ----
-@@ -101,6 +101,28 @@ impl<T: Debug> List<T> {
+@@ -101,6 +101,28 @@ impl<T: Debug> DList<T> {
          let last: Node<T> = Rc::try_unwrap(cur).ok().unwrap().into_inner();
          last.value.take()
      }
@@ -509,8 +509,8 @@ List[]
 +    /// # Examples
 +    ///
 +    /// ```
-+    /// use list::v2::List;
-+    /// let mut list: List<u8> = Default::default();
++    /// use list::v2::DList;
++    /// let mut list: DList<u8> = Default::default();
 +    /// list.push_back(1);
 +    /// list.push_back(2);
 +    /// let mut iter = list.iter();
@@ -518,27 +518,27 @@ List[]
 +    /// assert_eq!(iter.next(), Some(2));
 +    /// assert_eq!(iter.next(), None);
 +    /// ```
-+    pub fn iter(&self) -> ListIterator<T> {
++    pub fn iter(&self) -> DListIterator<T> {
 +        if let Some(ref head) = self.head {
-+            ListIterator {
++            DListIterator {
 +                cur: Some(Rc::downgrade(&Rc::clone(head)))
 +            }
 +        } else {
-+            ListIterator { cur: None }
++            DListIterator { cur: None }
 +        }
 +    }
  }
 
- impl<T: Debug> Drop for List<T> {
-@@ -120,6 +142,33 @@ impl<T: Debug> fmt::Display for List<T> {
+ impl<T: Debug> Drop for DList<T> {
+@@ -120,6 +142,33 @@ impl<T: Debug> fmt::Display for DList<T> {
      }
  }
 
-+pub struct ListIterator<T: Debug> {
++pub struct DListIterator<T: Debug> {
 +    cur: Option<Weak<RefCell<Node<T>>>>
 +}
 +
-+impl<T: Clone + Debug> Iterator for ListIterator<T> {
++impl<T: Clone + Debug> Iterator for DListIterator<T> {
 +    type Item = T;
 +    fn next(&mut self) -> Option<Self::Item> {
 +        let cur_weak = match self.cur {
@@ -563,37 +563,37 @@ List[]
 +
  #[cfg(test)]
  mod tests {
-     use super::List;
+     use super::DList;
 ----
 
 === v2.6: Add `pop_front()` method
 
 [source,diff]
 ----
-@@ -58,6 +58,14 @@ pub struct List<T: Debug> {
+@@ -58,6 +58,14 @@ pub struct DList<T: Debug> {
  }
 
- impl<T: Debug> List<T> {
+ impl<T: Debug> DList<T> {
 +    /// # Examples
 +    ///
 +    /// ```
-+    /// use doubly_linked_list::v2::List;
-+    /// let mut list: List<u8> = Default::default();
++    /// use dlist_opt_rc_refcell::v2::DList;
++    /// let mut list: DList<u8> = Default::default();
 +    /// list.push_back(1);
 +    /// list.push_back(2);
 +    /// ```
      pub fn push_back(&mut self, v: T) {
          let mut node_new = Node::new(v);
          let mut cur: Rc<RefCell<Node<T>>>;
-@@ -78,6 +86,41 @@ impl<T: Debug> List<T> {
+@@ -78,6 +86,41 @@ impl<T: Debug> DList<T> {
          );
      }
 
 +    /// # Examples
 +    ///
 +    /// ```
-+    /// use doubly_linked_list::v2::List;
-+    /// let mut list: List<u8> = Default::default();
++    /// use dlist_opt_rc_refcell::v2::DList;
++    /// let mut list: DList<u8> = Default::default();
 +    /// list.push_back(1);
 +    /// list.push_back(2);
 +    /// assert_eq!(list.pop_front(), Some(1));
@@ -616,8 +616,8 @@ List[]
 +    /// # Examples
 +    ///
 +    /// ```
-+    /// use doubly_linked_list::v2::List;
-+    /// let mut list: List<u8> = Default::default();
++    /// use dlist_opt_rc_refcell::v2::DList;
++    /// let mut list: DList<u8> = Default::default();
 +    /// list.push_back(1);
 +    /// list.push_back(2);
 +    /// assert_eq!(list.pop_back(), Some(2));
@@ -627,7 +627,7 @@ List[]
      pub fn pop_back(&mut self) -> Option<T> {
          let mut cur: Rc<RefCell<Node<T>>>;
          if let Some(ref head) = self.head {
-@@ -97,7 +140,6 @@ impl<T: Debug> List<T> {
+@@ -97,7 +140,6 @@ impl<T: Debug> DList<T> {
          }
 
          assert_eq!(Rc::strong_count(&cur), 1);
@@ -640,10 +640,10 @@ List[]
 [source,rust]
 .src/bin/db_list_v2.rs
 ----
-use doubly_linked_list::v2::List;
+use dlist_opt_rc_refcell::v2::DList;
 
 fn main() {
-    let mut list: List<u8> = Default::default();
+    let mut list: DList<u8> = Default::default();
     list.push_back(1);
     list.push_back(2);
     let mut iter = list.iter();
@@ -679,7 +679,7 @@ $ cargo run --bin db_list_v2
     Finished dev [unoptimized + debuginfo] target(s) in 3.10s
      Running `.../target/debug/db_list_v2`
 > Dropping: Node RefCell { value: None }
-List[Node(RefCell { value: Some(1) }, Nil, RefCell { value: Some(2) }), Node(RefCell { value: Some(2) }, RefCell { value: Some(1) }, RefCell { value: Some(3) }), Node(RefCell { value: Some(3) }, RefCell { value: Some(2) }, Nil)]
+DList[Node(RefCell { value: Some(1) }, Nil, RefCell { value: Some(2) }), Node(RefCell { value: Some(2) }, RefCell { value: Some(1) }, RefCell { value: Some(3) }), Node(RefCell { value: Some(3) }, RefCell { value: Some(2) }, Nil)]
 1
 2
 3
@@ -687,7 +687,7 @@ List[Node(RefCell { value: Some(1) }, Nil, RefCell { value: Some(2) }), Node(Ref
 > Dropping: Node RefCell { value: None }
 > Dropping: Node RefCell { value: None }
 > Dropping: Node RefCell { value: None }
-> Dropping: List
+> Dropping: DList
 > Dropping: Node RefCell { value: Some(2) }
 ----
 
@@ -696,10 +696,10 @@ List[Node(RefCell { value: Some(1) }, Nil, RefCell { value: Some(2) }), Node(Ref
 [source,rust]
 .src/bin/db_list_v2.rs
 ----
-use doubly_linked_list::v2::List;
+use dlist_opt_rc_refcell::v2::DList;
 
 fn main() {
-    let mut list: List<u8> = Default::default();
+    let mut list: DList<u8> = Default::default();
     list.push_back(1);
     list.push_back(2);
     assert_eq!(list.pop_front(), Some(1));
@@ -716,7 +716,7 @@ $ cargo run --bin db_list_v2
 > Dropping: Node RefCell { value: None }
 thread 'main' panicked at 'called `Option::unwrap()` on a `None` value', .../doubly-linked-list/src/v2.rs:33:47
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
-List[> Dropping: List
+DList[> Dropping: DList
 > Dropping: Node RefCell { value: Some(2) }
 ----
 
@@ -764,7 +764,7 @@ Displayトレイトを修正しても良いが、早期に None 判定をでき�
 
 [source,diff]
 ----
-@@ -107,8 +107,15 @@ impl<T: Debug + Clone> List<T> {
+@@ -107,8 +107,15 @@ impl<T: Debug + Clone> DList<T> {
          assert_eq!(Rc::strong_count(&head), 2);
          self.head = None;
          assert_eq!(Rc::strong_count(&head), 1);
@@ -791,8 +791,8 @@ $ cargo run --bin db_list_v2
     Finished dev [unoptimized + debuginfo] target(s) in 1.53s
      Running `.../target/debug/db_list_v2`
 > Dropping: Node RefCell { value: None }
-List[Node(Some(2), Nil, Nil)]
-> Dropping: List
+DList[Node(Some(2), Nil, Nil)]
+> Dropping: DList
 > Dropping: Node RefCell { value: Some(2) }
 ----
 
@@ -856,16 +856,16 @@ impl<T: Debug> fmt::Display for Node<T> {
 }
 
 #[derive(Default)]
-pub struct List<T: Debug> {
+pub struct DList<T: Debug> {
     head: Option<Rc<RefCell<Node<T>>>>,
 }
 
-impl<T: Debug> List<T> {
+impl<T: Debug> DList<T> {
     /// # Examples
     ///
     /// ```
-    /// use doubly_linked_list::v2::List;
-    /// let mut list: List<u8> = Default::default();
+    /// use dlist_opt_rc_refcell::v2::DList;
+    /// let mut list: DList<u8> = Default::default();
     /// list.push_back(1);
     /// list.push_back(2);
     /// ```
@@ -892,8 +892,8 @@ impl<T: Debug> List<T> {
     /// # Examples
     ///
     /// ```
-    /// use doubly_linked_list::v2::List;
-    /// let mut list: List<u8> = Default::default();
+    /// use dlist_opt_rc_refcell::v2::DList;
+    /// let mut list: DList<u8> = Default::default();
     /// list.push_back(1);
     /// list.push_back(2);
     /// assert_eq!(list.pop_front(), Some(1));
@@ -923,8 +923,8 @@ impl<T: Debug> List<T> {
     /// # Examples
     ///
     /// ```
-    /// use doubly_linked_list::v2::List;
-    /// let mut list: List<u8> = Default::default();
+    /// use dlist_opt_rc_refcell::v2::DList;
+    /// let mut list: DList<u8> = Default::default();
     /// list.push_back(1);
     /// list.push_back(2);
     /// assert_eq!(list.pop_back(), Some(2));
@@ -957,8 +957,8 @@ impl<T: Debug> List<T> {
     /// # Examples
     ///
     /// ```
-    /// use doubly_linked_list::v2::List;
-    /// let mut list: List<u8> = Default::default();
+    /// use dlist_opt_rc_refcell::v2::DList;
+    /// let mut list: DList<u8> = Default::default();
     /// list.push_back(1);
     /// list.push_back(2);
     /// let mut iter = list.iter();
@@ -966,39 +966,39 @@ impl<T: Debug> List<T> {
     /// assert_eq!(iter.next(), Some(2));
     /// assert_eq!(iter.next(), None);
     /// ```
-    pub fn iter(&self) -> ListIterator<T> {
+    pub fn iter(&self) -> DListIterator<T> {
         if let Some(ref head) = self.head {
-            ListIterator {
+            DListIterator {
                 cur: Some(Rc::downgrade(&Rc::clone(head)))
             }
         } else {
-            ListIterator { cur: None }
+            DListIterator { cur: None }
         }
     }
 }
 
-impl<T: Debug> Drop for List<T> {
+impl<T: Debug> Drop for DList<T> {
     fn drop(&mut self) {
-        println!("> Dropping: List");
+        println!("> Dropping: DList");
     }
 }
 
-impl<T: Debug> fmt::Display for List<T> {
+impl<T: Debug> fmt::Display for DList<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.head {
-            None => write!(f, "List[]"),
+            None => write!(f, "DList[]"),
             Some(ref head) => {
-                write!(f, "List[{}]", head.borrow())
+                write!(f, "DList[{}]", head.borrow())
             }
         }
     }
 }
 
-pub struct ListIterator<T: Debug> {
+pub struct DListIterator<T: Debug> {
     cur: Option<Weak<RefCell<Node<T>>>>
 }
 
-impl<T: Clone + Debug> Iterator for ListIterator<T> {
+impl<T: Clone + Debug> Iterator for DListIterator<T> {
     type Item = T;
     fn next(&mut self) -> Option<Self::Item> {
         let cur_weak = match self.cur {

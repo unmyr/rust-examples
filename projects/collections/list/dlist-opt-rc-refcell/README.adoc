@@ -4,6 +4,8 @@ ifndef::leveloffset[]
 :icons: font
 endif::[]
 
+== Doubly linked list
+
 === Set up a new project
 . Set up a new project, and go to the projects directory.
 +

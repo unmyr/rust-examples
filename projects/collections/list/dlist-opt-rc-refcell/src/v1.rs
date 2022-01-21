@@ -53,16 +53,16 @@ impl<T: Debug> fmt::Display for Node<T> {
 }
 
 #[derive(Default)]
-pub struct List<T: Debug> {
+pub struct DList<T: Debug> {
     head: Option<Rc<RefCell<Node<T>>>>,
 }
 
-impl<T: Debug> List<T> {
+impl<T: Debug> DList<T> {
     /// # Examples
     ///
     /// ```
-    /// use doubly_linked_list::v1::List;
-    /// let mut list: List<u8> = Default::default();
+    /// use dlist_opt_rc_refcell::v1::DList;
+    /// let mut list: DList<u8> = Default::default();
     /// list.push_back(1);
     /// list.push_back(2);
     /// ```
@@ -87,12 +87,12 @@ impl<T: Debug> List<T> {
     }
 }
 
-impl<T: Debug + Clone> List<T> {
+impl<T: Debug + Clone> DList<T> {
     /// # Examples
     ///
     /// ```
-    /// use doubly_linked_list::v1::List;
-    /// let mut list: List<u8> = Default::default();
+    /// use dlist_opt_rc_refcell::v1::DList;
+    /// let mut list: DList<u8> = Default::default();
     /// list.push_back(1);
     /// list.push_back(2);
     /// assert_eq!(list.pop_front(), Some(1));
@@ -122,8 +122,8 @@ impl<T: Debug + Clone> List<T> {
     /// # Examples
     ///
     /// ```
-    /// use doubly_linked_list::v1::List;
-    /// let mut list: List<u8> = Default::default();
+    /// use dlist_opt_rc_refcell::v1::DList;
+    /// let mut list: DList<u8> = Default::default();
     /// list.push_back(1);
     /// list.push_back(2);
     /// assert_eq!(list.pop_back(), Some(2));
@@ -154,12 +154,12 @@ impl<T: Debug + Clone> List<T> {
     }
 }
 
-impl<T: Debug> List<T> {
+impl<T: Debug> DList<T> {
     /// # Examples
     ///
     /// ```
-    /// use doubly_linked_list::v1::List;
-    /// let mut list: List<u8> = Default::default();
+    /// use dlist_opt_rc_refcell::v1::DList;
+    /// let mut list: DList<u8> = Default::default();
     /// list.push_back(1);
     /// list.push_back(2);
     /// let mut iter = list.iter();
@@ -167,39 +167,39 @@ impl<T: Debug> List<T> {
     /// assert_eq!(iter.next(), Some(2));
     /// assert_eq!(iter.next(), None);
     /// ```
-    pub fn iter(&self) -> ListIterator<T> {
+    pub fn iter(&self) -> DListIterator<T> {
         if let Some(ref head) = self.head {
-            ListIterator {
+            DListIterator {
                 cur: Some(Rc::downgrade(&Rc::clone(head)))
             }
         } else {
-            ListIterator { cur: None }
+            DListIterator { cur: None }
         }
     }
 }
 
-impl<T: Debug> Drop for List<T> {
+impl<T: Debug> Drop for DList<T> {
     fn drop(&mut self) {
-        println!("> Dropping: List");
+        println!("> Dropping: DList");
     }
 }
 
-impl<T: Debug> fmt::Display for List<T> {
+impl<T: Debug> fmt::Display for DList<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.head {
-            None => write!(f, "List[]"),
+            None => write!(f, "DList[]"),
             Some(ref head) => {
-                write!(f, "List[{}]", head.borrow())
+                write!(f, "DList[{}]", head.borrow())
             }
         }
     }
 }
 
-pub struct ListIterator<T: Debug> {
+pub struct DListIterator<T: Debug> {
     cur: Option<Weak<RefCell<Node<T>>>>
 }
 
-impl<T: Clone + Debug> Iterator for ListIterator<T> {
+impl<T: Clone + Debug> Iterator for DListIterator<T> {
     type Item = T;
     fn next(&mut self) -> Option<Self::Item> {
         let cur_weak = match self.cur {

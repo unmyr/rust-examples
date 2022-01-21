@@ -18,6 +18,7 @@
     "debuginfo",
     "Deque",
     "deref",
+    "dlist",
     "eprintln",
     "fnmut",
     "fnonce",

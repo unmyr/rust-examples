@@ -1,7 +1,7 @@
-use doubly_linked_list::v1::List;
+use dlist_opt_rc_refcell::v1::DList;
 
 fn main() {
-    let mut list: List<u8> = Default::default();
+    let mut list: DList<u8> = Default::default();
     list.push_back(1);
     list.push_back(2);
     let mut iter = list.iter();
