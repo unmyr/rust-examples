@@ -232,12 +232,13 @@ mod tests;
 use bt_opt_rc_refcell::kr::BTree;
 
 fn main() {
-    let mut tree: BTree<&str> = Default::default();
-    tree.insert(&"E");
-    tree.insert(&"A");
-    tree.insert(&"S");
-    tree.insert(&"Y");
-    tree.insert(&"Z");
+    let mut tree: BTree<u8> = Default::default();
+    tree.insert(&4);
+    tree.insert(&2);
+    tree.insert(&1);
+    tree.insert(&6);
+    tree.insert(&5);
+    println!("{:?}", tree);
     dbg!(&tree);
 }
 ----
@@ -245,11 +246,12 @@ fn main() {
 [source,console]
 .Results
 ----
-$ cargo run --bin bt_ro_kr
-   Compiling bt-refcell-opt-rc v0.1.0 (.../tree/bt-refcell-opt-rc)
-    Finished dev [unoptimized + debuginfo] target(s) in 3.58s
-     Running `.../target/debug/bt_ro_kr`
-[tree/bt-refcell-opt-rc/src/bin/bt_ro_kr.rs:10] &tree = BTree={TreeNode(Nil,"A",Nil), TreeNode("A","E","S"), TreeNode(Nil,"S","Y"), TreeNode(Nil,"Y","Z"), TreeNode(Nil,"Z",Nil)}
+$ cargo run --bin bt_orr_kr
+   Compiling bt-opt-rc-refcell v0.1.0 (.../tree/bt-opt-rc-refcell)
+    Finished dev [unoptimized + debuginfo] target(s) in 3.85s
+     Running `.../target/debug/bt_orr_kr`
+BTree={TreeNode(Nil,1,Nil), TreeNode(1,2,Nil), TreeNode(2,4,6), TreeNode(Nil,5,Nil), TreeNode(5,6,Nil)}
+[tree/bt-opt-rc-refcell/src/bin/bt_orr_kr.rs:11] &tree = BTree={TreeNode(Nil,1,Nil), TreeNode(1,2,Nil), TreeNode(2,4,6), TreeNode(Nil,5,Nil), TreeNode(5,6,Nil)}
 ----
 
 [source,rust]
@@ -297,7 +299,7 @@ impl<'a, T: fmt::Debug> fmt::Debug for TreeNode<'a, T> {
             (Some(left), None) => {
                 write!(f,
                     "{:?}, TreeNode({:?},{:?},Nil)",
-                    left.borrow(), self.key, left.borrow().key
+                    left.borrow(), left.borrow().key, self.key
                 )
             },
         }

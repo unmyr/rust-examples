@@ -40,7 +40,7 @@ impl<'a, T: fmt::Debug> fmt::Debug for TreeNode<'a, T> {
             (Some(ref left), None) => {
                 write!(f,
                     "{:?}, TreeNode({:?},{:?},Nil)",
-                    left, self.key, left.key
+                    left, left.key, self.key
                 )
             },
         }
