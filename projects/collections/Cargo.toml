@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "list/dlist-opt-rc-refcell",
+    "list/dlist-rc-opt-refcell",
     "list/dlist-rc-refcell-opt",
     "list/enum-list",
     "list/slist-opt-rc-refcell",
