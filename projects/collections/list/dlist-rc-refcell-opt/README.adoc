@@ -244,12 +244,9 @@ impl<T: Clone + Debug> Iterator for DListIterator<T> {
         };
 
         if let Some(cur_node_ref) = cur_strong.borrow().as_ref() {
-            self.cur = match cur_node_ref.next.borrow().as_ref() {
-                Some(_next_node_ref) => {
-                    Some(Rc::downgrade(&Rc::clone(&cur_node_ref.next)))
-                },
-                None => None,
-            }
+            self.cur = cur_node_ref.next.borrow().as_ref().map(
+                |_next_node_ref| Rc::downgrade(&Rc::clone(&cur_node_ref.next))
+            );
         }
         cur_val
     }
