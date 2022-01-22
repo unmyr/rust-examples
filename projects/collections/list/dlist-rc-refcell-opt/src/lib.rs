@@ -98,8 +98,27 @@ impl<T: Clone + Debug> DList<T> {
         dbg!(Rc::weak_count(&self.head));
     }
 
-    pub fn pop_front(&mut self) -> Option<T> {
-        None
+    /// # Examples
+    ///
+    /// ```
+    /// use dlist_rc_refcell_opt::DList;
+    /// let mut list: DList<u8> = Default::default();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// assert_eq!(list.pop_front(), Some(1));
+    /// assert_eq!(list.pop_front(), Some(2));
+    /// assert_eq!(list.pop_front(), None);
+    /// ```
+    pub fn pop_front(&self) -> Option<T> {
+        if self.head.borrow().is_none() {
+            return None;
+        }
+        let value = self.head.borrow().as_ref().unwrap().value.clone().into_inner();
+
+        let head_next = Rc::clone(&self.head.borrow().as_ref().unwrap().next);
+        self.head.swap(&head_next);
+
+        value
     }
 
     pub fn pop_back(&mut self) -> Option<T> {

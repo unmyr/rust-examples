@@ -28,6 +28,7 @@ fn main() {
     assert_eq!(list.pop_front(), None);
     list.push_back(1);
     list.push_back(2);
+    assert_eq!(list.pop_front(), Some(1));
     println!("{}", list);
 }
 ----
@@ -36,13 +37,12 @@ fn main() {
 ----
 $ cargo run
    Compiling dlist-rc-refcell-opt v0.1.0 (.../list/dlist-rc-refcell-opt)
-    Finished dev [unoptimized + debuginfo] target(s) in 3.72s
+    Finished dev [unoptimized + debuginfo] target(s) in 9.89s
      Running `.../target/debug/dlist-rc-refcell-opt`
 [list/dlist-rc-refcell-opt/src/lib.rs:97] Rc::strong_count(&self.head) = 1
 [list/dlist-rc-refcell-opt/src/lib.rs:98] Rc::weak_count(&self.head) = 1
-DList[DListNode(Some(1), Nil, Some(2)), DListNode(value:Some(2), prev:RefCell { value: Some(1) }, Nil)]
+DList[DListNode(value:Some(2), prev:RefCell { value: Some(2) }, Nil)]
 > Dropping: DList
-> Dropping: DListNode RefCell { value: Some(1) }
 > Dropping: DListNode RefCell { value: Some(2) }
 ----
 
@@ -149,8 +149,27 @@ impl<T: Clone + Debug> DList<T> {
         dbg!(Rc::weak_count(&self.head));
     }
 
-    pub fn pop_front(&mut self) -> Option<T> {
-        None
+    /// # Examples
+    ///
+    /// ```
+    /// use dlist_rc_refcell_opt::DList;
+    /// let mut list: DList<u8> = Default::default();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// assert_eq!(list.pop_front(), Some(1));
+    /// assert_eq!(list.pop_front(), Some(2));
+    /// assert_eq!(list.pop_front(), None);
+    /// ```
+    pub fn pop_front(&self) -> Option<T> {
+        if self.head.borrow().is_none() {
+            return None;
+        }
+        let value = self.head.borrow().as_ref().unwrap().value.clone().into_inner();
+
+        let head_next = Rc::clone(&self.head.borrow().as_ref().unwrap().next);
+        self.head.swap(&head_next);
+
+        value
     }
 
     pub fn pop_back(&mut self) -> Option<T> {
