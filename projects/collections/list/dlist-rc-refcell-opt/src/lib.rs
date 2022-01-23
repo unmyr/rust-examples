@@ -19,11 +19,11 @@ impl<T: Debug> DListNode<T> {
     }
 }
 
-impl<T: Debug> Drop for DListNode<T> {
-    fn drop(&mut self) {
-        println!("> Dropping: DListNode {:?}", self.value);
-    }
-}
+// impl<T: Debug> Drop for DListNode<T> {
+//     fn drop(&mut self) {
+//         println!("> Dropping: DListNode {:?}", self.value);
+//     }
+// }
 
 impl<T: Debug> fmt::Display for DListNode<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -35,7 +35,7 @@ impl<T: Debug> fmt::Display for DListNode<T> {
                 write!(
                     f, "DListNode(value:{:?}, prev:{:?}, Nil)",
                     self.value.borrow(),
-                    prev_rc_ref.borrow().as_ref().unwrap().value,
+                    prev_rc_ref.borrow().as_ref().unwrap().value.borrow(),
                 )
             },
             (None, Some(next)) => {
@@ -50,7 +50,7 @@ impl<T: Debug> fmt::Display for DListNode<T> {
                 write!(
                     f, "DListNode({:?}, {:?}, {:?}), {}",
                     self.value.borrow(),
-                    prev_rc_ref.borrow().as_ref().unwrap().value,
+                    prev_rc_ref.borrow().as_ref().unwrap().value.borrow(),
                     next.value.borrow(),
                     next,
                 )
@@ -122,7 +122,56 @@ impl<T: Clone + Debug> DList<T> {
     }
 
     pub fn pop_back(&mut self) -> Option<T> {
-        None
+        if self.head.borrow().is_none() {
+            return None;
+        }
+
+        let mut cur: Rc<RefCell<Option<DListNode<T>>>>;
+        cur = Rc::clone(&self.head);
+
+        while let Some(cur_node_ref) = Rc::clone(&cur).borrow().as_ref() {
+            if cur_node_ref.next.borrow().is_none() {
+                break;
+            }
+            cur = Rc::clone(&cur_node_ref.next);
+        }
+
+        // Update to None to the next pointer on the previous node.
+        let last = cur;
+
+        let last_prev_weak = Weak::clone(
+            &last.borrow().as_ref().unwrap().prev
+        );
+
+        if last_prev_weak.upgrade().is_none() {
+            return None;
+        }
+
+        let last_prev_rc = Rc::clone(
+            last_prev_weak.upgrade().as_ref().unwrap()
+        );
+
+        let some_last_prev = last_prev_rc.replace(None);
+        if let Some(last_prev_node) = some_last_prev {
+            drop(last_prev_node.next);
+            last_prev_rc.replace(
+                Some(DListNode {
+                    value: last_prev_node.value,
+                    next: Rc::new(RefCell::new(None)),
+                    prev: last_prev_node.prev,
+                })
+            );
+        }
+
+        assert_eq!(1, Rc::strong_count(&last));
+        match Rc::try_unwrap(last) {
+            Ok(last_cell) => {
+                last_cell.into_inner().map(
+                    |node| node.value.borrow().clone()
+                ).unwrap()
+            }
+            Err(_last_rc) => None,
+        }
     }
 }
 
@@ -201,5 +250,5 @@ impl<T: Clone + Debug> Iterator for DListIterator<T> {
     }
 }
 
-// #[cfg(test)]
-// mod tests;
+#[cfg(test)]
+mod tests;
