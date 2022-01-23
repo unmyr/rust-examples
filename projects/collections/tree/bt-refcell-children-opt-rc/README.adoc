@@ -199,10 +199,10 @@ impl<K: Clone> BTree<K> {
                 };
 
                 results.push(cur_right.key.clone());
-                if cur_right.children.borrow().right.is_some() {
-                    cur = Some(
-                        Rc::clone(cur_right.children.borrow().right.as_ref().unwrap())
-                    );
+                if let Some(right_rc_ref) = Rc::clone(
+                    &cur_right
+                ).children.borrow().right.as_ref() {
+                    cur = Some(Rc::clone(right_rc_ref));
                     continue 'outer;
                 }
             }
