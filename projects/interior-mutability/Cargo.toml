@@ -2,6 +2,6 @@
 name = "interior-mutability"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.57"
+rust-version = "1.58"
 
 [dependencies]
