@@ -127,9 +127,9 @@ impl<K: Clone> BTree<K> {
         let mut cur = Some(head_rc);
         'outer: loop {
             // Traverse the subtree on the left while adding nodes to the stack.
-            while cur.is_some() {
-                stack.push(Rc::clone(cur.as_ref().unwrap()));
-                match Rc::clone(cur.as_ref().unwrap()).children.borrow().left.as_ref() {
+            while let Some(cur_rc) = cur {
+                stack.push(Rc::clone(&cur_rc));
+                match Rc::clone(&cur_rc).children.borrow().left.as_ref() {
                     Some(left_rc_ref) => {
                         cur = Some(Rc::clone(left_rc_ref));
                     },
