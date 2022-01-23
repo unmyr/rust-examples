@@ -1,7 +1,8 @@
 use super::*;
+
 #[test]
 fn test_insert() {
-    let mut tree: BTree<&str> = Default::default();
+    let tree: BTree<&str> = Default::default();
     tree.insert("E");
     tree.insert("A");
     tree.insert("S");
@@ -14,20 +15,20 @@ fn test_insert() {
 
 #[test]
 fn test_to_vec_traversal_1_to_6() {
-    let mut tree: BTree<u8> = Default::default();
+    let tree: BTree<u8> = Default::default();
     tree.insert(4);
     assert_eq!(tree.to_vec_in_order(), vec![4]);
 
     //      4
     //    2
-    let mut tree: BTree<u8> = Default::default();
+    let tree: BTree<u8> = Default::default();
     tree.insert(4);
     tree.insert(2);
     assert_eq!(tree.to_vec_in_order(), vec![2, 4]);
 
     //      4
     //        6
-    let mut tree: BTree<u8> = Default::default();
+    let tree: BTree<u8> = Default::default();
     tree.insert(4);
     tree.insert(6);
     assert_eq!(tree.to_vec_in_order(), vec![4, 6]);
@@ -35,7 +36,7 @@ fn test_to_vec_traversal_1_to_6() {
     //      4
     //    2   6
     //  1    5
-    let mut tree: BTree<u8> = Default::default();
+    let tree: BTree<u8> = Default::default();
     tree.insert(4);
     tree.insert(2);
     tree.insert(1);
@@ -46,7 +47,7 @@ fn test_to_vec_traversal_1_to_6() {
 
 #[test]
 fn test_to_vec_traversal_a_to_i() {
-    let mut tree: BTree<&str> = Default::default();
+    let tree: BTree<&str> = Default::default();
     tree.insert("F");
     tree.insert("B");
     tree.insert("G");

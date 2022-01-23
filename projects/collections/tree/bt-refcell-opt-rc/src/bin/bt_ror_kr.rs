@@ -1,7 +1,7 @@
 use bt_refcell_opt_rc::kr::BTree;
 
 fn main() {
-    let mut tree: BTree<u8> = Default::default();
+    let tree: BTree<u8> = Default::default();
     tree.insert(&4);
     tree.insert(&2);
     tree.insert(&1);

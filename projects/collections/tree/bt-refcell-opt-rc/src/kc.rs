@@ -63,7 +63,7 @@ impl<K: Ord> BTree<K> {
     /// tree.insert("S");
     /// println!("{:?}", &tree);
     /// ```
-    pub fn insert(&mut self, key: K) {
+    pub fn insert(&self, key: K) {
         if self.head.borrow().as_ref().is_none() {
             self.head.borrow_mut().replace(
                 Rc::new(TreeNode::new(key))

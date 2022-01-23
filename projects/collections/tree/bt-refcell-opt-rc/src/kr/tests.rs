@@ -1,7 +1,8 @@
 use super::*;
+
 #[test]
 fn test_insert() {
-    let mut tree: BTree<&str> = Default::default();
+    let tree: BTree<&str> = Default::default();
     tree.insert(&"E");
     tree.insert(&"A");
     tree.insert(&"S");
