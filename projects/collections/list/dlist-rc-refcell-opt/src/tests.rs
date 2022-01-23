@@ -1,7 +1,6 @@
 use super::*;
 
 #[test]
-#[ignore]
 fn test_push_pop_1() {
     let mut list: DList<u8> = Default::default();
     list.push_back(1);
@@ -13,7 +12,6 @@ fn test_push_pop_1() {
 }
 
 #[test]
-#[ignore]
 fn test_push_pop_2() {
     let mut list: DList<&str> = Default::default();
     list.push_back("hello");

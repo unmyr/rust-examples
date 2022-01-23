@@ -121,6 +121,17 @@ impl<T: Clone + Debug> DList<T> {
         value
     }
 
+    /// # Examples
+    ///
+    /// ```
+    /// use dlist_rc_refcell_opt::DList;
+    /// let mut list: DList<u8> = Default::default();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// assert_eq!(list.pop_back(), Some(2));
+    /// assert_eq!(list.pop_back(), Some(1));
+    /// assert_eq!(list.pop_back(), None);
+    /// ```
     pub fn pop_back(&mut self) -> Option<T> {
         if self.head.borrow().is_none() {
             return None;
@@ -143,24 +154,30 @@ impl<T: Clone + Debug> DList<T> {
             &last.borrow().as_ref().unwrap().prev
         );
 
-        if last_prev_weak.upgrade().is_none() {
-            return None;
-        }
-
-        let last_prev_rc = Rc::clone(
-            last_prev_weak.upgrade().as_ref().unwrap()
-        );
-
-        let some_last_prev = last_prev_rc.replace(None);
-        if let Some(last_prev_node) = some_last_prev {
-            drop(last_prev_node.next);
-            last_prev_rc.replace(
-                Some(DListNode {
-                    value: last_prev_node.value,
-                    next: Rc::new(RefCell::new(None)),
-                    prev: last_prev_node.prev,
-                })
+        if last_prev_weak.upgrade().is_some() {
+            let last_prev_rc = Rc::clone(
+                last_prev_weak.upgrade().as_ref().unwrap()
             );
+
+            let some_last_prev = last_prev_rc.replace(None);
+            if let Some(last_prev_node) = some_last_prev {
+                drop(last_prev_node.next);
+                last_prev_rc.replace(
+                    Some(DListNode {
+                        value: last_prev_node.value,
+                        next: Rc::new(RefCell::new(None)),
+                        prev: last_prev_node.prev,
+                    })
+                );
+            }
+        } else {
+            let some_last_prev = self.head.replace(None);
+            dbg!(&some_last_prev);
+            if let Some(last_prev_node) = some_last_prev {
+                drop(last_prev_node.next);
+                return last_prev_node.value.borrow().clone();
+            }
+            return None;
         }
 
         assert_eq!(1, Rc::strong_count(&last));
