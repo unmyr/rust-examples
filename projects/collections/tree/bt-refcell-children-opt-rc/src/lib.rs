@@ -100,6 +100,67 @@ impl<K: Ord> BTree<K> {
     }
 }
 
+impl<K: Clone> BTree<K> {
+    /// # Examples
+    ///
+    /// ```
+    /// use bt_refcell_children_opt_rc::BTree;
+    /// let mut tree: BTree<&str> = Default::default();
+    /// tree.insert("E");
+    /// tree.insert("A");
+    /// tree.insert("S");
+    /// assert_eq!(tree.to_vec_in_order(), vec!["A", "E", "S"]);
+    /// ```
+    pub fn to_vec_in_order(&self) -> Vec<K> {
+        let head_rc: Rc<TreeNode<K>>  = match self.head.as_ref() {
+            Some(head_rc_ref) => Rc::clone(head_rc_ref),
+            None => {
+                return Vec::new();
+            },
+        };
+
+        let mut stack: Vec<Rc<TreeNode<K>>>;
+        stack = Vec::new();
+
+        let mut results: Vec<K> = vec!();
+
+        let mut cur = Some(head_rc);
+        'outer: loop {
+            // Traverse the subtree on the left while adding nodes to the stack.
+            while cur.is_some() {
+                stack.push(Rc::clone(cur.as_ref().unwrap()));
+                match Rc::clone(cur.as_ref().unwrap()).children.borrow().left.as_ref() {
+                    Some(left_rc_ref) => {
+                        cur = Some(Rc::clone(left_rc_ref));
+                    },
+                    None => {
+                        cur = None;
+                    }
+                }
+            }
+
+            // It pops elements from the stack and continues to output,
+            // returning to traversing the left side
+            // if a node is found on the current right side.
+            loop {
+                let cur_right = match stack.pop() {
+                    Some(cur_right) => cur_right,
+                    None => break 'outer,
+                };
+
+                results.push(cur_right.key.clone());
+                if cur_right.children.borrow().right.is_some() {
+                    cur = Some(
+                        Rc::clone(cur_right.children.borrow().right.as_ref().unwrap())
+                    );
+                    continue 'outer;
+                }
+            }
+        }
+        results
+    }
+}
+
 impl<T: fmt::Debug> fmt::Debug for BTree<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.head.as_ref() {
