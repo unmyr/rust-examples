@@ -1,0 +1,59 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+:icons: font
+endif::[]
+
+== Tree
+
+=== Binary tree
+
+Option 配下の置き換えを行う場合、 self.head.replace を行うために mut 指定が必要になる。Option が None のとき、Rc 配下の RefCell がないので replace 一択になる。
+
+[cols="1a,1" options="autowidth"]
+.Insert
+|===
+| workspace
+| Mutability
+
+| bt-opt-rc-refcell
+
+[source,rust]
+----
+pub struct BTree<K> {
+    head: Option<Rc<RefCell<TreeNode<K>>>>,
+}
+----
+| mut
+
+| bt-rc-refcell-opt
+
+[source,rust]
+----
+pub struct BTree<K> {
+    head: Rc<RefCell<Option<TreeNode<K>>>>,
+}
+----
+| -
+
+| bt-refcell-children-opt-rc
+
+[source,rust]
+----
+pub struct BTree<K> {
+    head: Option<Rc<TreeNode<K>>>,
+}
+----
+| mut
+
+| bt-refcell-opt-rc
+
+[source,rust]
+----
+pub struct BTree<K> {
+    head: RefCell<Option<Rc<TreeNode<K>>>>,
+}
+----
+| -
+
+|===
