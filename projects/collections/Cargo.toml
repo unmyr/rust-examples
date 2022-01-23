@@ -10,5 +10,6 @@ members = [
     "list/slist-using-box",
     "tree/bt-opt-rc-refcell",
     "tree/bt-rc-refcell-opt",
+    "tree/bt-refcell-children-opt-rc",
     "tree/bt-refcell-opt-rc",
 ]
