@@ -110,13 +110,12 @@ fn test_iter_drop_prev_item() {
 }
 
 #[test]
-#[ignore]
 fn test_pop_front_and_display_1() {
     let mut list: DList<u8> = Default::default();
     list.push_back(1);
     list.push_back(2);
     assert_eq!(list.pop_front(), Some(1));
-    assert_eq!(format!("{}", list), "DList[DListNode(Some(2), Nil, Nil)]");
+    assert_eq!(format!("{}", list), "DList[DListNode(value:2, prev:Nil, next:Nil)]");
 }
 
 #[test]
@@ -127,5 +126,5 @@ fn test_pop_front_and_display_2() {
     list.push_back(2);
     list.push_back(3);
     assert_eq!(list.pop_front(), Some(1));
-    assert_eq!(format!("{}", list), "DList[DListNode(Some(2), Nil, Some(3)), DListNode(Some(3), Some(2), Nil)]");
+    assert_eq!(format!("{}", list), "DList[DListNode(value:2, prev:Nil, next:3), DListNode(value:3, prev:2, next:Nil)]");
 }

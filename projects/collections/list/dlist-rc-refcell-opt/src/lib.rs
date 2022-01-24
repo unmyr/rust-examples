@@ -29,29 +29,32 @@ impl<T: Debug> fmt::Display for DListNode<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match (self.prev.upgrade(), self.next.borrow().as_ref()) {
             (None, None) => {
-                write!(f, "DListNode(value:{:?}, prev:Nil, next:Nil)", self.value.borrow())
+                write!(
+                    f, "DListNode(value:{:?}, prev:Nil, next:Nil)",
+                    self.value.borrow().as_ref().unwrap()
+                )
             },
             (Some(ref prev_rc_ref), None) => {
                 write!(
                     f, "DListNode(value:{:?}, prev:{:?}, next:Nil)",
-                    self.value.borrow(),
-                    prev_rc_ref.borrow().as_ref().unwrap().value.borrow(),
+                    self.value.borrow().as_ref().unwrap(),
+                    prev_rc_ref.borrow().as_ref().unwrap().value.borrow().as_ref().unwrap(),
                 )
             },
             (None, Some(next)) => {
                 write!(
                     f, "DListNode(value:{:?}, prev:Nil, next:{:?}), {}",
-                    self.value.borrow(),
-                    next.value.borrow(),
+                    self.value.borrow().as_ref().unwrap(),
+                    next.value.borrow().as_ref().unwrap(),
                     next,
                 )
             },
             (Some(ref prev_rc_ref), Some(next)) => {
                 write!(
                     f, "DListNode(value:{:?}, prev:{:?}, next:{:?}), {}",
-                    self.value.borrow(),
+                    self.value.borrow().as_ref().unwrap(),
                     prev_rc_ref.borrow().as_ref().unwrap().value.borrow(),
-                    next.value.borrow(),
+                    next.value.borrow().as_ref().unwrap(),
                     next,
                 )
             }
