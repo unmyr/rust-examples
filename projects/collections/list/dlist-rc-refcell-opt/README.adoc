@@ -80,18 +80,18 @@ impl<T: Debug> fmt::Display for DListNode<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match (self.prev.upgrade(), self.next.borrow().as_ref()) {
             (None, None) => {
-                write!(f, "DListNode({:?}, Nil, Nil)", self.value.borrow())
+                write!(f, "DListNode(value:{:?}, prev:Nil, next:Nil)", self.value.borrow())
             },
             (Some(ref prev_rc_ref), None) => {
                 write!(
-                    f, "DListNode(value:{:?}, prev:{:?}, Nil)",
+                    f, "DListNode(value:{:?}, prev:{:?}, next:Nil)",
                     self.value.borrow(),
                     prev_rc_ref.borrow().as_ref().unwrap().value.borrow(),
                 )
             },
             (None, Some(next)) => {
                 write!(
-                    f, "DListNode({:?}, Nil, {:?}), {}",
+                    f, "DListNode(value:{:?}, prev:Nil, next:{:?}), {}",
                     self.value.borrow(),
                     next.value.borrow(),
                     next,
@@ -99,7 +99,7 @@ impl<T: Debug> fmt::Display for DListNode<T> {
             },
             (Some(ref prev_rc_ref), Some(next)) => {
                 write!(
-                    f, "DListNode({:?}, {:?}, {:?}), {}",
+                    f, "DListNode(value:{:?}, prev:{:?}, next:{:?}), {}",
                     self.value.borrow(),
                     prev_rc_ref.borrow().as_ref().unwrap().value.borrow(),
                     next.value.borrow(),
@@ -145,8 +145,6 @@ impl<T: Clone + Debug> DList<T> {
             Rc::clone(&cur_node_ref.next).replace(Some(node_new));
         }
         drop(cur);
-        dbg!(Rc::strong_count(&self.head));
-        dbg!(Rc::weak_count(&self.head));
     }
 
     /// # Examples
@@ -164,11 +162,36 @@ impl<T: Clone + Debug> DList<T> {
         if self.head.borrow().is_none() {
             return None;
         }
-        let value = self.head.borrow().as_ref().unwrap().value.clone().into_inner();
+        let head: Rc<RefCell<Option<DListNode<T>>>>;
+        head = Rc::new(RefCell::new(None));
+        self.head.swap(&head);
+        let node: DListNode<T> = match Rc::try_unwrap(head) {
+            Ok(head_cell) => {
+                head_cell.into_inner().unwrap()
+            }
+            Err(_head_rc) => return None,
+        };
+        let value: Option<T> = node.value.replace(None);
 
-        let head_next = Rc::clone(&self.head.borrow().as_ref().unwrap().next);
-        self.head.swap(&head_next);
+        let next = Rc::clone(&node.next);
+        drop(node);
+        if next.borrow().is_none() {
+            // [ head ] -> [ node ] -> Nil
+            //               ↑pop
+            // [ head ] -> Nil
+            self.head.replace(None);
+            return value;
+        }
 
+        let mut node: DListNode<T> = match Rc::try_unwrap(next) {
+            Ok(head_cell) => {
+                head_cell.into_inner().unwrap()
+            }
+            Err(_head_rc) => return value,
+        };
+        let _ = std::mem::replace(&mut node.prev, Weak::new());
+
+        self.head.replace(Some(node));
         value
     }
 
@@ -223,7 +246,6 @@ impl<T: Clone + Debug> DList<T> {
             }
         } else {
             let some_last_prev = self.head.replace(None);
-            dbg!(&some_last_prev);
             if let Some(last_prev_node) = some_last_prev {
                 drop(last_prev_node.next);
                 return last_prev_node.value.borrow().clone();

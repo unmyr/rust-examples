@@ -96,7 +96,6 @@ fn test_iter_drop_next_item() {
 }
 
 #[test]
-#[ignore]
 fn test_iter_drop_prev_item() {
     let mut list: DList<u8> = Default::default();
     list.push_back(1);
