@@ -26,6 +26,11 @@ fn main() {
 }
 ----
 
+[source,rust]
+----
+assert!((-1 as f32).sqrt().is_nan());
+----
+
 ==== Strings
 
 ===== Concatenate vector of chars into single string
