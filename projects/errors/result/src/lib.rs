@@ -85,4 +85,24 @@ mod tests {
         let value = halves_if_even(2).and_then(halves_if_even);
         assert_eq!(value, Err("Not even."));
     }
+
+    #[test]
+    #[should_panic]
+    fn test_unwrap_or_else() {
+        use std::rc::Rc;
+        use std::cell::RefCell;
+
+        let a: Rc<Option<RefCell<String>>>;
+        let b: Rc<Option<RefCell<String>>>;
+        a = Rc::new(Some(RefCell::new(String::from("a"))));
+        b = Rc::clone(&a);
+        assert!(&a == &b);
+
+        let st_a = Rc::strong_count(&a);
+        let result: Option<RefCell<String>>;
+        result = Rc::try_unwrap(a).ok().unwrap_or_else(
+            || panic!("strong_count grater than 1 : st={}", st_a)
+        );
+        assert_eq!(String::from("a"), result.unwrap().borrow().clone());
+    }
 }
