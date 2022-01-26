@@ -15,7 +15,7 @@ clean:
 	(cd math && cargo clean)
 	(cd modules && cargo clean)
 	(cd operator-overloading && cargo clean)
-	(cd option-take && cargo clean)
+	(cd option-and-result && cargo clean)
 	(cd ownership && cargo clean)
 	(cd plotting && cargo clean)
 	(cd threads && cargo clean)
