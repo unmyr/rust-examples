@@ -21,3 +21,5 @@ $ cargo test
 
 * https://doc.rust-lang.org/stable/std/option/enum.Option.html[Option in std::option - Rust^] +
   rust some option take - Google Search
+* https://doc.rust-lang.org/std/rc/struct.Rc.html[Rc in std::rc - Rust^]
+* https://doc.rust-lang.org/std/cell/struct.RefCell.html[RefCell in std::cell - Rust^]
