@@ -70,6 +70,19 @@ mod tests {
     }
 
     #[test]
+    fn test_option_rc_decrement() {
+        use std::rc::Rc;
+        let mut o1 = Some(Rc::new(String::from("a")));
+        let o2 = o1.as_ref().map(|s| Rc::clone(s));
+        assert_eq!(Rc::strong_count(o1.as_ref().unwrap()), 2);
+
+        let o3: &mut Option<_> = &mut o1;
+        *o3 = None;
+        assert_eq!(o1.as_ref(), None);
+        assert_eq!(Rc::strong_count(o2.as_ref().unwrap()), 1);
+    }
+
+    #[test]
     fn test_option_refcell_cloned() {
         use std::cell::RefCell;
 
