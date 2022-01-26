@@ -87,7 +87,15 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "None detected!")]
+    fn test_unwrap_or_else_simple() {
+        (None as Option<u8>).unwrap_or_else(
+            || panic!("None detected!")
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "strong_count grater than 1 : st=2")]
     fn test_unwrap_or_else() {
         use std::rc::Rc;
         use std::cell::RefCell;
