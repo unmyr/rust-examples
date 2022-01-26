@@ -3,9 +3,9 @@
 +
 [source,console]
 ----
-$ cargo new --lib option-take
-     Created library `option-take` package
-$ cd option-take/
+$ cargo new --lib option-and-result
+     Created library `option-and-result` package
+$ cd option-and-result/
 ----
 
 === Run tests
