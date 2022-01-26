@@ -91,6 +91,30 @@ mod tests {
     }
 
     #[test]
+    fn test_rc_refcell_as_deref() {
+        use std::rc::Rc;
+        use std::cell::RefCell;
+        let o1 = Some(Rc::new(RefCell::new(String::from("Hello"))));
+        assert_eq!(
+            o1.as_deref(),
+            Some(&RefCell::new(String::from("Hello")))
+        );
+        assert_eq!(
+            o1.as_deref().unwrap(),
+            &RefCell::new(String::from("Hello"))
+        );
+    
+        o1.as_deref().unwrap().borrow_mut().push_str(" world!");
+        assert_eq!(
+            o1.as_deref().unwrap().borrow().clone(),
+            "Hello world!",
+        );
+    
+        let o1: Option<Rc<RefCell<String>>> = None;
+        assert_eq!(o1.as_deref(), None);
+    }
+
+    #[test]
     fn test_option_rc_refcell_cloned() {
         use std::rc::Rc;
         use std::cell::RefCell;
