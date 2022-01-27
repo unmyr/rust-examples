@@ -1,4 +1,4 @@
-use std::cmp::{PartialOrd, PartialEq};
+use std::cmp::{Ordering, PartialEq, PartialOrd};
 use std::fmt::{Debug, Formatter, Result};
 use std::rc::Rc;
 
@@ -46,6 +46,33 @@ impl<T>  SList<T> {
                     return;
                 },
             };
+        }
+    }
+}
+
+impl<T: PartialOrd>  SList<T> {
+    /// # Examples
+    ///
+    /// ```
+    /// use slist_rc_enum::SList;
+    /// let mut list: SList<u8> = Default::default();
+    /// list.push_front(1);
+    /// list.push_front(2);
+    /// assert_eq!(
+    ///     format!("{:?}", &list).as_str(),
+    ///     "SList[SListNode(2), SListNode(1) SListNode(Nil)]"
+    /// );
+    /// ```
+    pub fn push_front(&mut self, v: T) {
+        use SListNode::Nil;
+
+        if Rc::new(Nil).partial_cmp(&self.node).unwrap() == Ordering::Equal {
+            self.node = Rc::new(SListNode::Cons(v, Rc::new(Nil)));
+        } else {
+            let node = std::mem::replace(
+                Rc::get_mut(&mut self.node).unwrap(), Nil
+            );
+            self.node = Rc::new(SListNode::Cons(v, Rc::new(node)));
         }
     }
 }

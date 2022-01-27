@@ -18,8 +18,10 @@ $ cd slist-rc-enum/
 
 === Codes
 
+* push_back()
++
 [source,rust]
-.src/main.rs
+.src/bin/slist_rc_enum_push_back.rs
 ----
 use slist_rc_enum::SList;
 
@@ -34,23 +36,53 @@ fn main() {
     println!("{:?}", &list);
 }
 ----
-
++
 [source,console]
 ----
-$ cargo run
+$ cargo run --bin slist_rc_enum_push_back
    Compiling slist-rc-enum v0.1.0 (.../list/slist-rc-enum)
-    Finished dev [unoptimized + debuginfo] target(s) in 5.74s
-     Running `.../target/debug/slist-rc-enum`
+    Finished dev [unoptimized + debuginfo] target(s) in 3.92s
+     Running `.../target/debug/slist_rc_enum_push_back`
 SList[]
 SList[SListNode(1), SListNode(Nil)]
 SList[SListNode(1), SListNode(2) SListNode(Nil)]
+----
+
+* push_front()
++
+[source,rust]
+.src/bin/slist_rc_enum_push_front.rs
+----
+use slist_rc_enum::SList;
+
+fn main() {
+    let mut list: SList<u8> = Default::default();
+    println!("{:?}", list);
+    list.push_front(3);
+    println!("{:?}", list);
+    list.push_front(2);
+    println!("{:?}", list);
+    list.push_front(1);
+    println!("{:?}", list);
+}
+----
++
+[source,console]
+----
+$ cargo run --bin slist_rc_enum_push_front
+   Compiling slist-rc-enum v0.1.0 (.../list/slist-rc-enum)
+    Finished dev [unoptimized + debuginfo] target(s) in 4.05s
+     Running `.../target/debug/slist_rc_enum_push_front`
+SList[]
+SList[SListNode(3), SListNode(Nil)]
+SList[SListNode(2), SListNode(3) SListNode(Nil)]
 SList[SListNode(1), SListNode(2) SListNode(3) SListNode(Nil)]
 ----
 
 [source,rust]
 .src/lib.rs
 ----
-use std::cmp::{PartialOrd, PartialEq};
+use std::cmp::{Ordering, PartialEq, PartialOrd};
 use std::fmt::{Debug, Formatter, Result};
 use std::rc::Rc;
 
@@ -98,6 +130,33 @@ impl<T>  SList<T> {
                     return;
                 },
             };
+        }
+    }
+}
+
+impl<T: PartialOrd>  SList<T> {
+    /// # Examples
+    ///
+    /// ```
+    /// use slist_rc_enum::SList;
+    /// let mut list: SList<u8> = Default::default();
+    /// list.push_front(1);
+    /// list.push_front(2);
+    /// assert_eq!(
+    ///     format!("{:?}", &list).as_str(),
+    ///     "SList[SListNode(2), SListNode(1) SListNode(Nil)]"
+    /// );
+    /// ```
+    pub fn push_front(&mut self, v: T) {
+        use SListNode::Nil;
+
+        if Rc::new(Nil).partial_cmp(&self.node).unwrap() == Ordering::Equal {
+            self.node = Rc::new(SListNode::Cons(v, Rc::new(Nil)));
+        } else {
+            let node = std::mem::replace(
+                Rc::get_mut(&mut self.node).unwrap(), Nil
+            );
+            self.node = Rc::new(SListNode::Cons(v, Rc::new(node)));
         }
     }
 }
