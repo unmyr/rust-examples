@@ -1,8 +1,6 @@
-use std::cmp::{PartialEq, PartialOrd};
 use std::fmt::{Debug, Formatter, Result};
 use std::rc::Rc;
 
-#[derive(PartialOrd,PartialEq)]
 pub enum SListNode<T> {
     Cons(T, Rc<SListNode<T>>),
     Nil,
@@ -69,6 +67,31 @@ impl<T>  SList<T> {
         self.node = Rc::new(
             SListNode::Cons(v, Rc::new(node))
         );
+    }
+
+    /// # Examples
+    ///
+    /// ```
+    /// use slist_rc_enum::SList;
+    /// let mut list: SList<u8> = Default::default();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// assert_eq!(list.pop_front(), Some(1));
+    /// assert_eq!(list.pop_front(), Some(2));
+    /// assert_eq!(list.pop_front(), None);
+    /// ```
+    pub fn pop_front(&mut self) -> Option<T> {
+        let node: SListNode<T> = std::mem::replace(
+            Rc::get_mut(&mut self.node).unwrap(),
+            SListNode::Nil
+        );
+        match node {
+            SListNode::Nil => None,
+            SListNode::Cons(v, next) => {
+                self.node = next;
+                Some(v)
+            }
+        }
     }
 }
 
