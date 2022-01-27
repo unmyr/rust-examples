@@ -48,9 +48,7 @@ impl<T>  SList<T> {
             };
         }
     }
-}
 
-impl<T>  SList<T> {
     /// # Examples
     ///
     /// ```
