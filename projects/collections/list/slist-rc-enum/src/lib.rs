@@ -1,4 +1,4 @@
-use std::cmp::{Ordering, PartialEq, PartialOrd};
+use std::cmp::{PartialEq, PartialOrd};
 use std::fmt::{Debug, Formatter, Result};
 use std::rc::Rc;
 
@@ -50,7 +50,7 @@ impl<T>  SList<T> {
     }
 }
 
-impl<T: PartialOrd>  SList<T> {
+impl<T>  SList<T> {
     /// # Examples
     ///
     /// ```
@@ -64,16 +64,13 @@ impl<T: PartialOrd>  SList<T> {
     /// );
     /// ```
     pub fn push_front(&mut self, v: T) {
-        use SListNode::Nil;
-
-        if Rc::new(Nil).partial_cmp(&self.node).unwrap() == Ordering::Equal {
-            self.node = Rc::new(SListNode::Cons(v, Rc::new(Nil)));
-        } else {
-            let node = std::mem::replace(
-                Rc::get_mut(&mut self.node).unwrap(), Nil
-            );
-            self.node = Rc::new(SListNode::Cons(v, Rc::new(node)));
-        }
+        let node: SListNode<T> = std::mem::replace(
+            Rc::get_mut(&mut self.node).unwrap(),
+            SListNode::Nil
+        );
+        self.node = Rc::new(
+            SListNode::Cons(v, Rc::new(node))
+        );
     }
 }
 
