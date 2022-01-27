@@ -52,6 +52,7 @@
     "rustup",
     "SIGILL",
     "simd",
+    "slist",
     "stdarch",
     "strlen",
     "struct",

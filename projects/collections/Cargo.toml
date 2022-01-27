@@ -5,6 +5,7 @@ members = [
     "list/dlist-rc-refcell-opt",
     "list/enum-list",
     "list/slist-opt-rc-refcell",
+    "list/slist-rc-enum",
     "list/slist-refcell-opt-rc",
     "list/slist-unsafe",
     "list/slist-using-box",
