@@ -117,22 +117,21 @@ impl<T> SList<T> {
     /// );
     /// ```
     pub fn push_back(&mut self, v: T) {
-        let mut cur_ref = match self {
+        let mut cur_rc_ref = match self {
             SList::Nil => {
                 let _ = std::mem::replace(
-                    self,
-                    SList::Cons(v, Rc::new(SList::Nil)) 
+                    self, SList::Cons(v, Rc::new(SList::Nil)) 
                 );
                 return;
             },
-            SList::Cons(_, next) => next,
+            SList::Cons(_, next_rc_ref) => next_rc_ref,
         };
 
-        while let Some(node) = Rc::get_mut(cur_ref) {
-            cur_ref = match node {
-                SList::Cons(_, next) => next,
+        while let Some(node_ref) = Rc::get_mut(cur_rc_ref) {
+            cur_rc_ref = match node_ref {
+                SList::Cons(_, next_rc_ref) => next_rc_ref,
                 SList::Nil => {
-                    *node = SList::Cons(v, Rc::new(SList::Nil));
+                    *node_ref = SList::Cons(v, Rc::new(SList::Nil));
                     return;
                 },
             };
@@ -152,9 +151,8 @@ impl<T> SList<T> {
     /// );
     /// ```
     pub fn push_front(&mut self, v: T) {
-        let head_node: SList<T> = std::mem::replace(
-            self, SList::Nil
-        );
+        let head_node: SList<T>;
+        head_node = std::mem::replace(self, SList::Nil);
 
         let _ = std::mem::replace(
             self, SList::Cons(v, Rc::new(head_node))
@@ -176,18 +174,19 @@ impl<T: Clone> SList<T> {
     pub fn pop_front(&mut self) -> Option<T> {
         let some_value: Option<T>;
 
-        let next_rc_ref: &mut Rc<_> = match self {
+        let head_rc_ref: &mut Rc<_> = match self {
             SList::Nil => return None,
-            SList::Cons(v_ref, next_ref) => {
+            SList::Cons(v_ref, head_rc_ref) => {
                 some_value = Some(v_ref.clone());
-                next_ref
+                head_rc_ref
             },
         };
 
-        let next_node: SList<T> = std::mem::replace(
-            Rc::get_mut(next_rc_ref).unwrap(), SList::Nil
+        let head_node: SList<T>;
+        head_node = std::mem::replace(
+            Rc::get_mut(head_rc_ref).unwrap(), SList::Nil
         );
-        let _ = std::mem::replace(self, next_node);
+        let _ = std::mem::replace(self, head_node);
         some_value
     }
 }
