@@ -1,3 +1,96 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+:icons: font
+endif::[]
+
+=== v2: enum SList
+
+* push_back()
++
+[source,rust]
+.src/bin/slist_rc_enum_push_back.rs
+----
+use slist_rc_enum::SList;
+
+fn main() {
+    let mut list: SList<u8> = SList::new(1);
+    println!("{:?}", &list);
+    list.push_back(2);
+    println!("{:?}", &list);
+    list.push_back(3);
+    println!("{:?}", &list);
+}
+----
++
+[source,console]
+----
+$ cargo run --bin slist_rc_enum_push_back
+   Compiling slist-rc-enum v0.1.0 (.../list/slist-rc-enum)
+    Finished dev [unoptimized + debuginfo] target(s) in 3.86s
+     Running `.../target/debug/slist_rc_enum_push_back`
+SList(1) -> SList(Nil)
+SList(1) -> SList(2) -> SList(Nil)
+SList(1) -> SList(2) -> SList(3) -> SList(Nil)
+----
+
+* push_front()
++
+[source,rust]
+.src/bin/slist_rc_enum_push_front.rs
+----
+use slist_rc_enum::SList;
+
+fn main() {
+    let mut list: SList<u8> = SList::new(3);
+    println!("{:?}", list);
+    list.push_front(2);
+    println!("{:?}", list);
+    list.push_front(1);
+    println!("{:?}", list);
+}
+----
++
+[source,console]
+----
+$ cargo run --bin slist_rc_enum_push_front
+   Compiling slist-rc-enum v0.1.0 (.../list/slist-rc-enum)
+    Finished dev [unoptimized + debuginfo] target(s) in 3.90s
+     Running `.../target/debug/slist_rc_enum_push_front`
+SList(3) -> SList(Nil)
+SList(2) -> SList(3) -> SList(Nil)
+SList(1) -> SList(2) -> SList(3) -> SList(Nil)
+----
+
+* pop_front()
++
+[source,rust]
+.src/bin/slist_rc_enum_pop_front.rs
+----
+use slist_rc_enum::SList;
+
+fn main() {
+    let mut list: SList<u8> = SList::new(1);
+    list.push_back(2);
+    list.push_back(3);
+    assert_eq!(list.pop_front(), Some(1));
+    assert_eq!(list.pop_front(), Some(2));
+    assert_eq!(list.pop_front(), Some(3));
+    assert_eq!(list.pop_front(), None);
+}
+----
++
+[source,console]
+----
+$ cargo run --bin slist_rc_enum_pop_front
+   Compiling slist-rc-enum v0.1.0 (.../list/slist-rc-enum)
+    Finished dev [unoptimized + debuginfo] target(s) in 5.51s
+     Running `.../target/debug/slist_rc_enum_pop_front`
+----
+
+[source,rust]
+.src/lib.rs
+----
 use std::fmt::{Debug, Formatter, Result};
 use std::rc::Rc;
 
@@ -111,3 +204,4 @@ impl<T: Debug> Debug for SList<T> {
 
 #[cfg(test)]
 mod tests;
+----

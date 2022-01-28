@@ -1,0 +1,216 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+:icons: font
+endif::[]
+
+== v1: enum SList and struct SListNode
+
+* push_back()
++
+[source,rust]
+.src/bin/slist_rc_enum_push_back.rs
+----
+use slist_rc_enum::SList;
+
+fn main() {
+    let mut list: SList<u8> = Default::default();
+    println!("{:?}", &list);
+    list.push_back(1);
+    println!("{:?}", &list);
+    list.push_back(2);
+    println!("{:?}", &list);
+    list.push_back(3);
+    println!("{:?}", &list);
+}
+----
++
+[source,console]
+----
+$ cargo run --bin slist_rc_enum_push_back
+   Compiling slist-rc-enum v0.1.0 (.../list/slist-rc-enum)
+    Finished dev [unoptimized + debuginfo] target(s) in 3.92s
+     Running `.../target/debug/slist_rc_enum_push_back`
+SList[]
+SList[SListNode(1), SListNode(Nil)]
+SList[SListNode(1), SListNode(2) SListNode(Nil)]
+----
+
+* push_front()
++
+[source,rust]
+.src/bin/slist_rc_enum_push_front.rs
+----
+use slist_rc_enum::SList;
+
+fn main() {
+    let mut list: SList<u8> = Default::default();
+    println!("{:?}", list);
+    list.push_front(3);
+    println!("{:?}", list);
+    list.push_front(2);
+    println!("{:?}", list);
+    list.push_front(1);
+    println!("{:?}", list);
+}
+----
++
+[source,console]
+----
+$ cargo run --bin slist_rc_enum_push_front
+   Compiling slist-rc-enum v0.1.0 (.../list/slist-rc-enum)
+    Finished dev [unoptimized + debuginfo] target(s) in 4.05s
+     Running `.../target/debug/slist_rc_enum_push_front`
+SList[]
+SList[SListNode(3), SListNode(Nil)]
+SList[SListNode(2), SListNode(3) SListNode(Nil)]
+SList[SListNode(1), SListNode(2) SListNode(3) SListNode(Nil)]
+----
+
+
+* pop_front()
++
+[source,rust]
+.src/bin/slist_rc_enum_pop_front.rs
+----
+use slist_rc_enum::SList;
+
+fn main() {
+    let mut list: SList<u8> = Default::default();
+    list.push_back(1);
+    list.push_back(2);
+    list.push_back(3);
+    assert_eq!(list.pop_front(), Some(1));
+    assert_eq!(list.pop_front(), Some(2));
+    assert_eq!(list.pop_front(), Some(3));
+    assert_eq!(list.pop_front(), None);
+}
+----
++
+[source,console]
+----
+$ cargo run --bin slist_rc_enum_pop_front
+   Compiling slist-rc-enum v0.1.0 (.../list/slist-rc-enum)
+    Finished dev [unoptimized + debuginfo] target(s) in 4.00s
+     Running `.../target/debug/slist_rc_enum_pop_front`
+----
+
+[source,rust]
+.src/lib.rs
+----
+use std::fmt::{Debug, Formatter, Result};
+use std::rc::Rc;
+
+pub enum SListNode<T> {
+    Cons(T, Rc<SListNode<T>>),
+    Nil,
+}
+
+impl<T: Debug> Debug for SListNode<T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        if let SListNode::Cons(v, n) = self {
+            write!(f, "SListNode({v:?}) {n:?}")
+        } else {
+            write!(f, "SListNode(Nil)")
+        }
+    }
+}
+
+/// A contiguous growable list type
+pub struct SList<T> {
+    node: Rc<SListNode<T>>,
+}
+
+impl<T>  SList<T> {
+    /// # Examples
+    ///
+    /// ```
+    /// use slist_rc_enum::SList;
+    /// let mut list: SList<u8> = Default::default();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// assert_eq!(
+    ///     format!("{:?}", &list).as_str(),
+    ///     "SList[SListNode(1), SListNode(2) SListNode(Nil)]"
+    /// );
+    /// ```
+    pub fn push_back(&mut self, v: T) {
+        let mut cur_ref = &mut self.node;
+        while let Some(node) = Rc::get_mut(cur_ref) {
+            cur_ref = match node {
+                SListNode::Cons(_, next) => next,
+                SListNode::Nil => {
+                    *node = SListNode::Cons(v, Rc::new(SListNode::Nil));
+                    return;
+                },
+            };
+        }
+    }
+
+    /// # Examples
+    ///
+    /// ```
+    /// use slist_rc_enum::SList;
+    /// let mut list: SList<u8> = Default::default();
+    /// list.push_front(1);
+    /// list.push_front(2);
+    /// assert_eq!(
+    ///     format!("{:?}", &list).as_str(),
+    ///     "SList[SListNode(2), SListNode(1) SListNode(Nil)]"
+    /// );
+    /// ```
+    pub fn push_front(&mut self, v: T) {
+        let node: SListNode<T> = std::mem::replace(
+            Rc::get_mut(&mut self.node).unwrap(),
+            SListNode::Nil
+        );
+        self.node = Rc::new(
+            SListNode::Cons(v, Rc::new(node))
+        );
+    }
+
+    /// # Examples
+    ///
+    /// ```
+    /// use slist_rc_enum::SList;
+    /// let mut list: SList<u8> = Default::default();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// assert_eq!(list.pop_front(), Some(1));
+    /// assert_eq!(list.pop_front(), Some(2));
+    /// assert_eq!(list.pop_front(), None);
+    /// ```
+    pub fn pop_front(&mut self) -> Option<T> {
+        let node: SListNode<T> = std::mem::replace(
+            Rc::get_mut(&mut self.node).unwrap(),
+            SListNode::Nil
+        );
+        match node {
+            SListNode::Nil => None,
+            SListNode::Cons(v, next) => {
+                self.node = next;
+                Some(v)
+            }
+        }
+    }
+}
+
+impl<T> Default for SList<T> {
+    fn default() -> Self {
+        SList { node: Rc::new(SListNode::Nil)}
+    }
+}
+
+impl<T: Debug> Debug for SList<T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        if let SListNode::Cons(v, n) = self.node.as_ref() {
+            write!(f, "SList[SListNode({v:?}), {n:?}]")
+        } else {
+            write!(f, "SList[]")
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests;
+----
