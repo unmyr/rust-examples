@@ -11,6 +11,22 @@ impl<T> SList<T> {
         SList::Nil
     }
 
+    fn is_nil(&self) -> bool {
+        match self {
+            SList::Nil => true,
+            _ => false,
+        }
+    }
+
+    fn next_ref(&self) -> Option<&Rc<SList<T>>> {
+        match self {
+            SList::Nil => None,
+            SList::Cons(_, next_rc_ref) => {
+                Some(next_rc_ref)
+            },
+        }
+    }
+
     /// # Examples
     ///
     /// ```
@@ -70,6 +86,94 @@ impl<T> SList<T> {
 }
 
 impl<T: Clone> SList<T> {
+    fn value(&self) -> Option<T> {
+        match self {
+            SList::Nil => None,
+            SList::Cons(v_ref, _) => {
+                Some(v_ref.clone())
+            },
+        }
+    }
+
+    /// # Examples
+    ///
+    /// ```
+    /// use slist_rc_enum::SList;
+    /// let mut list: SList<u8> = Default::default();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// assert_eq!(list.pop_back(), Some(2));
+    /// assert_eq!(list.pop_back(), Some(1));
+    /// assert_eq!(list.pop_back(), None);
+    /// ```
+    pub fn pop_back(&mut self) -> Option<T> {
+        let mut some_value: Option<T> = None;
+        let mut cur_rc_ref = match self {
+            SList::Nil => return None,
+            SList::Cons(v_ref, next_rc_ref) => {
+                if next_rc_ref.is_nil() {
+                    some_value = Some(v_ref.clone());
+                }
+                next_rc_ref
+            }
+        };
+        if some_value.is_some() {
+            let _ = std::mem::replace(self, SList::Nil);
+            return some_value;
+        }
+
+        match Rc::get_mut(cur_rc_ref).unwrap() {
+            SList::Nil => return None,
+            SList::Cons(v_ref, next_rc_ref) => {
+                if next_rc_ref.is_nil() {
+                    some_value = Some(v_ref.clone());
+                }
+            }
+        };
+        if some_value.is_some() {
+            let _ = std::mem::replace(cur_rc_ref, Rc::new(SList::Nil));
+            return some_value;
+        }
+
+        loop {
+            let cur_value;
+            let mut found = false;
+            {
+                cur_value = cur_rc_ref.value().unwrap();
+                if let Some(next_ref) = cur_rc_ref.next_ref() {
+                    if next_ref.next_ref().unwrap().is_nil() {
+                        found = true;
+                    }
+                }
+            }
+            if found {
+                let cur_node = std::mem::replace(
+                    Rc::get_mut(cur_rc_ref).unwrap(),
+                    SList::from(cur_value.clone())
+                );
+                return match cur_node {
+                    SList::Nil => None,
+                    SList::Cons(_v_ref, mut next_rc_ref) => {
+                        return match Rc::get_mut(&mut next_rc_ref).unwrap() {
+                            SList::Nil => None,
+                            SList::Cons(v_ref, next_next_rc_ref) => {
+                                assert!(next_next_rc_ref.is_nil());
+                                Some(v_ref.clone())
+                            },
+                        };
+                    },
+                }
+            }
+            cur_rc_ref = match Rc::get_mut(cur_rc_ref).unwrap() {
+                SList::Nil => return some_value,
+                SList::Cons(_v_ref, next_rc_ref) => {
+                    next_rc_ref
+                }
+            };
+            some_value = Some(cur_value);
+        }
+    }
+
     /// # Examples
     ///
     /// ```
