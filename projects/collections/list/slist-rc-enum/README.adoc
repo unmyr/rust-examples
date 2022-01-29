@@ -20,3 +20,10 @@ $ cd slist-rc-enum/
 
 * <<docs/v1.adoc#,v1: enum SList and struct SListNode>>
 * <<docs/v2.adoc#,v2: enum SList>>
+
+=== References
+
+* https://blog.rust-lang.org/2022/01/13/Rust-1.58.0.html[Announcing Rust 1.58.0 | Rust Blog^]
+* https://doc.rust-lang.org/std/rc/struct.Rc.html[Rc in std::rc - Rust^]
+* https://doc.rust-lang.org/std/default/trait.Default.html[Default in std::default - Rust^]
+* https://doc.rust-lang.org/std/convert/trait.From.html[From in std::convert - Rust^]
