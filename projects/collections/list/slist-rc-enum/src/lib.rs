@@ -12,10 +12,7 @@ impl<T> SList<T> {
     }
 
     fn is_nil(&self) -> bool {
-        match self {
-            SList::Nil => true,
-            _ => false,
-        }
+        matches!(self, SList::Nil)
     }
 
     fn next_ref(&self) -> Option<&Rc<SList<T>>> {
@@ -92,9 +89,7 @@ impl<T> SList<T> {
             self, SList::Cons(v, Rc::new(head_node))
         );
     }
-}
 
-impl<T: Clone> SList<T> {
     /// # Examples
     ///
     /// ```
@@ -110,7 +105,7 @@ impl<T: Clone> SList<T> {
         let get_value = |n: SList<T>| {
             match n {
                 SList::Nil => None,
-                SList::Cons(v_ref, _) => Some(v_ref.clone()),
+                SList::Cons(v_ref, _) => Some(v_ref),
             }
         };
         let mut prev_rc_ref = match self {
@@ -140,7 +135,7 @@ impl<T: Clone> SList<T> {
         let tail_node: SList<T> = std::mem::replace(
             Rc::get_mut(tail_prev_rc_ref).unwrap(), SList::Nil
         );
-        return get_value(tail_node)
+        get_value(tail_node)
     }
 
     /// # Examples
@@ -155,22 +150,17 @@ impl<T: Clone> SList<T> {
     /// assert_eq!(list.pop_front(), None);
     /// ```
     pub fn pop_front(&mut self) -> Option<T> {
-        let some_value: Option<T>;
-
-        let head_rc_ref: &mut Rc<_> = match self {
-            SList::Nil => return None,
-            SList::Cons(v_ref, head_rc_ref) => {
-                some_value = Some(v_ref.clone());
-                head_rc_ref
-            },
-        };
+        let head_rc_ref = self.next_ref_mut()?;
 
         let head_node: SList<T>;
         head_node = std::mem::replace(
             Rc::get_mut(head_rc_ref).unwrap(), SList::Nil
         );
-        let _ = std::mem::replace(self, head_node);
-        some_value
+        let head_node_old = std::mem::replace(self, head_node);
+        match head_node_old {
+            SList::Nil => None,
+            SList::Cons(v_ref, _) => Some(v_ref)
+        }
     }
 }
 
