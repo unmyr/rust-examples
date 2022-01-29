@@ -27,6 +27,15 @@ impl<T> SList<T> {
         }
     }
 
+    fn next_ref_mut(&mut self) -> Option<&mut Rc<SList<T>>> {
+        match self {
+            SList::Nil => None,
+            SList::Cons(_, next_rc_ref) => {
+                Some(next_rc_ref)
+            },
+        }
+    }
+
     /// # Examples
     ///
     /// ```
@@ -86,15 +95,6 @@ impl<T> SList<T> {
 }
 
 impl<T: Clone> SList<T> {
-    fn value(&self) -> Option<T> {
-        match self {
-            SList::Nil => None,
-            SList::Cons(v_ref, _) => {
-                Some(v_ref.clone())
-            },
-        }
-    }
-
     /// # Examples
     ///
     /// ```
@@ -107,80 +107,40 @@ impl<T: Clone> SList<T> {
     /// assert_eq!(list.pop_back(), None);
     /// ```
     pub fn pop_back(&mut self) -> Option<T> {
-        let mut some_value: Option<T> = None;
-        let mut cur_rc_ref = match self {
+        let get_value = |n: SList<T>| {
+            match n {
+                SList::Nil => None,
+                SList::Cons(v_ref, _) => Some(v_ref.clone()),
+            }
+        };
+        let mut prev_rc_ref = match self {
             SList::Nil => return None,
-            SList::Cons(v_ref, next_rc_ref) => {
+            SList::Cons(_v_ref, next_rc_ref) => {
                 if next_rc_ref.is_nil() {
-                    some_value = Some(v_ref.clone());
+                    // SList(x) -> SList(Nil)
+                    // v
+                    // SList(Nil)
+                    return get_value(
+                        std::mem::replace(self, SList::Nil)
+                    );
                 }
                 next_rc_ref
             }
         };
 
-        // SList(x) -> SList(Nil)
-        // v
-        // SList(Nil)
-        if some_value.is_some() {
-            let _ = std::mem::replace(self, SList::Nil);
-            return some_value;
-        }
+        let tail_prev_rc_ref = loop {
+            let is_prev_tail: bool = prev_rc_ref.next_ref().map(
+                |next_ref| next_ref.is_nil()
+            ).unwrap_or(false);
+            if is_prev_tail { break prev_rc_ref }
 
-        let mut nil_rc: Rc<SList<T>> = Rc::new(SList::Nil);
-        let mut prev_rc_ref: &mut Rc<SList<T>>;
-        prev_rc_ref = std::mem::replace(&mut cur_rc_ref, &mut nil_rc);
-        drop(cur_rc_ref);
-
-        match Rc::get_mut(prev_rc_ref).unwrap() {
-            SList::Nil => return None,
-            SList::Cons(v_ref, next_rc_ref) => {
-                if next_rc_ref.is_nil() {
-                    some_value = Some(v_ref.clone());
-                }
-                next_rc_ref
-            }
+            prev_rc_ref = Rc::get_mut(prev_rc_ref)?.next_ref_mut()?;
         };
 
-        // SList(x) -> SList(y) -> SList(Nil)
-        // v
-        // SList(x) -> SList(Nil)
-        if some_value.is_some() {
-            let _ = std::mem::replace(prev_rc_ref, Rc::new(SList::Nil));
-            return some_value;
-        }
-
-        let (prev_rc_ref, prev_value) = loop {
-            let prev_value = prev_rc_ref.value();
-            if let Some(next_ref) = prev_rc_ref.next_ref() {
-                if next_ref.next_ref().unwrap().is_nil() {
-                    break (prev_rc_ref, prev_value)
-                }
-            }
-
-            prev_rc_ref = match Rc::get_mut(prev_rc_ref).unwrap() {
-                SList::Nil => return some_value,
-                SList::Cons(_v_ref, next_rc_ref) => {
-                    next_rc_ref
-                }
-            };
-        };
-
-        let prev_node = std::mem::replace(
-            Rc::get_mut(prev_rc_ref).unwrap(),
-            SList::from(prev_value.unwrap())
+        let tail_node: SList<T> = std::mem::replace(
+            Rc::get_mut(tail_prev_rc_ref).unwrap(), SList::Nil
         );
-        return match prev_node {
-            SList::Nil => None,
-            SList::Cons(_v_ref, mut cur_rc_ref) => {
-                return match Rc::get_mut(&mut cur_rc_ref).unwrap() {
-                    SList::Nil => None,
-                    SList::Cons(v_ref, next_next_rc_ref) => {
-                        assert!(next_next_rc_ref.is_nil());
-                        Some(v_ref.clone())
-                    },
-                };
-            },
-        }
+        return get_value(tail_node)
     }
 
     /// # Examples
