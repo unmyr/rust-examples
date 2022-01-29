@@ -1,0 +1,22 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+:icons: font
+endif::[]
+
+== Singly linked list
+
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --lib slist-box-enum-struct
+     Created library `slist-box-enum-struct` package
+$ cd slist-box-enum-struct/
+----
+
+
+=== References
+
+* https://doc.rust-lang.org/std/boxed/struct.Box.html[Box in std::boxed - Rust^]

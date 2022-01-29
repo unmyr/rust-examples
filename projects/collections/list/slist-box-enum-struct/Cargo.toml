@@ -1,0 +1,6 @@
+[package]
+name = "slist-box-enum-struct"
+version = "0.1.0"
+rust-version = "1.58"
+
+[dependencies]
