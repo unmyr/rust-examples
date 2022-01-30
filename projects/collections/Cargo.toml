@@ -11,6 +11,7 @@ members = [
     "list/slist-refcell-opt-rc",
     "list/slist-unsafe",
     "list/slist-using-box",
+    "tree/bt-opt-rc",
     "tree/bt-opt-rc-refcell",
     "tree/bt-rc-refcell-opt",
     "tree/bt-refcell-children-opt-rc",
