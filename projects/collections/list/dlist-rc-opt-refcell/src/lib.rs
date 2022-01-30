@@ -87,7 +87,7 @@ pub struct DList<T: Debug> {
     head: Rc<Option<RefCell<DListNode<T>>>>
 }
 
-impl<T: Clone + Debug> DList<T> {
+impl<T: Debug> DList<T> {
     /// # Examples
     ///
     /// ```
@@ -176,7 +176,7 @@ impl<T: Clone + Debug> DList<T> {
                 return None
             },
         };
-        let value: Option<T> = node.value.borrow().clone();
+        let value: Option<T> = node.value.into_inner();
 
         let _ = std::mem::replace(
             &mut self.head, node.next
