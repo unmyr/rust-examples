@@ -57,3 +57,7 @@ pub struct BTree<K> {
 | -
 
 |===
+
+=== References
+* https://doc.rust-lang.org/std/rc/struct.Rc.html[Rc in std::rc - Rust^]
+* https://doc.rust-lang.org/std/cell/struct.RefMut.html[RefMut in std::cell - Rust^]
