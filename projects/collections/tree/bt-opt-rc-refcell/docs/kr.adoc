@@ -259,7 +259,7 @@ BTree={TreeNode(Nil,1,Nil), TreeNode(1,2,Nil), TreeNode(2,4,6), TreeNode(Nil,5,N
 ----
 use std::fmt::{self};
 use std::rc::Rc;
-use std::cell::{Ref, RefCell, RefMut};
+use std::cell::{RefCell, RefMut};
 use std::cmp::Ordering;
 
 pub struct TreeNode<'a, K> {
@@ -344,30 +344,25 @@ impl<'a, K: Ord> BTree<'a, K> {
         cur = Rc::clone(cur_ref);
 
         loop {
-            let cur_ref: Ref<TreeNode<K>> = cur.borrow();
-            let some_leaf: Option<Rc<RefCell<TreeNode<K>>>> = Ref::map(
-                cur_ref,
-                |n| {
-                    match n.key.cmp(key_ref) {
-                        Ordering::Greater => &n.left,
-                        _ => &n.right,
-                    }
-                }
-            ).clone();
-            if some_leaf.is_none() {
-                let mut some_leaf_ref_mut: RefMut<Option<_>> = RefMut::map(
-                    cur.borrow_mut(),
-                    |n| match n.key.cmp(key_ref) {
-                        Ordering::Greater => &mut n.left,
-                        _  => &mut n.right,
-                    }
-                );
-                some_leaf_ref_mut.replace(
+            let cur_ref_mut: RefMut<TreeNode<K>> = cur.borrow_mut();
+            let mut some_rc_ref_mut: RefMut<Option<Rc<RefCell<TreeNode<K>>>>>;
+
+            if cur_ref_mut.key.cmp(key_ref) == Ordering::Greater {
+                some_rc_ref_mut = RefMut::map(cur_ref_mut, |n| &mut n.left);
+            } else {
+                some_rc_ref_mut = RefMut::map(cur_ref_mut, |n| &mut n.right);
+            }
+
+            if some_rc_ref_mut.is_none() {
+                some_rc_ref_mut.replace(
                     Rc::new(RefCell::new(TreeNode::new(key_ref)))
                 );
                 return;
             }
-            cur = Rc::clone(&some_leaf.unwrap());
+
+            let next_rc_ref = Rc::clone(some_rc_ref_mut.as_ref().unwrap());
+            drop(some_rc_ref_mut);
+            cur = next_rc_ref;
         }
     }
 }
