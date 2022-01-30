@@ -2,7 +2,6 @@ use std::rc::{Rc, Weak};
 use std::cell::{RefCell};
 use std::fmt::{self, Debug};
 
-#[derive(Debug)]
 pub struct DListNode<T: Debug> {
     value: RefCell<Option<T>>,
     prev: Weak<Option<RefCell<DListNode<T>>>>,
@@ -19,31 +18,31 @@ impl<T: Debug> DListNode<T> {
     }
 }
 
-impl<T: Debug> Drop for DListNode<T> {
-    fn drop(&mut self) {
-        println!("> Dropping: DListNode {:?}", self.value);
-    }
-}
+// impl<T: Debug> Drop for DListNode<T> {
+//     fn drop(&mut self) {
+//         println!("> Dropping: DListNode {:?}", self.value);
+//     }
+// }
 
-impl<T: Debug> fmt::Display for DListNode<T> {
+impl<T: Debug> fmt::Debug for DListNode<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match (self.prev.upgrade(), self.next.as_ref()) {
             (None, None) => {
-                write!(f, "DListNode({:?}, Nil, Nil)", self.value.borrow())
+                write!(f, "({:?}, prev:Nil, next:Nil)", self.value.borrow().as_ref().unwrap())
             },
             (Some(ref prev_rc_ref), None) => {
                 match prev_rc_ref.as_ref() {
                     Some(prev_cell_ref) => {
                         write!(
-                            f, "DListNode(value:{:?}, prev:{:?}, Nil)",
-                            self.value.borrow(),
-                            prev_cell_ref.borrow().value
+                            f, "(value:{:?}, prev:{:?}, next:Nil)",
+                            self.value.borrow().as_ref().unwrap(),
+                            prev_cell_ref.borrow().value.borrow().as_ref().unwrap()
                         )
                     },
                     None => {
                         write!(
-                            f, "DListNode(value:{:?}, prev:Nil, Nil)",
-                            self.value.borrow()
+                            f, "(value:{:?}, prev:Nil, next:Nil)",
+                            self.value.borrow().as_ref().unwrap()
                         )
                     }
                 }
@@ -51,9 +50,9 @@ impl<T: Debug> fmt::Display for DListNode<T> {
             },
             (None, Some(next)) => {
                 write!(
-                    f, "DListNode({:?}, Nil, {:?}), {}",
-                    self.value.borrow(),
-                    next.borrow().value.borrow(),
+                    f, "(value:{:?}, prev:Nil, next:{:?}) -> {:?}",
+                    self.value.borrow().as_ref().unwrap(),
+                    next.borrow().value.borrow().as_ref().unwrap(),
                     next.borrow()
                 )
             },
@@ -61,18 +60,18 @@ impl<T: Debug> fmt::Display for DListNode<T> {
                 match prev_rc_ref.as_ref() {
                     Some(prev_cell_ref) => {
                         write!(
-                            f, "DListNode({:?}, {:?}, {:?}), {}",
-                            self.value.borrow(),
-                            prev_cell_ref.borrow().value,
-                            next.borrow().value.borrow(),
+                            f, "(value:{:?}, prev:{:?}, next:{:?}) -> {:?}",
+                            self.value.borrow().as_ref().unwrap(),
+                            prev_cell_ref.borrow().value.borrow().as_ref().unwrap(),
+                            next.borrow().value.borrow().as_ref().unwrap(),
                             next.borrow()
                         )
                     },
                     None => {
                         write!(
-                            f, "DListNode({:?}, Nil, {:?}), {}",
-                            self.value.borrow(),
-                            next.borrow().value.borrow(),
+                            f, "(value:{:?}, prev:Nil, next:{:?}) -> {:?}",
+                            self.value.borrow().as_ref().unwrap(),
+                            next.borrow().value.borrow().as_ref().unwrap(),
                             next.borrow()
                         )
                     },
@@ -115,13 +114,29 @@ impl<T: Clone + Debug> DList<T> {
         node_new.prev = Rc::downgrade(&cur);
 
         if let Some(cur_node) = Rc::clone(&cur).as_ref() {
-            if let Some(next_cell_ref) =  Rc::clone(&cur_node.borrow().next).as_ref() {
-                next_cell_ref.replace(node_new);
+            let mut next_rc = Rc::clone(&cur_node.borrow().next);
+            assert_eq!(Rc::strong_count(&next_rc), 2);
+            unsafe {
+                let ptr = Rc::into_raw(next_rc);
+                Rc::decrement_strong_count(ptr);
+                next_rc = Rc::from_raw(ptr);
+            }
+            assert_eq!(Rc::strong_count(&next_rc), 1);
+            if let Some(mut cur_opt) = Rc::get_mut(&mut next_rc) {
+                Option::<RefCell<DListNode<T>>>::replace(
+                    &mut cur_opt,
+                    RefCell::new(node_new)
+                );
+            } else {
+                println!("Failed.");
+            }
+            unsafe {
+                let ptr = Rc::into_raw(next_rc);
+                Rc::increment_strong_count(ptr);
+                // next_rc = Rc::from_raw(ptr);
             }
         }
         drop(cur);
-        dbg!(Rc::strong_count(&self.head));
-        dbg!(Rc::weak_count(&self.head));
     }
 
     pub fn pop_front(&mut self) -> Option<T> {
@@ -139,12 +154,12 @@ impl<T: Debug> Drop for DList<T> {
     }
 }
 
-impl<T: Debug> fmt::Display for DList<T> {
+impl<T: Debug> fmt::Debug for DList<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.head.as_ref() {
             None => write!(f, "DList[]"),
             Some(ref head) => {
-                write!(f, "DList[{}]", head.borrow())
+                write!(f, "DList[{:?}]", head.borrow())
             }
         }
     }
