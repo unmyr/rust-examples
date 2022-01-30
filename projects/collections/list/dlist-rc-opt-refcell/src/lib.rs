@@ -1,5 +1,5 @@
 use std::rc::{Rc, Weak};
-use std::cell::{RefCell};
+use std::cell::RefCell;
 use std::fmt::{self, Debug};
 
 pub struct DListNode<T: Debug> {
@@ -139,8 +139,50 @@ impl<T: Clone + Debug> DList<T> {
         drop(cur);
     }
 
+    pub fn push_front(&mut self, _v: T) {}
+
+    /// # Examples
+    ///
+    /// ```
+    /// use dlist_rc_opt_refcell::DList;
+    /// let mut list: DList<u8> = Default::default();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// assert_eq!(list.pop_front(), Some(1));
+    /// assert_eq!(list.pop_front(), Some(2));
+    /// assert_eq!(list.pop_front(), None);
+    /// ```
     pub fn pop_front(&mut self) -> Option<T> {
-        None
+        if self.head.is_none() {
+            return None;
+        }
+
+        let head: Rc<Option<RefCell<DListNode<T>>>>;
+        head = Rc::new(None);
+
+        let mut old_head: Rc<_> = std::mem::replace(&mut self.head, head);
+
+        if Rc::strong_count(&old_head) == 2 {
+            unsafe {
+                let ptr = Rc::into_raw(old_head);
+                Rc::decrement_strong_count(ptr);
+                old_head = Rc::from_raw(ptr);
+            }
+        }
+
+        let node: DListNode<T> = match Rc::try_unwrap(old_head) {
+            Ok(some_refcell) => some_refcell.unwrap().into_inner(),
+            Err(_rc) => {
+                return None
+            },
+        };
+        let value: Option<T> = node.value.borrow().clone();
+
+        let _ = std::mem::replace(
+            &mut self.head, node.next
+        );
+
+        value
     }
 
     pub fn pop_back(&mut self) -> Option<T> {
@@ -226,5 +268,5 @@ impl<T: Clone + Debug> Iterator for DListIterator<T> {
     }
 }
 
-// #[cfg(test)]
-// mod tests;
+#[cfg(test)]
+mod tests;
