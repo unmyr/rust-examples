@@ -18,5 +18,6 @@ clean:
 	(cd option-and-result && cargo clean)
 	(cd ownership && cargo clean)
 	(cd plotting && cargo clean)
+	(cd string-types && cargo clean)
 	(cd threads && cargo clean)
 	(cd wasm && cargo clean)

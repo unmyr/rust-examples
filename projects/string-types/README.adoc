@@ -1,0 +1,154 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+:icons: font
+endif::[]
+
+== String
+
+* https://doc.rust-lang.org/std/primitive.str.html[str - Rust^]
+* https://doc.rust-lang.org/std/string/struct.String.html[String in std::string - Rust^]
+
+=== Set up a new project
+
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new --bin string-types
+     Created binary (application) `string-types` package
+$ cd string-types/
+----
+
+=== Examples
+
+==== Concatenate vector of chars into single string
+
+* `Vec<char>`
++
+[source,rust]
+----
+fn main() {
+    let chars = vec!['a', 'b', 'c'];
+    let string = chars.iter().collect::<String>();
+    println!("vec: {:?}, string: {:?}", chars, string);
+}
+----
++
+[source,javascript]
+.Results
+----
+vec: ['a', 'b', 'c'], string: "abc"
+----
+
+* `[char]`
++
+[source,rust]
+----
+fn main() {
+    let chars = ['a', 'b', 'c'];
+    let string = chars.iter().collect::<String>();
+    println!("array: {:?}, string: {:?}", chars, string);
+}
+----
++
+[source,javascript]
+.Results
+----
+array: ['a', 'b', 'c'], string: "abc"
+----
+
+* `&[char]`
++
+[source,rust]
+----
+fn main() {
+    let chars = vec!['a', 'b', 'c'];
+    let slice_chars = &chars[..];
+
+    let string = slice_chars.iter().collect::<String>();
+    println!("slice: {:?}, string: {:?}", slice_chars, string);
+}
+----
++
+[source,javascript]
+.Results
+----
+slice: ['a', 'b', 'c'], string: "abc"
+----
+
+==== Concatenate vector of strings into single string
+
+* `Vec<&str>`
++
+[source,rust]
+----
+fn main() {
+    let strings = vec!["abc", "123", "cdf"];
+    let string = strings.concat();
+    println!("strings: {:?}, string: {:?}", strings, string);
+}
+----
++
+[source,javascript]
+.Results
+----
+strings: ["abc", "123", "cdf"], string: "abc123cdf"
+----
+
+* `[&str]`
++
+[source,rust]
+----
+fn main() {
+    let strings = ["abc", "123", "cdf"];
+    let string = strings.concat();
+    println!("strings: {:?}, string: {:?}", strings, string);
+}
+----
++
+[source,javascript]
+.Results
+----
+strings: ["abc", "123", "cdf"], string: "abc123cdf"
+----
+
+* `Vec<char>`
++
+[source,rust]
+----
+fn main() {
+    let strings = ["abc", "123", "cdf"];
+    let string = &strings[..].concat();
+    println!("strings: {:?}, string: {:?}", strings, string);
+}
+----
++
+[source,javascript]
+.Results
+----
+strings: ["abc", "123", "cdf"], string: "abc123cdf"
+----
+
+==== Join strings with a delimiter
+
+* `Vec<&str>`
++
+[source,rust]
+----
+fn main() {
+    let strings = ["John", "Due"];
+    let joined_str = strings.join(", ");
+    println!("strings: {:?}, joined_str: {:?}", strings, joined_str);
+}
+----
++
+[source,javascript]
+.Results
+----
+strings: ["John", "Due"], joined_str: "John, Due"
+----
+
+.References
+* https://cumsum.wordpress.com/2019/11/28/how-to-do-string-join-in-rust/[How to do string join in Rust? - Cumulative Sum^] +
+  rust vector string join - Google 検索
