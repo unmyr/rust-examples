@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn test_option_update_if_let_1() {
+    fn test_option_update_if_let_some_ref_mut() {
         let mut o1: Option<String> = Some(String::from("Hello"));
         assert_eq!(o1.is_some(), true);
         if let Some(ref mut s1) = o1 {
@@ -20,7 +20,7 @@ mod tests {
     }
 
     #[test]
-    fn test_option_update_if_let_2() {
+    fn test_option_update_if_let_ref_amp() {
         let mut o1: Option<String> = Some(String::from("Hello"));
         assert_eq!(o1.is_some(), true);
         if let Some(s1) = &mut o1 {
