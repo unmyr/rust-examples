@@ -122,9 +122,9 @@ impl<T: Debug> DList<T> {
                 next_rc = Rc::from_raw(ptr);
             }
             assert_eq!(Rc::strong_count(&next_rc), 1);
-            if let Some(mut cur_opt) = Rc::get_mut(&mut next_rc) {
+            if let Some(cur_opt) = Rc::get_mut(&mut next_rc) {
                 Option::<RefCell<DListNode<T>>>::replace(
-                    &mut cur_opt,
+                    cur_opt,
                     RefCell::new(node_new)
                 );
             } else {
@@ -133,7 +133,6 @@ impl<T: Debug> DList<T> {
             unsafe {
                 let ptr = Rc::into_raw(next_rc);
                 Rc::increment_strong_count(ptr);
-                // next_rc = Rc::from_raw(ptr);
             }
         }
         drop(cur);
@@ -235,9 +234,7 @@ impl<T: Clone + Debug> DList<T> {
 
         let last_cell_ref = tail_rc.as_ref().as_ref().unwrap();
         let value_cell = last_cell_ref.borrow().value.clone();
-        let some_value = value_cell.into_inner();
-
-        some_value
+        value_cell.into_inner()
     }
 }
 
@@ -308,12 +305,9 @@ impl<T: Clone + Debug> Iterator for DListIterator<T> {
         };
 
         if let Some(cur_cell) = cur_strong.as_ref() {
-            self.cur = match cur_cell.borrow().next.as_ref() {
-                Some(_next_cell) => {
-                    Some(Rc::downgrade(&Rc::clone(&cur_cell.borrow().next)))
-                },
-                None => None,
-            }
+            self.cur = cur_cell.borrow().next.as_ref().as_ref().map(
+                |_next_cell| Rc::downgrade(&Rc::clone(&cur_cell.borrow().next))
+            );
         }
         cur_val
     }
