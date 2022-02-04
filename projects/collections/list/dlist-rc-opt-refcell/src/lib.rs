@@ -1,5 +1,5 @@
 use std::rc::{Rc, Weak};
-use std::cell::RefCell;
+use std::cell::{RefCell, RefMut};
 use std::fmt::{self, Debug};
 
 pub struct DListNode<T: Debug> {
@@ -184,9 +184,60 @@ impl<T: Debug> DList<T> {
 
         value
     }
+}
 
+
+impl<T: Clone + Debug> DList<T> {
+    /// # Examples
+    ///
+    /// ```
+    /// use dlist_rc_opt_refcell::DList;
+    /// let mut list: DList<u8> = Default::default();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// // assert_eq!(list.pop_back(), Some(2));
+    /// // assert_eq!(list.pop_back(), Some(1));
+    /// // assert_eq!(list.pop_back(), None);
+    /// ```
     pub fn pop_back(&mut self) -> Option<T> {
-        None
+        if self.head.is_none() {
+            return None;
+        }
+
+        let mut cur: Rc<Option<RefCell<DListNode<T>>>>;
+        cur = Rc::clone(&self.head);
+
+        while let Some(cur_node) = Rc::clone(&cur).as_ref() {
+            if cur_node.borrow().next.is_none() {
+                break;
+            }
+            cur = Rc::clone(&cur_node.borrow().next);
+        }
+
+        let tail_rc = cur;
+
+        // Update to None to the next pointer on the previous node.
+        let prev_weak = Weak::clone(
+            &(tail_rc.as_ref().as_ref().unwrap().borrow().prev)
+        );
+
+        if let Some(prev_rc) = prev_weak.upgrade() {
+            RefMut::map(
+                prev_rc.as_ref().as_ref().unwrap().borrow_mut(),
+                |v| {
+                    v.next = Rc::new(None);
+                    v
+                }
+            );
+        } else {
+            self.head = Rc::new(None);
+        }
+
+        let last_cell_ref = tail_rc.as_ref().as_ref().unwrap();
+        let value_cell = last_cell_ref.borrow().value.clone();
+        let some_value = value_cell.into_inner();
+
+        some_value
     }
 }
 

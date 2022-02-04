@@ -1,30 +1,30 @@
 use super::*;
 
-// #[test]
-// fn test_push_pop_1() {
-//     let mut list: DList<u8> = Default::default();
-//     list.push_back(1);
-//     assert_eq!(list.pop_back(), Some(1));
-//     assert_eq!(list.pop_back(), None);
-//     list.push_back(1);
-//     assert_eq!(list.pop_back(), Some(1));
-//     assert_eq!(list.pop_back(), None);
-// }
+#[test]
+fn test_push_pop_1() {
+    let mut list: DList<u8> = Default::default();
+    list.push_back(1);
+    assert_eq!(list.pop_back(), Some(1));
+    assert_eq!(list.pop_back(), None);
+    list.push_back(1);
+    assert_eq!(list.pop_back(), Some(1));
+    assert_eq!(list.pop_back(), None);
+}
 
-// #[test]
-// fn test_push_pop_2() {
-//     let mut list: DList<&str> = Default::default();
-//     list.push_back("hello");
-//     list.push_back("world");
-//     assert_eq!(list.pop_back(), Some("world"));
-//     assert_eq!(list.pop_back(), Some("hello"));
-//     assert_eq!(list.pop_back(), None);
-//     list.push_back("hello");
-//     list.push_back("world");
-//     assert_eq!(list.pop_back(), Some("world"));
-//     assert_eq!(list.pop_back(), Some("hello"));
-//     assert_eq!(list.pop_back(), None);
-// }
+#[test]
+fn test_push_pop_2() {
+    let mut list: DList<&str> = Default::default();
+    list.push_back("hello");
+    list.push_back("world");
+    assert_eq!(list.pop_back(), Some("world"));
+    assert_eq!(list.pop_back(), Some("hello"));
+    assert_eq!(list.pop_back(), None);
+    list.push_back("hello");
+    list.push_back("world");
+    assert_eq!(list.pop_back(), Some("world"));
+    assert_eq!(list.pop_back(), Some("hello"));
+    assert_eq!(list.pop_back(), None);
+}
 
 #[test]
 fn test_pop_front_1() {
@@ -50,33 +50,34 @@ fn test_pop_front_2() {
     assert_eq!(list.pop_front(), None);
 }
 
-// #[test]
-// fn test_iter_unwrap_failed() {
-//     let mut list: DList<u8> = Default::default();
-//     list.push_back(1);
-//     list.push_back(2);
-//     let mut iter = list.iter();
-//     assert_eq!(iter.next(), Some(1));
-//     assert_eq!(list.pop_back(), Some(2));
-//     assert_eq!(iter.next(), None);
+#[test]
+#[ignore]
+fn test_iter_unwrap_failed() {
+    let mut list: DList<u8> = Default::default();
+    list.push_back(1);
+    list.push_back(2);
+    let mut iter = list.iter();
+    assert_eq!(iter.next(), Some(1));
+    assert_eq!(list.pop_back(), Some(2));
+    assert_eq!(iter.next(), None);
 
-//     list.push_back(2);
-//     let mut iter = list.iter();
-//     assert_eq!(iter.next(), Some(1));
-//     assert_eq!(list.pop_back(), Some(2));
-//     assert_eq!(iter.next(), None);
-// }
+    list.push_back(2);
+    let mut iter = list.iter();
+    assert_eq!(iter.next(), Some(1));
+    assert_eq!(list.pop_back(), Some(2));
+    assert_eq!(iter.next(), None);
+}
 
-// #[test]
-// fn test_iter_last_add() {
-//     let mut list: DList<u8> = Default::default();
-//     list.push_back(1);
-//     let mut iter = list.iter();
-//     assert_eq!(iter.next(), Some(1));
-//     list.push_back(2);
-//     assert_eq!(list.pop_back(), Some(2));
-//     assert_eq!(iter.next(), None);
-// }
+#[test]
+fn test_iter_last_add() {
+    let mut list: DList<u8> = Default::default();
+    list.push_back(1);
+    let mut iter = list.iter();
+    assert_eq!(iter.next(), Some(1));
+    list.push_back(2);
+    assert_eq!(list.pop_back(), Some(2));
+    assert_eq!(iter.next(), None);
+}
 
 #[test]
 #[ignore]
