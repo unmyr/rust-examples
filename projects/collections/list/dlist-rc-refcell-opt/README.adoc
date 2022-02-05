@@ -18,32 +18,129 @@ $ cd dlist-rc-refcell-opt/
 
 === Codes
 
+* pop_back()
++
 [source,rust]
-.src/main.rs
+.src/bin/dlist_rc_refcell_opt_pop_back.rs
 ----
 use dlist_rc_refcell_opt::DList;
 
 fn main() {
     let mut list: DList<u8> = Default::default();
-    assert_eq!(list.pop_front(), None);
     list.push_back(1);
     list.push_back(2);
-    assert_eq!(list.pop_front(), Some(1));
-    println!("{}", list);
+    list.push_back(3);
+    list.push_back(4);
+    list.push_back(5);
+    println!("5:{list:?}"); assert_eq!(list.pop_back(), Some(5));
+    println!("4:{list:?}"); assert_eq!(list.pop_back(), Some(4));
+    println!("3:{list:?}"); assert_eq!(list.pop_back(), Some(3));
+    println!("2:{list:?}"); assert_eq!(list.pop_back(), Some(2));
+    println!("1:{list:?}"); assert_eq!(list.pop_back(), Some(1));
+    println!(" :{list:?}"); assert_eq!(list.pop_back(), None);
 }
 ----
-
++
 [source,console]
 ----
-$ cargo run
-   Compiling dlist-rc-refcell-opt v0.1.0 (.../list/dlist-rc-refcell-opt)
-    Finished dev [unoptimized + debuginfo] target(s) in 9.89s
-     Running `.../target/debug/dlist-rc-refcell-opt`
-[list/dlist-rc-refcell-opt/src/lib.rs:97] Rc::strong_count(&self.head) = 1
-[list/dlist-rc-refcell-opt/src/lib.rs:98] Rc::weak_count(&self.head) = 1
-DList[DListNode(value:Some(2), prev:RefCell { value: Some(2) }, Nil)]
+$ cargo run --bin dlist_rc_refcell_opt_pop_back
+    Finished dev [unoptimized + debuginfo] target(s) in 0.12s
+     Running `.../target/debug/dlist_rc_refcell_opt_pop_back`
+5:DList[(value:1, prev:Nil, next:2) -> (value:2, prev:1, next:3) -> (value:3, prev:2, next:4) -> (value:4, prev:3, next:5) -> (value:5, prev:4, next:Nil)]
+4:DList[(value:1, prev:Nil, next:2) -> (value:2, prev:1, next:3) -> (value:3, prev:2, next:4) -> (value:4, prev:3, next:Nil)]
+3:DList[(value:1, prev:Nil, next:2) -> (value:2, prev:1, next:3) -> (value:3, prev:2, next:Nil)]
+2:DList[(value:1, prev:Nil, next:2) -> (value:2, prev:1, next:Nil)]
+1:DList[(value:1, prev:Nil, next:Nil)]
+ :DList[]
 > Dropping: DList
-> Dropping: DListNode RefCell { value: Some(2) }
+----
+
+* pop_front()
++
+[source,rust]
+.src/bin/dlist_rc_refcell_opt_pop_front.rs
+----
+use dlist_rc_refcell_opt::DList;
+
+fn main() {
+    let mut list: DList<u8> = Default::default();
+    list.push_back(1);
+    list.push_back(2);
+    list.push_back(3);
+    assert_eq!(
+        format!("{:?}", list),
+        "DList[(value:1, prev:Nil, next:2) -> (value:2, prev:1, next:3) -> (value:3, prev:2, next:Nil)]"
+    );
+
+    assert_eq!(list.pop_front(), Some(1));
+    assert_eq!(
+        format!("{:?}", list),
+        "DList[(value:2, prev:Nil, next:3) -> (value:3, prev:2, next:Nil)]"
+    );
+
+    assert_eq!(list.pop_front(), Some(2));
+    assert_eq!(
+        format!("{:?}", list),
+        "DList[(3, prev:Nil, next:Nil)]"
+    );
+
+    assert_eq!(list.pop_front(), Some(3));
+    assert_eq!(format!("{:?}", list), "DList[]");
+
+    assert_eq!(list.pop_front(), None);
+    assert_eq!(format!("{:?}", list), "DList[]");
+}
+----
++
+[source,console]
+----
+$ cargo run --bin dlist_rc_refcell_opt_pop_front
+    Finished dev [unoptimized + debuginfo] target(s) in 0.05s
+     Running `.../target/debug/dlist_rc_refcell_opt_pop_front`
+thread 'main' panicked at 'assertion failed: `(left == right)`
+  left: `"DList[(value:2, prev:Nil, next:3) -> (value:3, prev:Nil, next:Nil)]"`,
+ right: `"DList[(value:2, prev:Nil, next:3) -> (value:3, prev:2, next:Nil)]"`', list/dlist-rc-refcell-opt/src/bin/dlist_rc_refcell_opt_pop_front.rs:14:5
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+> Dropping: DList
+----
+
+* push_back()
++
+[source,rust]
+.src/bin/dlist_rc_refcell_opt_push_back.rs
+----
+use dlist_rc_refcell_opt::DList;
+
+fn main() {
+    let mut list: DList<u8> = Default::default();
+    assert_eq!(format!("{:?}", list), "DList[]");
+
+    list.push_back(1);
+    assert_eq!(
+        format!("{:?}", list),
+        "DList[(value:1, prev:Nil, next:Nil)]"
+    );
+
+    list.push_back(2);
+    assert_eq!(
+        format!("{:?}", list),
+        "DList[(value:1, prev:Nil, next:2) -> (value:2, prev:1, next:Nil)]"
+    );
+
+    list.push_back(3);
+    assert_eq!(
+        format!("{:?}", list),
+        "DList[(value:1, prev:Nil, next:2) -> (value:2, prev:1, next:3) -> (value:3, prev:2, next:Nil)]"
+    );
+}
+----
++
+[source,console]
+----
+$ cargo run --bin dlist_rc_refcell_opt_push_back
+    Finished dev [unoptimized + debuginfo] target(s) in 0.05s
+     Running `.../target/debug/dlist_rc_refcell_opt_push_back`
+> Dropping: DList
 ----
 
 [source,rust]
@@ -53,7 +150,6 @@ use std::rc::{Rc, Weak};
 use std::cell::{RefCell};
 use std::fmt::{self, Debug};
 
-#[derive(Debug)]
 pub struct DListNode<T: Debug> {
     value: RefCell<Option<T>>,
     prev: Weak<RefCell<Option<DListNode<T>>>>,
@@ -76,25 +172,25 @@ impl<T: Debug> DListNode<T> {
 //     }
 // }
 
-impl<T: Debug> fmt::Display for DListNode<T> {
+impl<T: Debug> fmt::Debug for DListNode<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match (self.prev.upgrade(), self.next.borrow().as_ref()) {
             (None, None) => {
                 write!(
-                    f, "DListNode(value:{:?}, prev:Nil, next:Nil)",
+                    f, "(value:{:?}, prev:Nil, next:Nil)",
                     self.value.borrow().as_ref().unwrap()
                 )
             },
             (Some(ref prev_rc_ref), None) => {
                 write!(
-                    f, "DListNode(value:{:?}, prev:{:?}, next:Nil)",
+                    f, "(value:{:?}, prev:{:?}, next:Nil)",
                     self.value.borrow().as_ref().unwrap(),
                     prev_rc_ref.borrow().as_ref().unwrap().value.borrow().as_ref().unwrap(),
                 )
             },
             (None, Some(next)) => {
                 write!(
-                    f, "DListNode(value:{:?}, prev:Nil, next:{:?}), {}",
+                    f, "(value:{:?}, prev:Nil, next:{:?}) -> {:?}",
                     self.value.borrow().as_ref().unwrap(),
                     next.value.borrow().as_ref().unwrap(),
                     next,
@@ -102,9 +198,9 @@ impl<T: Debug> fmt::Display for DListNode<T> {
             },
             (Some(ref prev_rc_ref), Some(next)) => {
                 write!(
-                    f, "DListNode(value:{:?}, prev:{:?}, next:{:?}), {}",
+                    f, "(value:{:?}, prev:{:?}, next:{:?}) -> {:?}",
                     self.value.borrow().as_ref().unwrap(),
-                    prev_rc_ref.borrow().as_ref().unwrap().value.borrow(),
+                    prev_rc_ref.borrow().as_ref().unwrap().value.borrow().as_ref().unwrap(),
                     next.value.borrow().as_ref().unwrap(),
                     next,
                 )
@@ -274,12 +370,12 @@ impl<T: Debug> Drop for DList<T> {
     }
 }
 
-impl<T: Debug> fmt::Display for DList<T> {
+impl<T: Debug> fmt::Debug for DList<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.head.borrow().as_ref() {
             None => write!(f, "DList[]"),
             Some(ref head) => {
-                write!(f, "DList[{}]", head)
+                write!(f, "DList[{:?}]", head)
             }
         }
     }
