@@ -130,7 +130,7 @@ pub enum SList<T> {
     Nil,
 }
 
-impl<T: Clone> SList<T> {
+impl<T> SList<T> {
     /// # Examples
     ///
     /// ```
@@ -176,26 +176,18 @@ impl<T: Clone> SList<T> {
     /// );
     /// ```
     pub fn push_front(&mut self, v: T) {
-        match self {
-            SList::Nil => {
-                let _ = std::mem::replace(self, SList::from(v));
-            },
-            SList::Cons(head_cell_ref) => {
-                let mut head_cell = ConsCell {
-                    value: head_cell_ref.value.clone(),
-                    next: Box::new(SList::Nil)
-                };
-                let _ = std::mem::replace(
-                    &mut head_cell.next, head_cell_ref.next.clone()
-                );
-                let _ = std::mem::replace(
-                    self, SList::Cons(ConsCell {
-                        value: v,
-                        next: Box::new(SList::Cons(head_cell))
-                    })
-                );
-            },
-        };
+        let head_node: SList<T>;
+        head_node = std::mem::replace(self, SList::Nil);
+
+        let _ = std::mem::replace(
+            self,
+            SList::Cons(
+                ConsCell {
+                    value: v,
+                    next: Box::new(head_node)
+                }
+            )
+        );
     }
 }
 
