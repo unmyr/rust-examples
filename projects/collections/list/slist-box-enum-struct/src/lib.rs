@@ -47,9 +47,7 @@ impl<T> SList<T> {
             cur_box_ref = &mut *cons_cell_ref.next;
         }
 
-        let _ = std::mem::replace(
-            cur_box_ref, SList::Cons(ConsCell::new(v, SList::Nil))
-        );
+        let _ = std::mem::replace(cur_box_ref, SList::from(v));
     }
 
     /// # Examples
@@ -77,9 +75,7 @@ impl<T> SList<T> {
 
 impl<T> From<T> for SList<T> {
     fn from(v: T) -> Self {
-        SList::Cons(
-            ConsCell { value: v, next: Box::new(SList::Nil) }
-        )
+        SList::Cons(ConsCell::new(v, SList::Nil))
     }
 }
 
