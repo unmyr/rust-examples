@@ -1,9 +1,14 @@
 use std::fmt::{Debug, Formatter, Result};
 
-#[derive(std::clone::Clone)]
 pub struct ConsCell<T> {
     value: T,
     next: Box<SList<T>>
+}
+
+impl<T> ConsCell<T> {
+    fn new(v: T, next: SList<T>) -> Self {
+        ConsCell { value: v, next: Box::new(next) }
+    }
 }
 
 impl<T: Debug> Debug for ConsCell<T> {
@@ -16,7 +21,6 @@ impl<T: Debug> Debug for ConsCell<T> {
     }
 }
 
-#[derive(std::clone::Clone)]
 pub enum SList<T> {
     Cons(ConsCell<T>),
     Nil,
@@ -44,13 +48,7 @@ impl<T> SList<T> {
         }
 
         let _ = std::mem::replace(
-            cur_box_ref,
-            SList::Cons(
-                ConsCell {
-                    value: v,
-                    next: Box::new(SList::Nil)
-                }
-            )
+            cur_box_ref, SList::Cons(ConsCell::new(v, SList::Nil))
         );
     }
 
@@ -72,13 +70,7 @@ impl<T> SList<T> {
         head_node = std::mem::replace(self, SList::Nil);
 
         let _ = std::mem::replace(
-            self,
-            SList::Cons(
-                ConsCell {
-                    value: v,
-                    next: Box::new(head_node)
-                }
-            )
+            self, SList::Cons(ConsCell::new(v, head_node))
         );
     }
 }
