@@ -116,6 +116,10 @@ pub enum SList<T> {
 }
 
 impl<T> SList<T> {
+    fn new(v: T, next: SList<T>) -> Self {
+        SList::Cons(v, Box::new(next))
+    }
+
     /// # Examples
     ///
     /// ```
@@ -156,15 +160,13 @@ impl<T> SList<T> {
         let head_node: SList<T>;
         head_node = std::mem::replace(self, SList::Nil);
 
-        let _ = std::mem::replace(
-            self, SList::Cons(v, Box::new(head_node))
-        );
+        let _ = std::mem::replace(self, SList::new(v, head_node));
     }
 }
 
 impl<T> From<T> for SList<T> {
     fn from(v: T) -> Self {
-        SList::Cons(v, Box::new(SList::Nil))
+        SList::new(v, SList::Nil)
     }
 }
 
