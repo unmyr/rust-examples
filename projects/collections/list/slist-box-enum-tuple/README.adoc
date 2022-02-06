@@ -116,31 +116,6 @@ pub enum SList<T> {
 }
 
 impl<T> SList<T> {
-    fn next_ref_mut(&mut self) -> Option<&mut Box<SList<T>>> {
-        match self {
-            SList::Nil => None,
-            SList::Cons(_, n_ref) => Some(n_ref),
-        }
-    }
-
-    fn is_cons(&self) -> bool {
-        match self {
-            SList::Nil => false,
-            SList::Cons(_, _) => true,
-        }
-    }
-
-    fn replace(&mut self, v: T, node: SList<T>) {
-        match self {
-            SList::Nil => {
-                let _ = std::mem::replace(
-                    self, SList::Cons(v, Box::new(node))
-                );
-            },
-            SList::Cons(_v_ref, _node_ref) => {},
-        }
-    }
-
     /// # Examples
     ///
     /// ```
@@ -157,11 +132,13 @@ impl<T> SList<T> {
     pub fn push_back(&mut self, v: T) {
         let mut cur_box_ref = self;
 
-        while cur_box_ref.is_cons() {
-            cur_box_ref = cur_box_ref.next_ref_mut().unwrap();
+        while let SList::Cons(_, n_ref) = cur_box_ref {
+            cur_box_ref = n_ref;
         }
 
-        cur_box_ref.replace(v, SList::Nil);
+        let _ = std::mem::replace(
+            cur_box_ref, SList::Cons(v, Box::new(SList::Nil))
+        );
     }
 
     /// # Examples
