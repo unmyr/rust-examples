@@ -20,3 +20,187 @@ $ cd slist-box-enum-tuple/
 === References
 
 * https://doc.rust-lang.org/std/boxed/struct.Box.html[Box in std::boxed - Rust^]
+
+=== Codes
+
+* push_back()
++
+[source,rust]
+.src/bin/slist_box_enum_tuple_push_back.rs
+----
+use slist_box_enum_tuple::SList;
+
+fn main() {
+    let mut list: SList<u8> = Default::default();
+    assert_eq!(format!("{:?}", list), "SList(Nil)");
+
+    list.push_back(1);
+    assert_eq!(
+        format!("{:?}", list),
+        "SList(1) -> SList(Nil)"
+    );
+
+    list.push_back(2);
+    assert_eq!(
+        format!("{:?}", list),
+        "SList(1) -> SList(2) -> SList(Nil)"
+    );
+
+    list.push_back(3);
+    assert_eq!(
+        format!("{:?}", list),
+        "SList(1) -> SList(2) -> SList(3) -> SList(Nil)"
+    );
+}
+----
++
+[source,console]
+----
+$ cargo run --bin slist_box_enum_tuple_push_back
+   Compiling slist-box-enum-tuple v0.1.0 (.../list/slist-box-enum-tuple)
+    Finished dev [unoptimized + debuginfo] target(s) in 3.66s
+     Running `.../target/debug/slist_box_enum_tuple_push_back`
+----
+
+
+* push_front()
++
+[source,rust]
+.src/bin/slist_box_enum_tuple_push_front.rs
+----
+use slist_box_enum_tuple::SList;
+
+fn main() {
+    let mut list: SList<u8> = Default::default();
+    assert_eq!(format!("{:?}", list), "SList(Nil)");
+
+    list.push_front(3);
+    assert_eq!(
+        format!("{:?}", list),
+        "SList(3) -> SList(Nil)"
+    );
+
+    list.push_front(2);
+    assert_eq!(
+        format!("{:?}", list),
+        "SList(2) -> SList(3) -> SList(Nil)"
+    );
+
+    list.push_front(1);
+    assert_eq!(
+        format!("{:?}", list),
+        "SList(1) -> SList(2) -> SList(3) -> SList(Nil)"
+    );
+
+    println!("{list:?}");
+}
+----
++
+[source,console]
+----
+$ cargo run --bin slist_box_enum_tuple_push_front
+   Compiling slist-box-enum-tuple v0.1.0 (.../list/slist-box-enum-tuple)
+    Finished dev [unoptimized + debuginfo] target(s) in 9.23s
+     Running `.../target/debug/slist_box_enum_tuple_push_front`
+SList(1) -> SList(2) -> SList(3) -> SList(Nil)
+----
+
+[source,rust]
+.src/lib.rs
+----
+use std::fmt::{Debug, Formatter, Result};
+
+pub enum SList<T> {
+    Cons(T, Box<SList<T>>),
+    Nil,
+}
+
+impl<T> SList<T> {
+    fn next_ref_mut(&mut self) -> Option<&mut Box<SList<T>>> {
+        match self {
+            SList::Nil => None,
+            SList::Cons(_, n_ref) => Some(n_ref),
+        }
+    }
+
+    fn is_cons(&self) -> bool {
+        match self {
+            SList::Nil => false,
+            SList::Cons(_, _) => true,
+        }
+    }
+
+    fn replace(&mut self, v: T, node: SList<T>) {
+        match self {
+            SList::Nil => {
+                let _ = std::mem::replace(
+                    self, SList::Cons(v, Box::new(node))
+                );
+            },
+            SList::Cons(_v_ref, _node_ref) => {},
+        }
+    }
+
+    /// # Examples
+    ///
+    /// ```
+    /// use slist_box_enum_tuple::SList;
+    /// let mut list: SList<u8> = Default::default();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// list.push_back(3);
+    /// assert_eq!(
+    ///     format!("{:?}", &list).as_str(),
+    ///     "SList(1) -> SList(2) -> SList(3) -> SList(Nil)"
+    /// );
+    /// ```
+    pub fn push_back(&mut self, v: T) {
+        let mut cur_box_ref = self;
+
+        while cur_box_ref.is_cons() {
+            cur_box_ref = cur_box_ref.next_ref_mut().unwrap();
+        }
+
+        cur_box_ref.replace(v, SList::Nil);
+    }
+
+    /// # Examples
+    ///
+    /// ```
+    /// use slist_box_enum_tuple::SList;
+    /// let mut list: SList<u8> = Default::default();
+    /// list.push_front(1);
+    /// list.push_front(2);
+    /// list.push_front(3);
+    /// assert_eq!(
+    ///     format!("{:?}", &list).as_str(),
+    ///     "SList(3) -> SList(2) -> SList(1) -> SList(Nil)"
+    /// );
+    /// ```
+    pub fn push_front(&mut self, v: T) {
+        let head_node: SList<T>;
+        head_node = std::mem::replace(self, SList::Nil);
+
+        let _ = std::mem::replace(
+            self, SList::Cons(v, Box::new(head_node))
+        );
+    }
+}
+
+impl<T> Default for SList<T> {
+    fn default() -> Self { SList::Nil }
+}
+
+impl<T: Debug> Debug for SList<T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        if let SList::Cons(v, n) = self {
+            write!(f, "SList({v:?}) -> {n:?}")
+        } else {
+            write!(f, "SList(Nil)")
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests;
+----

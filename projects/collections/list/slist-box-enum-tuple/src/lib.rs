@@ -6,6 +6,54 @@ pub enum SList<T> {
 }
 
 impl<T> SList<T> {
+    fn next_ref_mut(&mut self) -> Option<&mut Box<SList<T>>> {
+        match self {
+            SList::Nil => None,
+            SList::Cons(_, n_ref) => Some(n_ref),
+        }
+    }
+
+    fn is_cons(&self) -> bool {
+        match self {
+            SList::Nil => false,
+            SList::Cons(_, _) => true,
+        }
+    }
+
+    fn replace(&mut self, v: T, node: SList<T>) {
+        match self {
+            SList::Nil => {
+                let _ = std::mem::replace(
+                    self, SList::Cons(v, Box::new(node))
+                );
+            },
+            SList::Cons(_v_ref, _node_ref) => {},
+        }
+    }
+
+    /// # Examples
+    ///
+    /// ```
+    /// use slist_box_enum_tuple::SList;
+    /// let mut list: SList<u8> = Default::default();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// list.push_back(3);
+    /// assert_eq!(
+    ///     format!("{:?}", &list).as_str(),
+    ///     "SList(1) -> SList(2) -> SList(3) -> SList(Nil)"
+    /// );
+    /// ```
+    pub fn push_back(&mut self, v: T) {
+        let mut cur_box_ref = self;
+
+        while cur_box_ref.is_cons() {
+            cur_box_ref = cur_box_ref.next_ref_mut().unwrap();
+        }
+
+        cur_box_ref.replace(v, SList::Nil);
+    }
+
     /// # Examples
     ///
     /// ```
