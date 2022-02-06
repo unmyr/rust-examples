@@ -47,13 +47,14 @@ impl<T> SList<T> {
     /// );
     /// ```
     pub fn push_back(&mut self, v: T) {
-        let mut cur_rc_ref_mut = self;
+        let mut cur_slist_ref_mut = self;
 
-        while let SList::Cons(_, next_rc_ref_mut) = cur_rc_ref_mut {
-            cur_rc_ref_mut = Rc::get_mut(next_rc_ref_mut).unwrap();
+        while let SList::Cons(_, next_rc_ref_mut) = cur_slist_ref_mut {
+            // &mut SList<T> <- &mut Rc<SList<T>>
+            cur_slist_ref_mut = Rc::get_mut(next_rc_ref_mut).unwrap();
         }
 
-        let _ = std::mem::replace(cur_rc_ref_mut, SList::from(v));
+        let _ = std::mem::replace(cur_slist_ref_mut, SList::from(v));
     }
 
     /// # Examples

@@ -24,13 +24,14 @@ impl<T> SList<T> {
     /// );
     /// ```
     pub fn push_back(&mut self, v: T) {
-        let mut cur_box_ref = self;
+        let mut cur_slist_ref_mut = self;
 
-        while let SList::Cons(_, n_ref) = cur_box_ref {
-            cur_box_ref = n_ref;
+        while let SList::Cons(_, next_boxed_ref_mut) = cur_slist_ref_mut {
+            // &mut SList<T> <- &mut Box<SList<T>>
+            cur_slist_ref_mut = next_boxed_ref_mut;
         }
 
-        let _ = std::mem::replace(cur_box_ref, SList::from(v));
+        let _ = std::mem::replace(cur_slist_ref_mut, SList::from(v));
     }
 
     /// # Examples
