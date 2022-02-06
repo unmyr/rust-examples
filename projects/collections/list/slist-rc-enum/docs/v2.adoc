@@ -111,9 +111,26 @@ use slist_rc_enum::SList;
 
 fn main() {
     let mut list: SList<u8> = Default::default();
-    println!("{list:?}"); list.push_front(3);
-    println!("{list:?}"); list.push_front(2);
-    println!("{list:?}"); list.push_front(1);
+    assert_eq!(format!("{:?}", list), "SList(Nil)");
+
+    list.push_front(3);
+    assert_eq!(
+        format!("{:?}", list),
+        "SList(3) -> SList(Nil)"
+    );
+
+    list.push_front(2);
+    assert_eq!(
+        format!("{:?}", list),
+        "SList(2) -> SList(3) -> SList(Nil)"
+    );
+
+    list.push_front(1);
+    assert_eq!(
+        format!("{:?}", list),
+        "SList(1) -> SList(2) -> SList(3) -> SList(Nil)"
+    );
+
     println!("{list:?}");
 }
 ----
@@ -122,11 +139,8 @@ fn main() {
 ----
 $ cargo run --bin slist_rc_enum_push_front
    Compiling slist-rc-enum v0.1.0 (.../list/slist-rc-enum)
-    Finished dev [unoptimized + debuginfo] target(s) in 3.94s
+    Finished dev [unoptimized + debuginfo] target(s) in 5.17s
      Running `.../target/debug/slist_rc_enum_push_front`
-SList(Nil)
-SList(3) -> SList(Nil)
-SList(2) -> SList(3) -> SList(Nil)
 SList(1) -> SList(2) -> SList(3) -> SList(Nil)
 ----
 
