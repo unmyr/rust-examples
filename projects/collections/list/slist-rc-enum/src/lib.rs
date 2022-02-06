@@ -7,8 +7,8 @@ pub enum SList<T> {
 }
 
 impl<T> SList<T> {
-    pub fn new() -> Self {
-        SList::Nil
+    pub fn new(v: T, next: SList<T>) -> Self {
+        SList::Cons(v, Rc::new(next))
     }
 
     fn is_nil(&self) -> bool {
@@ -47,25 +47,13 @@ impl<T> SList<T> {
     /// );
     /// ```
     pub fn push_back(&mut self, v: T) {
-        let mut cur_rc_ref = match self {
-            SList::Nil => {
-                let _ = std::mem::replace(
-                    self, SList::Cons(v, Rc::new(SList::Nil)) 
-                );
-                return;
-            },
-            SList::Cons(_, next_rc_ref) => next_rc_ref,
-        };
+        let mut cur_rc_ref_mut = self;
 
-        while let Some(node_ref) = Rc::get_mut(cur_rc_ref) {
-            cur_rc_ref = match node_ref {
-                SList::Cons(_, next_rc_ref) => next_rc_ref,
-                SList::Nil => {
-                    *node_ref = SList::Cons(v, Rc::new(SList::Nil));
-                    return;
-                },
-            };
+        while let SList::Cons(_, next_rc_ref_mut) = cur_rc_ref_mut {
+            cur_rc_ref_mut = Rc::get_mut(next_rc_ref_mut).unwrap();
         }
+
+        let _ = std::mem::replace(cur_rc_ref_mut, SList::from(v));
     }
 
     /// # Examples
@@ -85,9 +73,7 @@ impl<T> SList<T> {
         let head_node: SList<T>;
         head_node = std::mem::replace(self, SList::Nil);
 
-        let _ = std::mem::replace(
-            self, SList::Cons(v, Rc::new(head_node))
-        );
+        let _ = std::mem::replace(self, SList::new(v, head_node));
     }
 
     /// # Examples
@@ -165,9 +151,7 @@ impl<T> SList<T> {
 }
 
 impl<T> From<T> for SList<T> {
-    fn from(v: T) -> Self {
-        SList::Cons(v, Rc::new(SList::Nil))
-    }
+    fn from(v: T) -> Self { SList::new(v, SList::Nil) }
 }
 
 impl<T> Default for SList<T> {

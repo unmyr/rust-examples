@@ -2,11 +2,23 @@ use slist_rc_enum::SList;
 
 fn main() {
     let mut list: SList<u8> = Default::default();
-    println!("{:?}", &list);
+    assert_eq!(format!("{:?}", list), "SList(Nil)");
+
     list.push_back(1);
-    println!("{:?}", &list);
+    assert_eq!(
+        format!("{:?}", list),
+        "SList(1) -> SList(Nil)"
+    );
+
     list.push_back(2);
-    println!("{:?}", &list);
+    assert_eq!(
+        format!("{:?}", list),
+        "SList(1) -> SList(2) -> SList(Nil)"
+    );
+
     list.push_back(3);
-    println!("{:?}", &list);
+    assert_eq!(
+        format!("{:?}", list),
+        "SList(1) -> SList(2) -> SList(3) -> SList(Nil)"
+    );
 }
