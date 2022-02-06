@@ -28,6 +28,37 @@ impl<T: Clone> SList<T> {
     /// ```
     /// use slist_box_enum_struct::SList;
     /// let mut list: SList<u8> = Default::default();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// list.push_back(3);
+    /// assert_eq!(
+    ///     format!("{:?}", &list).as_str(),
+    ///     "SList(1) -> SList(2) -> SList(3) -> SList(Nil)"
+    /// );
+    /// ```
+    pub fn push_back(&mut self, v: T) {
+        let mut cur_box_ref = self;
+
+        while let SList::Cons(cons_cell_ref) = cur_box_ref {
+            cur_box_ref = &mut *cons_cell_ref.next;
+        }
+
+        let _ = std::mem::replace(
+            cur_box_ref,
+            SList::Cons(
+                ConsCell {
+                    value: v,
+                    next: Box::new(SList::Nil)
+                }
+            )
+        );
+    }
+
+    /// # Examples
+    ///
+    /// ```
+    /// use slist_box_enum_struct::SList;
+    /// let mut list: SList<u8> = Default::default();
     /// list.push_front(1);
     /// list.push_front(2);
     /// list.push_front(3);
