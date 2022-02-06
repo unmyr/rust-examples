@@ -136,9 +136,7 @@ impl<T> SList<T> {
             cur_box_ref = n_ref;
         }
 
-        let _ = std::mem::replace(
-            cur_box_ref, SList::Cons(v, Box::new(SList::Nil))
-        );
+        let _ = std::mem::replace(cur_box_ref, SList::from(v));
     }
 
     /// # Examples
@@ -161,6 +159,12 @@ impl<T> SList<T> {
         let _ = std::mem::replace(
             self, SList::Cons(v, Box::new(head_node))
         );
+    }
+}
+
+impl<T> From<T> for SList<T> {
+    fn from(v: T) -> Self {
+        SList::Cons(v, Box::new(SList::Nil))
     }
 }
 
