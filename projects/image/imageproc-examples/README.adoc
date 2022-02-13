@@ -12,6 +12,7 @@ endif::[]
 == ImageProc examples
 
 * https://docs.rs/imageproc/latest/imageproc/index.html[imageproc - Rust^]
+* https://github.com/image-rs/imageproc/tree/master/examples[imageproc/examples at master · image-rs/imageproc^]
 
 === Set up a new project
 . Set up a new project, and go to the projects directory.
