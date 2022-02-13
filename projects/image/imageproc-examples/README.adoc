@@ -1,0 +1,51 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+:icons: font
+
+ifndef::imagesdir[]
+:imagesdir: images
+endif::[]
+
+endif::[]
+
+== ImageProc examples
+
+* https://docs.rs/imageproc/latest/imageproc/index.html[imageproc - Rust^]
+
+=== Set up a new project
+. Set up a new project, and go to the projects directory.
++
+[source,console]
+----
+$ cargo new imageproc-examples
+     Created library `imageproc-examples` package
+$ cd imageproc-examples/
+----
+
+=== Code
+
+[source,rust]
+.src/main.rs
+----
+use std::env;
+use std::path::Path;
+use image::{Rgb, RgbImage};
+use imageproc::drawing::draw_filled_circle_mut;
+
+fn main() {
+    let arg = if env::args().count() == 2 {
+        env::args().nth(1).unwrap()
+    } else {
+        panic!("Please enter a target file path")
+    };
+
+    let path = Path::new(&arg);
+    let blue  = Rgb([0u8, 0u8, 255u8]);
+    let mut image = RgbImage::new(200, 200);
+    draw_filled_circle_mut(&mut image, (150, 100), 15, blue);
+    image.save(path).unwrap();
+}
+----
+
+image::main.png[]
