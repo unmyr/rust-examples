@@ -1,0 +1,18 @@
+=== Create
+
+. Let's create a new library project called `collatz`
++
+[source,console]
+----
+$ cargo new collatz --lib
+     Created library `collatz` package
+$ cd collatz/
+----
+
+. The cargo test command runs all tests in our project.
++
+[source,console]
+----
+$ cargo test
+...
+----

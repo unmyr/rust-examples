@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "collatz",
     "digits_sum_has_nth_roots",
     "factorial",
     "itertools-examples",
