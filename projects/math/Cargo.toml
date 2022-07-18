@@ -8,5 +8,6 @@ members = [
     "ndarray-example-mutmal",
     "necklace-permutations",
     "permutation",
+    "primes",
     "tsp-basic",
 ]

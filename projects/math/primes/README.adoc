@@ -1,0 +1,30 @@
+=== Create a new project
+
+. Let's create a new library project called `primes`
++
+[source,console]
+----
+$ cargo new primes --lib
+     Created library `primes` package
+$ cd primes/
+----
+
+=== Tests
+
+. The cargo test command runs all tests in our project.
++
+[source,console]
+----
+$ cargo test
+...
+----
+
+=== Run
+
+[source,console]
+----
+$ cargo run 2 100
+    Finished dev [unoptimized + debuginfo] target(s) in 0.15s
+     Running `.../rust-examples/projects/math/target/debug/main 2 100`
+25 [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]
+----
