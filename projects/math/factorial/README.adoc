@@ -1,6 +1,6 @@
 :imagesdir: images
 
-=== Create
+=== Create a new project
 
 . Let's create a new library project called `factorial`
 +
@@ -24,6 +24,8 @@ pub fn factorial_recursive_if_else(n: u32) -> u32 {
 
 ...
 ----
+
+=== Tests
 
 . The cargo test command runs all tests in our project.
 +

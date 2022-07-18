@@ -1,6 +1,6 @@
 :imagesdir: images
 
-=== Create
+=== Create a new project
 
 . Let's create a new library project called `itertools-examples`
 +

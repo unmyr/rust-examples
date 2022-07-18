@@ -1,4 +1,4 @@
-=== Create
+=== Create a new project
 
 . Let's create a new library project called `collatz`
 +
@@ -8,6 +8,8 @@ $ cargo new collatz --lib
      Created library `collatz` package
 $ cd collatz/
 ----
+
+=== Tests
 
 . The cargo test command runs all tests in our project.
 +
