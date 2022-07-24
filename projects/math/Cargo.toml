@@ -3,6 +3,7 @@ members = [
     "collatz",
     "digits_sum_has_nth_roots",
     "factorial",
+    "group-o2-c2",
     "itertools-examples",
     "nalgebra-example-mutmal",
     "ndarray-example-mutmal",

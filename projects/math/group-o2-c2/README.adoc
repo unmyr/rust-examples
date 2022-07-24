@@ -1,0 +1,20 @@
+=== Create a new project
+
+. Let's create a new library project called `collatz`
++
+[source,console]
+----
+$ cargo new --lib group-o2-c2
+     Created library `group-o2-c2` package
+$ cd group-o2-c2/
+----
+
+=== Tests
+
+. The cargo test command runs all tests in our project.
++
+[source,console]
+----
+$ cargo test
+...
+----
