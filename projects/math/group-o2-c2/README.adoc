@@ -18,3 +18,12 @@ $ cd group-o2-c2/
 $ cargo test
 ...
 ----
+
+=== C~2~
+
+[cols="1h,1d,1d" options="header,autowidth",title="XOR"]
+|===
+ | ⊕ | 0 | 1
+h| 0 | 0 | 1
+h| 1 | 1 | 0
+|===
