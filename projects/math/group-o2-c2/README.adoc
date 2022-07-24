@@ -27,3 +27,16 @@ $ cargo test
 h| 0 | 0 | 1
 h| 1 | 1 | 0
 |===
+
+=== Run
+
+[source,console]
+----
+$ cargo run
+    Finished dev [unoptimized + debuginfo] target(s) in 0.14s
+     Running `.../rust-examples/projects/math/target/debug/main`
+1^(-1) = 1
+0^(-1) = 0
+1 ⊕ 1 ⊕ 1 = 1
+1 ⊕ 1 ⊕ 1 ⊕ 1 = 0
+----
