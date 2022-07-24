@@ -33,8 +33,8 @@ h| 1 | 1 | 0
 [source,console]
 ----
 $ cargo run
-    Finished dev [unoptimized + debuginfo] target(s) in 0.14s
-     Running `.../rust-examples/projects/math/target/debug/main`
+    Finished dev [unoptimized + debuginfo] target(s) in 0.16s
+     Running `.../rust-examples/projects/math/target/debug/group_o2_c2`
 1^(-1) = 1
 0^(-1) = 0
 1 ⊕ 1 ⊕ 1 = 1
