@@ -1,6 +1,6 @@
 === Create a new project
 
-. Let's create a new library project called `collatz`
+. Let's create a new library project called `group-o2-c2`
 +
 [source,console]
 ----
