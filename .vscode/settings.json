@@ -16,6 +16,7 @@
     "Cacher",
     "clippy",
     "collatz",
+    "consts",
     "debuginfo",
     "Deque",
     "deref",

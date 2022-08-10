@@ -5,6 +5,7 @@ members = [
     "factorial",
     "group-o2-c2",
     "itertools-examples",
+    "monte-carlo",
     "nalgebra-example-mutmal",
     "ndarray-example-mutmal",
     "necklace-permutations",

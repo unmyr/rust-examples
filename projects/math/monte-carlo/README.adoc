@@ -1,0 +1,37 @@
+=== Create a new project
+
+. Let's create a new library project called `monte-carlo`
++
+[source,console]
+----
+$ cargo new --lib monte-carlo
+     Created library `monte-carlo` package
+$ cd monte-carlo/
+----
+
+=== Tests
+
+. The cargo test command runs all tests in our project.
++
+[source,console]
+----
+$ cargo test
+...
+----
+
+=== Run
+
+[source,console]
+----
+$ cargo run --release
+    Finished release [optimized] target(s) in 0.28s
+     Running `.../projects/math/target/release/monte_carlo`
+         1, 0.0000000000 3.1415926536
+        10, 2.8000000000 0.3415926536
+       100, 3.2400000000 0.0984073464
+      1000, 3.2280000000 0.0864073464
+     10000, 3.1232000000 0.0183926536
+    100000, 3.1342800000 0.0073126536
+   1000000, 3.1378120000 0.0037806536
+  10000000, 3.1416692000 0.0000765464
+----
