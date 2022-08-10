@@ -9,7 +9,7 @@ include $(DOC_ROOT)/asciidoc.mk
 
 HTML_LIST=\
 mkdir_and_copy \
-$(DEST_DIR)/math.html
+$(DEST_DIR)/math.html \
 $(DEST_DIR)/index.html
 
 .PHONY: adoc mkdir_and_copy
