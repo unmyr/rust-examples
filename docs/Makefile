@@ -9,7 +9,14 @@ include $(DOC_ROOT)/asciidoc.mk
 
 HTML_LIST=\
 mkdir_and_copy \
+$(DEST_DIR)/algorithms.html \
+$(DEST_DIR)/install.html \
+$(DEST_DIR)/interior-mutability.html \
+$(DEST_DIR)/match-expr.html \
 $(DEST_DIR)/math.html \
+$(DEST_DIR)/smart-pointers.html \
+$(DEST_DIR)/strings.html \
+$(DEST_DIR)/unsafe.html \
 $(DEST_DIR)/index.html
 
 .PHONY: adoc mkdir_and_copy

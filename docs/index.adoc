@@ -7,3 +7,1830 @@ include::header.adoc[]
 endif::[]
 
 == Rust examples
+
+* https://play.rust-lang.org/[Rust Playground | play.rust-lang.org]
+* https://rust-lang.github.io/api-guidelines/[Rust API Guidelines^]
+  (link:https://sinkuu.github.io/api-guidelines/[ja^])
+* https://github.com/rust-lang/rust[rust-lang/rust: Empowering everyone to build reliable and efficient software.^]
+** https://github.com/rust-lang/rust/tree/master/library/std/src/sys[rust/library/std/src/sys/^]
+* http://www.nct9.ne.jp/m_hiroi/linux/rust.html[Linux Programming / お気楽 Rust プログラミング超入門^]
+* https://qiita.com/o8vm/items/713ad93bd3fa7aa548fc[『みんなのデータ構造』を読んで Rust で実装した - Qiita^] +
+  rust binary tree left right refcell - Google 検索
+
+=== Documents
+
+* https://keens.github.io/blog/2017/01/15/rustnomoju_runokirikata/[Rustのモジュールの使い方 | κeenのHappy Hacκing Blog^] +
+  rust multi module - Bing
+** https://github.com/BurntSushi/fst/blob/master/src/lib.rs[fst/lib.rs at master · BurntSushi/fst^]
+
+[source,rust]
+----
+/// # Examples
+///
+/// ```
+/// use hello_calc;
+/// assert_eq!(hello_calc::add(1, 2), 3);
+/// ```
+pub fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+----
+
+=== Modules
+
+[source,rust]
+.src/lib.rs
+----
+pub struct MyData {}  //<1>
+
+impl TspData {
+    pub fn load(  //<2>
+        _: impl AsRef<Path>
+    ) -> Result<MyData, String> {
+        //...
+    }
+}
+----
+<1> `pub` required.
+<2> `pub` required.
+
+[source,toml]
+.Cargo.toml
+----
+[package]
+name = "mypkg"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "mylib"  # <1>
+path = "src/lib.rs"
+
+[dependencies]
+regex = "1"
+rand = "0.8"
+necklace-permutations = { path = "../necklace-permutations" }
+----
+<1> Name of library.
+
+[source,rust]
+.src/main.rs
+----
+use mylib::MyData;  //<1>
+
+fn main() {
+    MyData.load(&std::path::Path::new("my.dat"));
+}
+----
+<1> Use `mylib`.
+
+=== Tests
+
+==== warning: unused import
+
+[source,rust]
+----
+pub fn gen_perm_with_depth<T>(v: Vec<T>, m: usize, out: &mut Vec<Vec<T>>)
+where T: Clone + std::cmp::PartialEq
+{
+    // ...
+}
+
+mod tests {
+    use super::gen_perm_with_depth;  // warning: unused import?
+
+    #[test]
+    fn test_gen_perm_0() {
+        let mut result = Vec::<Vec<u32>>::new();
+        gen_perm_with_depth(Vec::new(), 0, &mut result);
+        println!("{:?}", result);
+        assert_eq!(result, vec![vec![]]);
+    }
+----
+
+.Results
+----
+warning: unused import: `super::gen_perm_with_depth`
+  --> permutation/src/v3_recursive_unordered_gen.rs:19:9
+   |
+19 |     use super::gen_perm_with_depth;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+----
+
+`#[cfg(test)]` is missing!
+
+[source,diff]
+----
+@@ -15,6 +15,7 @@ where T: Clone + std::cmp::PartialEq
+     }
+ }
+
++#[cfg(test)]
+ mod tests {
+     use super::gen_perm_with_depth;
+----
+
+=== print
+
+[source,rust]
+----
+    dbg!(&node);
+    println!("{:?}", node);
+    println!("{:#?}", &node);
+----
+
+=== Composite Types
+
+==== Struct
+
+[source,rust]
+.structs.rs
+----
+#[derive(Debug)]
+struct Vertex {
+    #[allow(dead_code)]
+    x: u32,
+    #[allow(dead_code)]
+    y: u32,
+}
+
+fn main() {
+    println!("{:?}", Vertex { x: 1, y: 2 });
+}
+----
+
+.Results
+----
+Vertex { x: 1, y: 2 }
+----
+
+==== Struct Fields
+
+[source,rust]
+.structs_fields.rs
+----
+struct Vertex {
+    x: u32,
+    #[allow(dead_code)]
+    y: u32,
+}
+
+fn main() {
+    let mut v = Vertex { x: 1, y: 2 };
+    v.x = 4;
+    println!("{:?}", v.x);
+}
+----
+
+----
+4
+----
+
+==== Pointers to structs
+
+[source,rust]
+.structs_pointer.rs
+----
+#[derive(Debug)]
+struct Vertex {
+    x: u32,
+    #[allow(dead_code)]
+    y: u32,
+}
+
+fn main() {
+    let mut v = Vertex { x: 1, y: 2 };
+    let mut p = &mut v;
+    p.x = 10_u32.pow(9);
+    println!("{:?}", v);
+}
+----
+
+----
+Vertex { x: 1000000000, y: 2 }
+----
+
+==== store a closure in a struct in Rust
+
+[source,rust]
+----
+struct Node {
+    x: u32,
+    y: u32,
+}
+
+struct Distance
+{
+    pub distance: Box<dyn Fn(Node, Node) -> f32>,
+}
+
+impl Distance
+{
+    fn new() -> Distance {
+        Distance {
+            distance: Box::new(
+                |a: Node, b: Node| -> f32 {
+                    f32::sqrt(((b.x - a.x).pow(2) + (b.y - a.y).pow(2)) as f32)
+                }
+            )
+        }
+    }
+}
+
+fn main() {
+    let n1 = Node {x: 0, y: 0};
+    let n2 = Node {x: 3, y: 4};
+    let obj = Distance::new();
+    println!("{:?}", (obj.distance)(n1, n2));
+}
+----
+
+* https://stackoverflow.com/questions/27831944/how-do-i-store-a-closure-in-a-struct-in-rust[How do I store a closure in a struct in Rust? - Stack Overflow^]
+* https://newbedev.com/how-do-i-store-a-closure-in-a-struct-in-rust[How do I store a closure in a struct in Rust? | Newbedev^] +
+  rust closure as struct - Google 検索
+
+=== Enum
+
+[source,rust]
+----
+#[derive(Debug)]
+enum Fruit { Apple, Orange, Kiwi }
+
+fn talk<'a>(fruit: &Fruit) -> &'a str {
+	match fruit {
+		Fruit::Apple => "I like apples.",
+		Fruit::Orange => "I like oranges.",
+		Fruit::Kiwi => "I like kiwis."
+	}
+}
+
+fn main() {
+	for fruit in [Fruit::Apple, Fruit::Orange, Fruit::Kiwi] {
+		println!("Fruit({:?}): {}", fruit, talk(&fruit));
+	}
+}
+----
+
+.Results
+----
+Fruit(Apple): I like apples.
+Fruit(Orange): I like oranges.
+Fruit(Kiwi): I like kiwis.
+----
+
+
+==== Basic usages of Option
+
+* Some and None
++
+[source,rust]
+----
+fn main() {
+    if let Some(x) = Some(5 as u32) {
+        println!("x={}", x);
+    }
+
+    if let Some(x) = None::<u32> {
+        println!("x={}", x);
+    } else {
+        println!("x is None");
+    }
+}
+----
++
+.Results
+----
+x=5
+x is None
+----
+
+* using Option
++
+[source,rust]
+----
+fn main() {
+    let some_option_value: Option<u32> = Some(5);
+    if let Some(x) = some_option_value {
+        println!("x={}", x);
+    }
+
+    let none_option_value: Option<u32> = None;
+    if let Some(x) = none_option_value {
+        println!("x={}", x);
+    } else {
+        println!("x is None");
+    }
+}
+----
++
+.Results
+----
+x=5
+x is None
+----
+
+* Options and match
++
+[source,rust]
+----
+fn print_typename<T>(_: T) {
+    println!("{}", std::any::type_name::<T>());
+}
+
+fn main() {
+    let some_values: [Option<u32>; 2] = [
+        Some(5),
+        None
+    ];
+    print_typename(some_values);
+    for some_value in some_values {
+        match some_value {
+            Some(x) => println!("Some value is a {}.", x),
+            None => println!("Some value is None.")
+        }
+    }
+}
+----
++
+.Results
+----
+[core::option::Option<u32>; 2]
+Some value is a 5.
+Some value is None.
+----
+
+=== Arrays
+
+* https://doc.rust-lang.org/std/primitive.array.html[array - Rust^] +
+  rust array - Google Search
+* https://qiita.com/osanshouo/items/f7cb3a0181d37241d114[[Rust\] [T; N], Vec<T>, &[T] のメモリレイアウト - Qiita^] +
+  rust vec stack or heap - Google 検索
+
+==== Initialize an array
+
+.Immutable
+* 型推論に任せた書き方
++
+[source,rust]
+.array.rs
+----
+fn main() {
+    let a = ["Hello", "World"];
+    println!("{:?}", a);
+    let primes = [2, 3, 5, 7, 11, 13];
+    println!("{:?}", primes);
+}
+----
+
+* Explicitly specify the type (明示的に型を指定する)
++
+[source,rust]
+.array.rs
+----
+fn main() {
+    let a: [&str; 2] = ["Hello", "World"];
+    println!("{:?}", a);
+    let primes: [u32; 6] = [2, 3, 5, 7, 11, 13];
+    println!("{:?}", primes);
+}
+----
+
+.Results
+----
+Hello World
+[2, 3, 5, 7, 11, 13]
+----
+
+Primitive型以外は Copy trait は通常実装されていない。
+String型も例外ではなく、それ故に `[String::from(""); 2]` のような初期化は行えない。
+ただ、 clone() は大抵は実装されているので `vec!` マクロならば空文字列で初期化することができる。
+
+* Initialize with `vec!`
++
+[source,rust]
+.array.rs
+----
+fn main() {
+    let mut a: Vec<String> = vec![String::from(""); 2];
+    a[0] = String::from("Hello");
+    a[1] = String::from("World");
+    println!("{:?}", a);
+    let primes: [u32; 6] = [2, 3, 5, 7, 11, 13];
+    println!("{:?}", primes);
+}
+----
+
+* Initialize with an array of strings
++
+[source,rust]
+.array.rs
+----
+fn main() {
+    let mut a: [String; 2] = [String::from(""), String::from("")];
+    a[0] = String::from("Hello");
+    a[1] = String::from("World");
+    println!("{} {}", a[0], a[1]);
+    let primes: [u32; 6] = [2, 3, 5, 7, 11, 13];
+    println!("{:?}", primes);
+}
+----
++
+[NOTE]
+.String型は一括で初期化はできない
+====
+[source,rust]
+.array.rs
+----
+fn main() {
+    let mut a: [String; 2] = [String::from(""); 2];
+    a[0] = String::from("Hello");
+    a[1] = String::from("World");
+    println!("{:?}", a);
+    let primes: [u32; 6] = [2, 3, 5, 7, 11, 13];
+    println!("{:?}", primes);
+}
+----
+
+----
+error[E0277]: the trait bound `String: Copy` is not satisfied
+ --> src/main.rs:2:30
+  |
+2 |     let mut a: [String; 2] = [String::from(""); 2];
+  |                              ^^^^^^^^^^^^^^^^^^^^^ the trait `Copy` is not implemented for `String`
+  |
+  = note: the `Copy` trait is required because the repeated element will be copied
+----
+====
+
+.References
+* https://doc.rust-lang.org/std/macro.vec.html[vec in std - Rust^] +
+  rust vec macro - Google 検索
+* https://teratail.com/questions/253918[Rust - RustのCloneとCopyについての素朴な疑問｜teratail^] +
+  rust string copy trait - Google 検索
+
+==== Allocate size
+
+[source,rust]
+----
+use std::mem::size_of_val;
+
+fn main() {
+    let v = vec![1, 2, 3];
+    assert_eq!(size_of_val(&v), 3 * std::mem::size_of::<usize>());
+    println!(
+        "stack={} size_of_val(&v[0])={}, capacity={}, len={}",
+        size_of_val(&v), size_of_val(&v[0]), v.capacity(), v.len()
+    );
+
+    let v: Vec<u8> = vec![1, 2, 3];
+    println!(
+        "stack={} size_of_val(&v[0])={}, capacity={}, len={}",
+        size_of_val(&v), size_of_val(&v[0]), v.capacity(), v.len()
+    );
+
+    let v: Vec<u16> = vec![1, 2, 3];
+    println!(
+        "stack={} size_of_val(&v[0])={}, capacity={}, len={}",
+        size_of_val(&v), size_of_val(&v[0]), v.capacity(), v.len()
+    );
+
+    let mut v: Vec<u32> = Vec::with_capacity(4);
+    v.extend_from_slice(&[ 1, 2, 3 ]);
+    println!(
+        "stack={} size_of_val(&v[0])={}, capacity={}, len={}",
+        size_of_val(&v), size_of_val(&v[0]), v.capacity(), v.len()
+    );
+}
+----
+
+.Results
+----
+stack=24 size_of_val(&v[0])=4, capacity=3, len=3
+stack=24 size_of_val(&v[0])=1, capacity=3, len=3
+stack=24 size_of_val(&v[0])=2, capacity=3, len=3
+stack=24 size_of_val(&v[0])=4, capacity=4, len=3
+----
+
+==== Clone references in Vector
+
+* Clone values in vector
++
+[source,rust]
+----
+fn main() {
+    let mut v1 = vec![String::from("hello")];
+    let v2 = v1.clone();
+    v1[0].push_str(" world");
+    println!("v1={:?}, v2={:?}, std::ptr::eq(v1, v2)={}", v1, v2, std::ptr::eq(&v1[0], &v2[0]));
+    assert_eq!(v1, vec!["hello world"]);
+    assert_eq!(v2, vec!["hello"]);
+}
+----
++
+[source,console]
+.Results
+----
+v1=["hello world"], v2=["hello"], std::ptr::eq(v1, v2)=false
+----
+
+* Get references each cells as immutable
++
+[source,rust]
+.src/bin/clone_each_cells_ref_as_immutable.rs
+----
+use std::rc::Rc;
+
+fn main() {
+    // let mut v1 = vec![Rc::new(String::from("hello"))];
+    let v1 = vec![Rc::new(String::from("hello"))];
+    assert_eq!(Rc::strong_count(&v1[0]), 1);
+    let v2 = v1.clone();
+    assert_eq!(Rc::strong_count(&v1[0]), 2);
+    assert_eq!(Rc::ptr_eq(&v1[0], &v2[0]), true);
+    // v1[0].push_str(" world");  // cannot borrow as mutable
+    println!("v1={:?}, v2={:?}", v1, v2);
+    assert_eq!(*v1[0], String::from("hello"));
+    assert_eq!(*v2[0], String::from("hello"));
+}
+----
++
+[source,console]
+.Results
+----
+$ cargo run --bin clone_each_cells_ref_as_immutable
+   ...
+    Finished dev [unoptimized + debuginfo] target(s) in 3.85s
+     Running `.../target/debug/clone_each_cells_ref_as_immutable`
+v1=["hello"], v2=["hello"]
+----
+
+* Get references whole `Vec` as immutable
++
+[source,rust]
+.src/bin/clone_whole_vec_ref_as_immutable.rs
+----
+use std::rc::Rc;
+
+fn main() {
+    let v1 = Rc::new(vec![String::from("hello")]);
+    assert_eq!(Rc::strong_count(&v1), 1);
+    let v2 = v1.clone();
+    assert_eq!(Rc::strong_count(&v1), 2);
+    assert_eq!(Rc::ptr_eq(&v1, &v2), true);
+    println!("v1={:?}, v2={:?}", v1, v2);
+    assert_eq!(*v1, vec![String::from("hello")]);
+    assert_eq!(*v2, vec![String::from("hello")]);
+}
+----
++
+[source,console]
+.Results
+----
+$ cargo run --bin clone_whole_vec_ref_as_immutable
+   ...
+    Finished dev [unoptimized + debuginfo] target(s) in 5.04s
+     Running `.../target/debug/clone_whole_vec_ref_as_immutable`
+v1=["hello"], v2=["hello"]
+----
+
+* Get references each cells as mutable
++
+[source,rust]
+.src/bin/clone_each_cells_ref_as_mut.rs
+----
+use std::cell::RefCell;
+use std::rc::Rc;
+
+fn main() {
+    let v1 = vec![Rc::new(RefCell::new(String::from("hello")))];
+    let v2 = v1.clone();
+    v1[0].borrow_mut().push_str(" world");
+    println!("v1={:?}, v2={:?}", v1[0].borrow(), v2[0].borrow());
+    assert_eq!(*v1[0].borrow(), String::from("hello world"));
+    assert_eq!(*v2[0].borrow(), String::from("hello world"));
+}
+----
++
+[source,console]
+.Results
+----
+$ cargo run --bin clone_each_cells_ref_as_mut
+   ...
+    Finished dev [unoptimized + debuginfo] target(s) in 3.86s
+     Running `.../target/debug/clone_each_cells_ref_as_mut`
+v1="hello world", v2="hello world"
+----
+
+* Get references whole `Vec` as mutable
++
+[source,rust]
+.src/bin/clone_whole_vec_ref_as_mut.rs
+----
+use std::cell::RefCell;
+use std::rc::Rc;
+
+fn main() {
+    let v1 = Rc::new(RefCell::new(vec![String::from("hello")]));
+    assert_eq!(Rc::strong_count(&v1), 1);
+    let v2 = Rc::clone(&v1);
+    assert_eq!(Rc::strong_count(&v1), 2);
+    assert_eq!(Rc::ptr_eq(&v1, &v2), true);
+    v1.borrow_mut()[0].push_str(" world");
+    println!("v1={:?}, v2={:?}", v1.borrow(), v2.borrow());
+    assert_eq!(*v1.borrow(), vec![String::from("hello world")]);
+    assert_eq!(*v2.borrow(), vec![String::from("hello world")]);
+}
+----
++
+[source,console]
+.Results
+----
+$ cargo run --bin clone_whole_vec_ref_as_mut
+   ...
+    Finished dev [unoptimized + debuginfo] target(s) in 3.98s
+     Running `.../projects/algorithms/target/debug/clone_whole_vec_ref_as_mut`
+v1=["hello world"], v2=["hello world"]
+----
+
+==== Slices
+
+[source,rust]
+.slices.rs
+----
+fn main() {
+    let primes = [2, 3, 5, 7, 11, 13];
+    println!("{:?}", &primes[1..4]);
+}
+----
+
+----
+[3, 5, 7]
+----
+
+==== Slices are like references to arrays
+
+* Failed by immutable borrow
++
+[source,rust]
+.slice_pointers.rs
+----
+fn main() {
+    let mut names = vec![
+        "John",
+        "Paul",
+        "George",
+        "Ringo",
+    ];
+    println!("{:?}", names);
+
+    let a = &names[0..2];
+    let b = &mut names[1..3];
+    println!("{:?} {:?}", a, b);
+
+    b[0] = "XXX";
+    println!("{:?} {:?}", a, b);
+    println!("{:?}", names);
+}
+----
++
+----
+error[E0502]: cannot borrow `names` as mutable because it is also borrowed as immutable
+  --> src/main.rs:11:18
+   |
+10 |     let a = &names[0..2];
+   |              ----- immutable borrow occurs here
+11 |     let b = &mut names[1..3];
+   |                  ^^^^^ mutable borrow occurs here
+12 |     println!("{:?} {:?}", a, b);
+   |                           - immutable borrow later used here
+
+For more information about this error, try `rustc --explain E0502`.
+error: could not compile `playground` due to previous error
+----
+
+* Using `Cell<&str>`
++
+[source,rust]
+----
+use std::cell::Cell;
+
+fn main() {
+    let names = [
+        Cell::new("John"),
+        Cell::new("Paul"),
+        Cell::new("George"),
+        Cell::new("Ringo")
+    ];
+    println!("names={:?}", names);
+
+    let a = &names[0..2];
+    let b = &names[1..3];
+    println!("a={:?} b={:?}", a, b);
+
+    b[0].replace("XXX");
+    println!("a={:?} b={:?}", a, b);
+    println!(
+        "names={:?}",
+        names.iter().map(
+            |s| s.get()
+        ).collect::<Vec<_>>()
+    );
+}
+----
++
+.Results
+----
+names=[Cell { value: "John" }, Cell { value: "Paul" }, Cell { value: "George" }, Cell { value: "Ringo" }]
+a=[Cell { value: "John" }, Cell { value: "Paul" }] b=[Cell { value: "Paul" }, Cell { value: "George" }]
+a=[Cell { value: "John" }, Cell { value: "XXX" }] b=[Cell { value: "XXX" }, Cell { value: "George" }]
+names=["John", "XXX", "George", "Ringo"]
+----
+
+* Using `RefCell<&str>`
++
+[source,rust]
+----
+use std::cell::RefCell;
+
+fn main() {
+    let names = [
+        RefCell::new("John"),
+        RefCell::new("Paul"),
+        RefCell::new("George"),
+        RefCell::new("George"),
+    ];
+    println!("names={:?}", names);
+
+    let a = &names[0..2];
+    let b = &names[1..3];
+    println!("a={:?} b={:?}", a, b);
+
+    b[0].replace("XXX");
+    println!("a={:?} b={:?}", a, b);
+    println!(
+        "names={:?}",
+        names.iter().map(
+            |s| s.borrow().clone()
+        ).collect::<Vec<_>>()
+    );
+}
+----
++
+.Results
+----
+names=[RefCell { value: "John" }, RefCell { value: "Paul" }, RefCell { value: "George" }, RefCell { value: "George" }]
+a=[RefCell { value: "John" }, RefCell { value: "Paul" }] b=[RefCell { value: "Paul" }, RefCell { value: "George" }]
+a=[RefCell { value: "John" }, RefCell { value: "XXX" }] b=[RefCell { value: "XXX" }, RefCell { value: "George" }]
+names=["John", "XXX", "George", "George"]
+----
+
+* Using `RefCell<String>`
++
+[source,rust]
+----
+use std::cell::RefCell;
+
+fn main() {
+    let names = [
+        RefCell::new(String::from("John")),
+        RefCell::new(String::from("Paul")),
+        RefCell::new(String::from("George")),
+        RefCell::new(String::from("Ringo")),
+    ];
+    println!("names={:?}", names);
+
+    let a = &names[0..2];
+    let b = &names[1..3];
+    println!("a={:?} b={:?}", a, b);
+
+    b[0].replace(String::from("XXX"));
+    println!("a={:?} b={:?}", a, b);
+    println!(
+        "names={:?}",
+        names.iter().map(
+            |s| s.borrow().clone()
+        ).collect::<Vec<_>>()
+    );
+}
+----
++
+.Results
+----
+names=[RefCell { value: "John" }, RefCell { value: "Paul" }, RefCell { value: "George" }, RefCell { value: "George" }]
+a=[RefCell { value: "John" }, RefCell { value: "Paul" }] b=[RefCell { value: "Paul" }, RefCell { value: "George" }]
+a=[RefCell { value: "John" }, RefCell { value: "XXX" }] b=[RefCell { value: "XXX" }, RefCell { value: "George" }]
+names=["John", "XXX", "George", "George"]
+----
+
+* Using `Rc<RefCell<String>>`
++
+[source,rust]
+.projects/algorithms/vec-demo/src/bin/view_for_slices_mut.rs
+----
+use std::cell::RefCell;
+use std::rc::Rc;
+
+fn main() {
+    let names = vec![
+        Rc::new(RefCell::new("John")),
+        Rc::new(RefCell::new("Paul")),
+        Rc::new(RefCell::new("George")),
+        Rc::new(RefCell::new("Ringo"))
+    ];
+    println!("names={:?}", names);
+
+    let a = &names[0..2];
+    let b = &names[1..3];
+    println!("a={:?} b={:?}", a, b);
+
+    b[0].replace("XXX");
+    println!("a={:?} b={:?}", a, b);
+    println!(
+        "names={:?}",
+        names.iter().map(
+            |s| <&str>::clone(&s.borrow())
+        ).collect::<Vec<&str>>()
+    );
+}
+----
++
+----
+names=[RefCell { value: "John" }, RefCell { value: "Paul" }, RefCell { value: "George" }, RefCell { value: "Ringo" }]
+a=[RefCell { value: "John" }, RefCell { value: "Paul" }] b=[RefCell { value: "Paul" }, RefCell { value: "George" }]
+a=[RefCell { value: "John" }, RefCell { value: "XXX" }] b=[RefCell { value: "XXX" }, RefCell { value: "George" }]
+names=["John", "XXX", "George", "Ringo"]
+----
+
+.References
+* https://stackoverflow.com/questions/24872634/how-do-i-create-two-new-mutable-slices-from-one-slice[rust - How do I create two new mutable slices from one slice? - Stack Overflow^] +
+  rust slice mutable - Google 検索
+
+==== Slice literals
+
+[source,rust]
+.slices_literals.rs
+----
+#[derive(Debug)]
+struct PB {
+    #[allow(dead_code)]
+    n: u32,
+    #[allow(dead_code)]
+    b: bool,
+}
+
+fn main() {
+    let q = [2, 3, 5, 7, 11, 13];
+    println!("{:?}", q);
+
+    let r = [true, false, true, true, false, true];
+    println!("{:?}", r);
+
+    let s = [
+        PB { n: 2, b: true },
+        PB { n: 3, b: false },
+        PB { n: 5, b: true },
+        PB { n: 7, b: true },
+        PB { n: 11, b: false },
+        PB { n: 13, b: true },
+    ];
+    println!("{:?}", s);
+}
+----
+
+----
+[2, 3, 5, 7, 11, 13]
+[true, false, true, true, false, true]
+[PB { n: 2, b: true }, PB { n: 3, b: false }, PB { n: 5, b: true }, PB { n: 7, b: true }, PB { n: 11, b: false }, PB { n: 13, b: true }]
+----
+
+.References
+* https://stackoverflow.com/questions/38739088/is-it-possible-to-declare-arrays-without-an-explicit-length[rust - Is it possible to declare arrays without an explicit length? - Stack Overflow^] +
+  rust initialize array omit size - Google 検索
+
+==== Slice defaults
+
+[source,rust]
+.slice_bounds.rs
+----
+fn main() {
+    let s = [2, 3, 5, 7, 11, 13];
+
+    let s = &s[1..4];
+    println!("{:?}", s);
+
+    let s = &s[..2];
+    println!("{:?}", s);
+
+    let s = &s[1..];
+    println!("{:?}", s);
+}
+----
+
+----
+[3, 5, 7]
+[3, 5]
+[5]
+----
+
+==== Slices of slices
+
+[source,rust]
+.slices_of_slice.rs
+----
+fn main() {
+    let mut board = vec![vec![String::from("_"); 3]; 3];
+
+    board[0][0] = String::from("X");
+    board[2][2] = String::from("O");
+    board[1][2] = String::from("X");
+    board[1][0] = String::from("O");
+    board[0][2] = String::from("X");
+
+    for row in board {
+        println!("{}", row.join(" "));
+    }
+}
+----
+
+[source,rust]
+.slices_of_slice.rs
+----
+    // ...
+
+    for row in board {
+        println!("{:?}", row);
+        for cell in row {
+            print!("{} ", cell);
+        }
+        println!();
+    }
+----
+
+----
+X _ X
+O _ X
+_ _ O
+----
+
+==== Swap
+
+[source,rust]
+----
+fn main() {
+    let mut range = (0..5).collect::<Vec<usize>>();
+    let end = range.len() - 1;
+    range.swap(2, end);
+    println!("{:?}", range);
+    assert_eq!(range, vec![0, 1, 4, 3, 2]);
+}
+----
+
+[source,rust]
+.Results
+----
+[0, 1, 4, 3, 2]
+----
+
+=== HashMap
+
+* https://doc.rust-lang.org/std/collections/struct.HashMap.html[HashMap in std::collections - Rust^]
+* https://doc.rust-jp.rs/rust-by-example-ja/std/hash/alt_key_types.html[key型の変種 - Rust By Example 日本語版^]
+
+//^
+
+* Using `&str` as keys.
++
+[source,rust]
+----
+fn main() {
+    let mut map = std::collections::HashMap::new();
+    map.insert("apple", 180);
+    println!("apple={:?}", map.get(&"apple").unwrap());
+    assert_eq!(map.remove(&"apple"), Some(180));
+    assert_eq!(map.remove(&"apple"), None);
+
+    if !map.contains_key(&"banana") {
+        map.insert("banana", 100);
+    }
+
+    println!("{:?}", map);
+}
+----
++
+[source,rust]
+----
+apple=180
+{"banana": 100}
+----
+
+* Using integer as keys.
++
+[source,rust]
+----
+fn main() {
+    let mut map = std::collections::HashMap::new();
+    map.insert(1, "hello");
+    println!("{:?}", map.get(&1).unwrap());
+    assert_eq!(map.remove(&1), Some("hello"));
+    assert_eq!(map.remove(&1), None);
+
+    if !map.contains_key(&2) {
+        map.insert(2, "world");
+    }
+
+    println!("{:?}", map);
+}
+----
++
+[source,rust]
+----
+"hello"
+{2: "world"}
+----
+
+* Using tuple as keys.
++
+[source,rust]
+----
+fn main() {
+    let mut map = std::collections::HashMap::new();
+    map.insert((1, 2), "hello");
+    println!("{:?}", map.get(&(1, 2)).unwrap());
+    assert_eq!(map.remove(&(1, 2)), Some("hello"));
+    assert_eq!(map.remove(&(1, 2)), None);
+
+    if !map.contains_key(&(1, 4)) {
+        map.insert((1, 4), "world");
+    }
+
+    println!("{:?}", map);
+}
+----
++
+[source,rust]
+----
+"hello"
+{(1, 4): "world"}
+----
+
+=== Functions
+
+==== Returning a value in Rust
+
+* implement using function
++
+[source,rust]
+.functions.rs
+----
+fn add(x: i32, y: i32) -> i32 {
+    x + y
+}
+
+fn main() {
+    println!("{}", add(42, 13));
+}
+----
++
+.Results
+----
+55
+----
+
+* implement using closure
++
+[source,rust]
+.functions.rs
+----
+fn main() {
+    let add = |x, y| x + y;
+    println!("{}", add(42, 13));
+}
+----
++
+.Results
+----
+55
+----
+
+==== Returning multiple values in Rust
+
+* implement using function
++
+[source,rust]
+.multiple_results.rs
+----
+fn swap<'a>(a: &'a str, b: &'a str) -> (&'a str, &'a str) {
+    (b, a)
+}
+
+fn main() {
+    let (a, b) = swap("hello", "world");
+    println!("{} {}", a, b);
+}
+----
++
+.Results
+----
+world hello
+----
+
+* implement using closure
++
+[source,rust]
+----
+fn main() {
+    let swap = |a, b| (b, a);
+    let (a, b) = swap("hello", "world");
+    println!("{} {}", a, b);
+}
+----
++
+.Results
+----
+world hello
+----
+
+[NOTE]
+====
+* missing lifetime specifier
++
+[source,rust]
+.multiple_results.rs
+----
+fn swap<'a>(a: &'a str, b: &'a str) -> (&'a str, &'a str) {
+    (b, a)
+}
+
+fn main() {
+    let (a, b) = swap("hello", "world");
+    println!("{} {}", a, b);
+}
+----
++
+----
+error[E0106]: missing lifetime specifier
+ --> src/main.rs:1:31
+  |
+1 | fn swap(a: &str, b: &str) -> (&str, &str) {
+  |            ----     ----      ^ expected named lifetime parameter
+  |
+  = help: this function's return type contains a borrowed value, but the signature does not say whether it is borrowed from `a` or `b`
+help: consider introducing a named lifetime parameter
+  |
+1 | fn swap<'a>(a: &'a str, b: &'a str) -> (&'a str, &str) {
+  |        ++++     ++          ++           ++
+
+error[E0106]: missing lifetime specifier
+ --> src/main.rs:1:37
+  |
+1 | fn swap(a: &str, b: &str) -> (&str, &str) {
+  |            ----     ----            ^ expected named lifetime parameter
+  |
+  = help: this function's return type contains a borrowed value, but the signature does not say whether it is borrowed from `a` or `b`
+help: consider introducing a named lifetime parameter
+  |
+1 | fn swap<'a>(a: &'a str, b: &'a str) -> (&str, &'a str) {
+  |        ++++     ++          ++                 ++
+
+For more information about this error, try `rustc --explain E0106`.
+error: could not compile `playground` due to 2 previous errors
+----
+
+====
+
+==== Function values
+
+* using `fn` (function pointer)
++
+[source,rust]
+.function_values.rs
+----
+fn compute(f: fn(f64, f64) -> f64) -> f64{
+    return f(3 as f64, 4 as f64);
+}
+
+fn main() {
+    let hypot = |x: f64, y: f64| {(x*x + y*y).sqrt()};
+    println!("hypot(5, 12)={}", hypot(5 as f64, 12 as f64));
+    println!("hypot(3, 4)={}", compute(hypot));
+    println!("my_pow(3, 4)={}", compute(|x: f64, y: f64| {x.powf(y)}));
+}
+----
+
+* using `Fn` (`Fn` closure trait)
++
+[source,rust]
+.function_values.rs
+----
+fn compute(f: impl Fn(f64, f64) -> f64) -> f64{
+    return f(3 as f64, 4 as f64);
+}
+
+fn main() {
+    let hypot = |x: f64, y: f64| {(x*x + y*y).sqrt()};
+    println!("hypot(5, 12)={}", hypot(5 as f64, 12 as f64));
+    println!("hypot(3, 4)={}", compute(hypot));
+    println!("my_pow(3, 4)={}", compute(|x: f64, y: f64| {x.powf(y)}));
+}
+----
+
+* using `&dyn Fn`
++
+[source,rust]
+.function_values.rs
+----
+fn compute(f: &dyn Fn(f64, f64) -> f64) -> f64{
+    return f(3 as f64, 4 as f64);
+}
+
+fn main() {
+    let hypot = |x: f64, y: f64| {(x*x + y*y).sqrt()};
+    println!("hypot(5, 12)={}", hypot(5 as f64, 12 as f64));
+    println!("hypot(3, 4)={}", compute(&hypot));
+    println!("my_pow(3, 4)={}", compute(&|x: f64, y: f64| {x.powf(y)}));
+}
+----
+
+.Results
+----
+hypot(5, 12)=13
+hypot(3, 4)=5
+my_pow(3, 4)=81
+----
+
+==== Function pointer
+
+[source,rust]
+----
+fn main() {
+    fn add(x: i32, y: i32) -> i32 {
+        x + y
+    }
+
+    let x = add(5, 7);
+    println!("{}", x);
+    drop(x);
+
+    type Binop = fn(i32, i32) -> i32;
+    let bo: Binop = add;
+    let x = bo(5,7);
+    println!("{}", x);
+}
+----
+
+.Results
+----
+12
+12
+----
+
+.References
+* https://doc.rust-lang.org/reference/types/function-pointer.html[Function pointer types - The Rust Reference^]
+* https://doc.rust-lang.org/book/ch19-05-advanced-functions-and-closures.html[Advanced Functions and Closures - The Rust Programming Language^] +
+  rust function pointer - Google 検索 +
+  Rust fn argument - Google 検索
+* https://qnighy.hatenablog.com/entry/2018/02/11/220000[Rustの関数ポインタの落とし穴 - 簡潔なQ^] +
+  rust function pointer - Google 検索
+
+==== Function closures
+
+* Implement using closure
++
+[source,rust]
+.function_closures.rs
+----
+pub fn get_adder() -> impl FnMut(i32) -> i32 {
+    let mut sum = 0;
+    move |step| {
+        sum += step;
+        return sum;
+    }
+}
+
+fn main() {
+    let mut pos = get_adder();
+    let mut neg = get_adder();
+    for i in 1..10 {
+        println!(
+            "pos({})={:2}, neg({})={:3}",
+            i, pos(i), i, neg(-2*i)
+        )
+    }
+}
+----
++
+[source,rust]
+.function_closures.rs
+----
+fn main() {
+    let mut pos_sum = 0;
+    let mut neg_sum = 0;
+    let mut pos_adder = |n: i32| { pos_sum += n; return pos_sum; };
+    let mut neg_adder = |n: i32| { neg_sum += n; return neg_sum; };
+    for i in 1..10 {
+        println!(
+            "pos({})={:2}, neg({})={:3}",
+            i, pos_adder(i), i, neg_adder(-2*i)
+        )
+    }
+}
+----
++
+.Results
+----
+pos(1)= 1, neg(1)= -2
+pos(2)= 3, neg(2)= -6
+pos(3)= 6, neg(3)=-12
+pos(4)=10, neg(4)=-20
+pos(5)=15, neg(5)=-30
+pos(6)=21, neg(6)=-42
+pos(7)=28, neg(7)=-56
+pos(8)=36, neg(8)=-72
+pos(9)=45, neg(9)=-90
+----
+
+* Implement using impl
++
+[source,rust]
+.function_closures.rs
+----
+pub struct Adder {
+    pub sum: i32,
+}
+
+impl Adder {
+    pub fn new() -> Adder {
+        Adder {sum: 0}
+    }
+    pub fn adder(&mut self, step: i32) -> i32 {
+        self.sum += step;
+        return self.sum
+    }
+}
+
+fn main() {
+    let mut pos = Adder::new();
+    let mut neg = Adder::new();
+    for i in 1..10 {
+        println!(
+            "pos({})={:2}, neg({})={:3}",
+            i, pos.adder(i), i, neg.adder(-2*i)
+        )
+    }
+}
+----
++
+.Results
+----
+pos(1)= 1, neg(1)= -2
+pos(2)= 3, neg(2)= -6
+pos(3)= 6, neg(3)=-12
+pos(4)=10, neg(4)=-20
+pos(5)=15, neg(5)=-30
+pos(6)=21, neg(6)=-42
+pos(7)=28, neg(7)=-56
+pos(8)=36, neg(8)=-72
+pos(9)=45, neg(9)=-90
+----
+
+.References
+* https://doc.rust-lang.org/std/ops/trait.Fn.html[Fn in std::ops - Rust^]
+* https://doc.rust-lang.org/std/ops/trait.FnMut.html[FnMut in std::ops - Rust^]
+* https://doc.rust-lang.org/std/ops/trait.FnOnce.html[FnOnce in std::ops - Rust^]
+* https://doc.rust-lang.org/rust-by-example/fn/closures/input_parameters.html[As input parameters - Rust By Example^]
+** `Fn`: the closure captures by reference (`&T`)
+** `FnMut`: the closure captures by mutable reference (`&mut T`)
+** `FnOnce`: the closure captures by value (`T`)
+* https://zenn.dev/garasubo/articles/97f794cfd469b9d51c7b[Rustにおける関数ポインタやクロージャ - Zenn^] +
+  rust function pointer - Google 検索
+
+==== Iterator
+
+* Find an element.
++
+[source,rust]
+----
+fn main() {
+    let test = vec!["one", "two", "three"];
+    let index = test.iter().position(|&r| r == "two").unwrap();
+    println!("{}", index);
+}
+----
+
+=== Flow control statements
+
+==== Loop using range
+
+A loop with an incrementing counter.
+
+* `while`
++
+[source,rust]
+----
+fn main() {
+    let mut i = 1;
+    while i <= 5 {
+        println!("{}", i);
+        i += 1;
+    }
+}
+----
++
+.Results
+----
+1
+2
+3
+4
+5
+----
+
+* A forward loop is like this:
++
+[source,rust]
+----
+fn main() {
+    for i in 1..(5+1) {
+        println!("{}", i);
+    }
+}
+----
++
+.Results
+----
+1
+2
+3
+4
+5
+----
+
+* A reverse loop
++
+[source,rust]
+----
+fn main() {
+    for i in (1..6).rev() {
+        println!("{}", i);
+    }
+}
+----
++
+.Results
+----
+1
+2
+3
+4
+5
+----
+
+* iterate over a range with a custom step
++
+[source,rust]
+----
+fn main() {
+    let range = (3..=10).step_by(2);
+    println!("{:?}", range);
+    println!("{:?}", range.collect::<Vec<_>>());
+}
+----
++
+.Results
+----
+StepBy { iter: 3..=10, step: 1, first_take: true }
+[3, 5, 7, 9]
+----
+
+==== Loop using array
+
+* Iterate over an array of integers.
++
+[source,rust]
+----
+fn main() {
+    for i in [1, 4, 0].iter() {
+        println!("{}", i);
+    }
+}
+----
++
+.Results
+----
+1
+4
+0
+----
+
+* Iterate over an array of immutable strings.
++
+[source,rust]
+----
+fn main() {
+    for s in ["foo", "bar", "baz"] {
+        println!("{}", s);
+    }
+}
+----
++
+[source,rust]
+----
+fn main() {
+    for s in ["foo", "bar", "baz"].iter() {
+        println!("{}", s);
+    }
+}
+----
++
+.Results
+----
+foo
+bar
+baz
+----
+
+* Iterate an array with the indexed position.
++
+[source,rust]
+----
+fn main() {
+    for (i, v) in ["foo", "bar", "baz"].iter().enumerate() {
+        println!("pos={}, v={}", i, v);
+    }
+}
+----
++
+----
+pos=0, v=foo
+pos=1, v=bar
+pos=2, v=baz
+----
+
+* Iterate over an array of mutable strings.
++
+[source,rust]
+----
+fn main() {
+    let mut names = [
+        String::from("foo"),
+        String::from("bar"),
+        String::from("baz")
+    ];
+
+    for name in &mut names {
+        name.push_str(":1");
+        println!("{}", name);
+    }
+
+    println!("{:?}", names);
+}
+----
++
+.Results
+----
+foo:1
+bar:1
+baz:1
+["foo:1", "bar:1", "baz:1"]
+----
+
+==== Returning Values from Loops
+
+* loop / continue / break
++
+[source,rust]
+----
+fn main() {
+    let mut counter = -3;
+
+    let result = loop {
+        counter += 1;
+
+        if counter < 0 {
+            continue;
+        }
+        if counter == 10 {
+            break counter * 2;
+        }
+    };
+
+    println!("The result is {}", result);
+}
+----
++
+.Results
+----
+20
+----
+
+.References
+* https://doc.rust-lang.org/book/ch03-05-control-flow.html[^]
+
+==== Refutable and irrefutable
+
+*  irrefutable patterns (論駁不可能・反論することが不可能なパターン)
++
+[source,rust]
+----
+if let _ = 123 {
+    println!("always runs!");
+}
+----
++
+----
+warning: irrefutable `if let` pattern
+----
++
+.Results
+----
+always runs!
+----
+
+=== Concurrency
+
+==== Thread
+
+[source,rust]
+----
+use std::thread;
+use std::time::Duration;
+
+fn say(s: &str) {
+    for _ in 0..5 {
+        thread::sleep(Duration::from_millis(100));
+        println!("{}", s);
+    }
+}
+
+fn main() {
+    thread::spawn(|| { say("world") });
+    say("hello")
+}
+----
+
+.Results
+----
+hello
+world
+hello
+world
+hello
+world
+hello
+world
+hello
+----
+
+==== Channels
+
+* using function
++
+[source,rust]
+----
+use std::sync::mpsc;
+use std::thread;
+
+fn sum(s: &[i32], sender: &mpsc::Sender<i32>) {
+    sender.send(s.iter().sum()).unwrap();
+}
+
+fn main() {
+    let s = [7, 2, 8, -9, 4, 0];
+    let (sender1, receiver) = mpsc::channel();
+    let sender2 = sender1.clone();
+
+    thread::spawn(move || { sum(&s[..(s.len()/2)], &sender1) });
+    thread::spawn(move || { sum(&s[(s.len()/2)..], &sender2) });
+
+    let x = receiver.recv().unwrap();
+    let y = receiver.recv().unwrap();
+    println!("x={} y={} x+y={}", x, y, x + y);
+}
+----
++
+.Results
+----
+x=17 y=-5 x+y=12
+----
+
+* using only closure
++
+[source,rust]
+----
+use std::sync::mpsc::{Sender, Receiver};
+use std::sync::mpsc;
+use std::thread;
+
+fn main() {
+    let s = [7, 2, 8, -9, 4, 0];
+    let (sender1, receiver): (Sender<i32>, Receiver<i32>) = mpsc::channel();
+    let sender2 = sender1.clone();
+
+    thread::spawn(move || {
+        let sum = s[..(s.len()/2)].iter().sum();
+        sender1.send(sum).unwrap();
+    });
+    thread::spawn(move || {
+        let sum = s[(s.len()/2)..].iter().sum();
+        sender2.send(sum).unwrap();
+    });
+ 
+    let x = receiver.recv().unwrap();
+    let y = receiver.recv().unwrap();
+    println!("x={} y={} x+y={}", x, y, x + y);
+}
+----
++
+.Results
+----
+x=-5 y=17 x+y=12
+----
+
+.References
+* https://doc.rust-lang.org/std/sync/mpsc/fn.channel.html[channel in std::sync::mpsc - Rust^]
+* https://doc.rust-lang.org/book/ch16-02-message-passing.html[Using Message Passing to Transfer Data Between Threads - The Rust Programming Language^]
+* https://doc.rust-lang.org/rust-by-example/std_misc/channels.html[Channels - Rust By Example^] +
+  rust channel sender infer type - Google 検索
+* https://stackoverflow.com/questions/23100534/how-to-sum-the-values-in-an-array-slice-or-vec-in-rust[How to sum the values in an array, slice, or Vec in Rust? - Stack Overflow^] +
+  rust sum array - Google 検索
+
+=== Time
+
+==== Duration
+
+[source,rust]
+----
+use std::time::Instant;
+use std::time::Duration;
+
+fn main() {
+    let start = Instant::now();
+    std::thread::sleep(Duration::from_millis(100));
+    let duration = start.elapsed();
+    println!("Duration={:?}", duration);
+}
+----
+
+=== WASM
+
+* https://github.com/WebAssembly/design/blob/main/UseCases.md[design/UseCases.md at main · WebAssembly/design^]
+*  https://rustwasm.github.io/docs/book/[Introduction - Rust and WebAssembly^]
+
+[source,console]
+----
+$ cargo install wasm-pack
+----
+
+== References
+
+.公式ドキュメント
+* https://doc.rust-lang.org/book/title-page.html[The Rust Programming Language - The Rust Programming Language^]
+* https://doc.rust-jp.rs/book-ja/title-page.html[The Rust Programming Language 日本語版 - The Rust Programming Language 日本語版^]
+
+.doc.rust-lang.org
+* https://doc.rust-lang.org/nomicon/ffi.html[FFI - The Rustonomicon^] +
+  rust ffi - Google 検索
+
+.Rust API Guidelines
+* https://rust-lang.github.io/api-guidelines/[About - Rust API Guidelines^]
+** https://rust-lang.github.io/api-guidelines/naming.html[Naming - Rust API Guidelines^]
+*** https://github.com/rust-lang/api-guidelines/discussions/29[Naming convention for crates · Discussion #29 · rust-lang/api-guidelines^]
+
+.Web framework
+* https://www.lpalmieri.com/posts/2020-07-04-choosing-a-rust-web-framework-2020-edition/[Choosing a Rust web framework, 2020 edition | A learning journal^]
+* https://dev.classmethod.jp/articles/actix-web/[[Rust\] actix-webを使ってみよう | DevelopersIO^] +
+  actix-web - Google 検索
+
+.WebAssembly
+* https://thinkit.co.jp/article/17486[WebAssemblyとRustが作るサーバーレスの未来 | Think IT（シンクイット）^] +
+  docker WebAssembly - Google 検索
+
+.News
+* https://jp.techcrunch.com/2021/02/09/2021-02-08-the-rust-programming-language-finds-a-new-home-in-a-non-profit-foundation/[プログラミング言語RustにGoogle、Microsoft、AWSなどが開発とメンテの拠点を提供  |  TechCrunch Japan^] +
+  Microsoft Rust - Google 検索
+
+.Crete
+* math
+** https://nalgebra.org/[nalgebra linear-algebra library | nalgebra]
+** https://siciarz.net/24-days-of-rust-nalgebra/[24 days of Rust - nalgebra | siciarz.net^] +
+   rust matrix - Google Search
+** https://github.com/bitshifter/glam-rs[bitshifter/glam-rs: A simple and fast linear algebra library for games and graphics^] +
+   A simple and fast 3D math library for games and graphics.
+* Games
+** https://github.com/bevyengine/bevy[bevyengine/bevy: A refreshingly simple data-driven ... - GitHub^]
+
+.FFI
+* https://qiita.com/termoshtt/items/0fa9959f9eb64b0907e2[Rust の Foreign Function Interface (FFI) - Qiita^] +
+  rust ffi - Google 検索
+* https://zenn.dev/eduidl/articles/f2fd959f220393[[Rust\] FFIでよく使う型変換 - Zenn] +
+  rust ffi - Google 検索
+
+.misc
+* https://base64.work/so/linux/1266262[linux - Rust実行可能ファイルが0x400000ではなく、そのような高いアドレス(スタックの近く)にマップされるのはなぜですか？ - ITツールウェブ^] +
+  rust mutex copy trait - Google 検索
+* https://www.ibm.com/blogs/think/jp-ja/software-quality-improvement/[不変と所有権管理によるソフトウェア品質向上 | THINK Blog Japan^] +
+  rust mutex copy trait - Google 検索
+* https://tech.uzabase.com/entry/2020/12/25/144712[Rustでモックオブジェクトを自作してみる - Uzabase Tech^] +
+  rust mutex copy trait - Google 検索

@@ -1,0 +1,68 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+:icons: font
+
+include::header.adoc[]
+endif::[]
+
+== `match` expressions
+
+* https://doc.rust-lang.org/reference/expressions/match-expr.html[Match expressions - The Rust Reference^]
+* https://frozenlib.net/blog/2018-03-11_rust-pattern-match/[Rustのパターンマッチを完全に理解した | FrozenLib^] +
+  rust Ref - Google 検索
+* https://doc.rust-jp.rs/rust-by-example-ja/scope/borrow/ref.html[refパターン - Rust By Example 日本語版^] +
+  rust Ref - Google 検索
+
+=== Range
+
+[source,rust]
+----
+pub fn get_message_str(msg: &Message) -> String {
+    let message = match msg {
+        Message::Hello {
+            id: id_variable @ 3..=7,
+        } => format!("Found an id in range: {}", id_variable),
+        Message::Hello { id: 10..=12 } => {
+            format!("Found an id in another range")
+        }
+        Message::Hello { id } => format!("Found some other id: {}", id),
+    };
+    message
+}
+----
+
+=== Tuple
+
+[source,rust]
+----
+pub fn get_message_str(a: Option<&str>, b: Option<u8>) -> String {
+    match (a, b) {
+        (Some(msg), Some(code)) => {
+            format!("msg={}, code={}", msg, code)
+        },
+        (_, None) => format!("msg=*, code=Nil"),
+        (None, Some(code)) => format!("msg=Nil, code={}", code),
+    }
+}
+----
+
+=== match guard
+
+[source,rust]
+----
+    let odd_numbers = match range_from {
+        range_from if range_from > 2 => {
+            // The ^ `if condition` part is a guard
+            if range_from % 2 == 0 {
+                ((range_from + 1)..=range_to).step_by(2)
+            } else {
+                (range_from..=range_to).step_by(2)
+            }
+        },
+        _ => {
+            v.push(2);
+            (3..=range_to).step_by(2)
+        }
+    };
+----

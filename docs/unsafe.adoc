@@ -1,0 +1,150 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+:icons: font
+
+include::header.adoc[]
+endif::[]
+
+== Unsafe Rust
+
+* https://stackoverflow.com/questions/45306575/how-can-you-allocate-a-raw-mutable-pointer-in-stable-rust[heap memory - How can you allocate a raw mutable pointer in stable Rust? - Stack Overflow^]
+
+=== NonNull
+
+==== Using stack
+
+* Using `u8`
++
+[source,rust]
+----
+use std::ptr::NonNull;
+
+fn main() {
+    let mut n: u8 = 5;
+    let mut n_ptr: NonNull<u8> = NonNull::<u8>::new(
+        &mut n as *mut _
+    ).expect("ptr is null!");
+
+    unsafe {
+        assert_eq!(*n_ptr.as_ref(), 5);
+        let n_ref: &mut u8 = n_ptr.as_mut();
+        *n_ref += 2;
+        assert_eq!(*n_ptr.as_ref(), 7);
+    }
+}
+----
+
+* Using struct
++
+[source,rust]
+----
+use std::fmt::Debug;
+use std::ptr::NonNull;
+
+#[derive(Debug)]
+struct Node<T: Debug> { value: T }
+
+impl<T: Debug> Node<T> {
+    fn new(v: T) -> Node<T> { Node {value: v} }
+}
+
+impl<T: Debug> Drop for Node<T> {
+    fn drop(&mut self) {
+        println!("> Dropping: {:p}(value: {:?})", self, self.value);
+    }
+}
+
+fn main() {
+    let mut node: Node<u32> = Node::new(5);
+    let mut node_ptr = NonNull::<Node<u32>>::new(
+        &mut node as *mut _
+    ).expect("ptr is null!");
+
+    assert_eq!(unsafe { node_ptr.as_ref().value }, 5);
+    let node_ref = unsafe { node_ptr.as_mut() };
+    node_ref.value += 2;
+    assert_eq!(unsafe { node_ptr.as_ref().value }, 7);
+    println!("{:?}", unsafe { node_ptr.as_ref() })
+}
+----
++
+[source,console]
+----
+Node { value: 7 }
+> Dropping: 0x7fffd087e17c(value: 7)
+----
+
+==== Using heap
+
+* Using `u8`
++
+[source,rust]
+----
+use std::ptr::NonNull;
+
+fn main() {
+    let n: u8 = 5;
+    let mut n_ptr: NonNull<u8> = NonNull::<u8>::new(
+        Box::into_raw(Box::new(n))
+    ).expect("ptr is null!");
+
+    unsafe {
+        assert_eq!(*n_ptr.as_ref(), 5);
+        let n_ref: &mut u8 = n_ptr.as_mut();
+        *n_ref += 2;
+        assert_eq!(*n_ptr.as_ref(), 7);
+
+        let n_boxed: Box<u8> = Box::from_raw(n_ptr.as_ptr());
+        assert_eq!(n_boxed, Box::new(7));
+
+        drop(n_boxed);  // n_ptr is freed.
+        println!("{:?}", *n_ptr.as_ref());  // NG
+    }
+}
+----
+
+* Using struct
++
+[source,rust]
+----
+use std::fmt::Debug;
+use std::ptr::NonNull;
+
+#[derive(Debug)]
+struct Node<T: Debug> { value: T }
+
+impl<T: Debug> Node<T> {
+    fn new(v: T) -> Node<T> { Node {value: v} }
+}
+
+impl<T: Debug> Drop for Node<T> {
+    fn drop(&mut self) {
+        println!("> Dropping: {:p}(value: {:?})", self, self.value);
+    }
+}
+
+fn main() {
+    let node: Node<u8> = Node::new(5);
+    let mut node_ptr = NonNull::<Node<u8>>::new(
+        Box::into_raw(Box::new(node))
+    ).expect("ptr is null!");
+
+    assert_eq!(unsafe { node_ptr.as_ref().value }, 5);
+    let node_ref = unsafe { node_ptr.as_mut() };
+    node_ref.value += 2;
+    assert_eq!(unsafe { node_ptr.as_ref().value }, 7);
+    println!("{:?}", unsafe { node_ptr.as_ref() });
+
+    let node_boxed: Box<Node<u8>> = unsafe {
+        Box::from_raw(node_ptr.as_ptr())
+    };
+    assert_eq!(node_boxed.as_ref().value, 7_u8);
+}
+----
++
+[source,console]
+----
+Node { value: 7 }
+> Dropping: 0x7fffbdb8e5d0(value: 7)
+----

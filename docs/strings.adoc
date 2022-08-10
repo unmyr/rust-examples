@@ -1,0 +1,252 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+:icons: font
+
+include::header.adoc[]
+endif::[]
+
+== Strings
+
+=== Concatenate vector of chars into single string
+
+* `Vec<char>`
++
+[source,rust]
+----
+fn main() {
+    let chars = vec!['a', 'b', 'c'];
+    let string = chars.iter().collect::<String>();
+    println!("vec: {:?}, string: {:?}", chars, string);
+}
+----
++
+[source,javascript]
+.Results
+----
+vec: ['a', 'b', 'c'], string: "abc"
+----
+
+* `[char]`
++
+[source,rust]
+----
+fn main() {
+    let chars = ['a', 'b', 'c'];
+    let string = chars.iter().collect::<String>();
+    println!("array: {:?}, string: {:?}", chars, string);
+}
+----
++
+[source,javascript]
+.Results
+----
+array: ['a', 'b', 'c'], string: "abc"
+----
+
+* `&[char]`
++
+[source,rust]
+----
+fn main() {
+    let chars = vec!['a', 'b', 'c'];
+    let slice_chars = &chars[..];
+
+    let string = slice_chars.iter().collect::<String>();
+    println!("slice: {:?}, string: {:?}", slice_chars, string);
+}
+----
++
+[source,javascript]
+.Results
+----
+slice: ['a', 'b', 'c'], string: "abc"
+----
+
+=== Concatenate vector of strings into single string
+
+* `Vec<&str>`
++
+[source,rust]
+----
+fn main() {
+    let strings = vec!["abc", "123", "cdf"];
+    let string = strings.concat();
+    println!("strings: {:?}, string: {:?}", strings, string);
+}
+----
++
+[source,javascript]
+.Results
+----
+strings: ["abc", "123", "cdf"], string: "abc123cdf"
+----
+
+* `[&str]`
++
+[source,rust]
+----
+fn main() {
+    let strings = ["abc", "123", "cdf"];
+    let string = strings.concat();
+    println!("strings: {:?}, string: {:?}", strings, string);
+}
+----
++
+[source,javascript]
+.Results
+----
+strings: ["abc", "123", "cdf"], string: "abc123cdf"
+----
+
+* `Vec<char>`
++
+[source,rust]
+----
+fn main() {
+    let strings = ["abc", "123", "cdf"];
+    let string = &strings[..].concat();
+    println!("strings: {:?}, string: {:?}", strings, string);
+}
+----
++
+[source,javascript]
+.Results
+----
+strings: ["abc", "123", "cdf"], string: "abc123cdf"
+----
+
+=== Join strings with a delimiter
+
+* `Vec<&str>`
++
+[source,rust]
+----
+fn main() {
+    let strings = ["John", "Due"];
+    let joined_str = strings.join(", ");
+    println!("strings: {:?}, joined_str: {:?}", strings, joined_str);
+}
+----
++
+[source,javascript]
+.Results
+----
+strings: ["John", "Due"], joined_str: "John, Due"
+----
+
+.References
+* https://cumsum.wordpress.com/2019/11/28/how-to-do-string-join-in-rust/[How to do string join in Rust? – Cumulative Sum^] +
+  rust vector string join - Google 検索
+
+=== ROT-13 decoder
+
+バッファは固定で確保している。可変とする場合はもう少し面倒。
+char型(4byte)は `+` や `-` の演算が未定義なので `u8` として処理する。
+
+* using `iter()`
++
+[source,rust]
+----
+fn rot13_decoder(s: &str) -> String {
+    s.as_bytes().iter().map(
+        |&c| match c {
+            b'a' ..= b'z' => b'a' + (c - b'a' + 13) % 26,
+            b'A' ..= b'Z' => b'A' + (c - b'A' + 13) % 26,
+            _ => c
+        } as char
+    ).collect::<String>()
+}
+
+fn main() {
+    println!("{}", rot13_decoder("Lbh penpxrq gur pbqr!"));
+    assert_eq!(rot13_decoder("Lbh penpxrq gur pbqr!"), "You cracked the code!");
+}
+----
++
+.Results
+----
+You cracked the code!
+----
+
+* using `[char]`
++
+[source,rust]
+----
+fn rot13_decoder(s: &str) -> String {
+    let mut buf: [char; 1024] = ['\0'; 1024];
+    let mut buf_len = 0;
+
+    for c in s.as_bytes() {
+        buf[buf_len] = match c {
+            b'a' ..= b'z' => b'a' + (*c - b'a' + 13) % 26,
+            b'A' ..= b'Z' => b'A' + (*c - b'A' + 13) % 26,
+            _ => *c
+        } as char;
+        buf_len += 1;
+    }
+
+    buf[0..buf_len].iter().collect()
+}
+
+fn main() {
+    println!("{}", rot13_decoder("Lbh penpxrq gur pbqr!"));
+}
+----
++
+.Results
+----
+You cracked the code!
+----
+
+* using `[u8]`
++
+[source,rust]
+----
+fn rot13_decoder(s: &str) -> String {
+    let mut buf: [u8; 1024] = [b'\0'; 1024];
+    let mut buf_len = 0;
+
+    for c in s.as_bytes() {
+        buf[buf_len] = match c {
+            b'a' ..= b'z' => b'a' + (*c - b'a' + 13) % 26,
+            b'A' ..= b'Z' => b'A' + (*c - b'A' + 13) % 26,
+            _ => *c
+        };
+        buf_len += 1;
+    }
+
+    std::str::from_utf8(&buf[0..buf_len]).unwrap().to_string()
+}
+
+fn main() {
+    println!("{}", rot13_decoder("Lbh penpxrq gur pbqr!"));
+}
+----
++
+.Results
+----
+You cracked the code!
+----
+
+.References
+* docs.rs
+** https://doc.rust-jp.rs/the-rust-programming-language-ja/1.6/std/primitive.char.html[std::char - Rust^] +
+  rust u8 to char - Google 検索
+** https://docs.rs/bytes/latest/bytes/[bytes - Rust^] +
+  rust bytes - Google 検索
+* https://qiita.com/4hiziri/items/dd9800ad7be42c395082[Rustでバイト列から文字列へ - Qiita^] +
+  rust u8 to string - Google 検索
+* https://gist.github.com/jimmychu0807/9a89355e642afad0d2aeda52e6ad2424[Conversion between String, str, Vec<u8>, Vec<char> in Rust^] +
+  rust u8 to char - Google 検索
+* https://keens.github.io/blog/2016/12/01/rustdebaitoretsuwoatsukautokinotips/[Rustでバイト列を扱う時のtips | κeenのHappy Hacκing Blog^] +
+  rust bytes - Google 検索
+* Allocate
+** https://mmi.hatenablog.com/entry/2017/08/06/230823[rustで動的にバッファを確保する方法 - 睡分不足^] +
+  rust box bytes - Google 検索
+** https://stackoverflow.com/questions/32414567/allocating-a-buffer-on-the-heap-at-runtime[memory management - Allocating a buffer on the heap at runtime - Stack Overflow^] +
+   rust bytes allocate - Google 検索
+** http://www.nct9.ne.jp/m_hiroi/linux/rustabc02.html[Linux Programming / お気楽 Rust プログラミング超入門^] +
+   rust box bytes - Google 検索
+* https://rosettacode.org/wiki/Rot-13[Rot-13 - Rosetta Code^] +
+  julia rot13 - Google 検索

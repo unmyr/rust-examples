@@ -1,2 +1,9 @@
 <<index.adoc#,Haskell>> {vbar}
-<<math.adoc#,Math>> +
+<<algorithms.adoc#,Algorithms>> {vbar}
+<<match-expr.adoc#,Match>> {vbar}
+<<math.adoc#,Math>> {vbar}
+<<interior-mutability.adoc#,Interior mutability>> {vbar}
+<<smart-pointers.adoc#,Smart Pointers>> {vbar}
+<<strings.adoc#,Strings>> {vbar}
+<<unsafe.adoc#,Unsafe>> {vbar}
+<<install.adoc#,Install>> +

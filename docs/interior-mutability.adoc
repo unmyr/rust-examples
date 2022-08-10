@@ -1,0 +1,669 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+:icons: font
+
+include::header.adoc[]
+endif::[]
+
+== Interior mutability
+
+[cols="1", options="autowidth"]
+|===
+| https://doc.rust-lang.org/std/cell/struct.UnsafeCell.html[std::cell::UnsafeCell^]
+| https://doc.rust-lang.org/std/cell/struct.Cell.html[std::cell::Cell^]
+| https://doc.rust-lang.org/std/cell/struct.RefCell.html[std::cell::RefCell^]
+|===
+
+メモ
+
+* `Rc<Option<_>>`
+** 初期化した時点の `Rc::new(None)` と `Rc::new(Some(_))` で相互に書き換えができない +
+   Some の方は replace で置き換えることができる
+** `Rc<Option<RefCell<_>>>`
+*** ノードの情報のアクセスと書き換えができるが pop 系の実装で None を設定できずにはまる
+*** RefCell 自体の置き換えは Option::replace で一応できるが、置き換える対象を持ってくる方が大変 Ref や RefMut やらで代入できる形で抜き出せない
+
+
+* `Option<Rc<_>>`
+** Option は replace の操作ができるので、 `Rc<_>` を置き換えることができる
+
+
+=== Cell
+
+[source,rust]
+----
+impl<T> Cell<T> {
+    pub fn set(&self, val: T)
+    pub fn replace(&self, val: T) -> T
+}
+impl<T: Copy> Cell<T> {
+    pub fn get(&self) -> T
+}
+impl<T: Default> Cell<T> {
+    pub fn take(&self) -> T
+}
+----
+
+* Update tuple in `Cell<(u8,&str)>`
++
+[source,rust]
+----
+use std::cell::Cell;
+
+fn main() {
+    let a_cell: Cell<(u8,&str)> = Cell::new((1, "foo"));
+    let mut a_value = a_cell.take();
+    a_value.1 = "bar";
+    a_cell.replace(a_value);
+    assert_eq!(a_cell.get(), (1, "bar"));
+}
+----
+
+* Using slices
++
+[source,rust]
+----
+use std::cell::Cell;
+
+fn main() {
+    let slice: &mut [&str] = &mut ["Alice", "Bob", "Carol"];
+    let cell_slice: &Cell<[&str]> = Cell::from_mut(slice);
+    let names: &[Cell<&str>] = cell_slice.as_slice_of_cells();
+    // let names: Vec<Cell<&str>> = vec![
+    //     Cell::new("Alice"),
+    //     Cell::new("Bob"),
+    //     Cell::new("Carol"),
+    // ];
+    let slice_a = &names[0..=1];
+    let slice_b = &names[1..=2];
+    slice_b[0].replace("Billy");
+    assert_eq!(slice_a[1].get(), "Billy");
+    assert_eq!(names[1].get(), "Billy");
+}
+----
+
+* `Option<Cell<u8>>`
++
+[source,rust]
+----
+use std::cell::Cell;
+
+fn main() {
+    let some_a: Option<Cell<u8>> = Some(Cell::new(1));
+    if let Some(ref a) = some_a {
+        a.set(2);
+    }
+    assert_eq!(some_a.unwrap().get(), 2);
+}
+----
+
+=== RefCell
+
+[source,rust]
+----
+pub fn borrow(&self) -> Ref<T>
+pub fn borrow_mut(&self) -> RefMut<T>
+----
+
+* https://doc.rust-lang.org/std/cell/struct.RefCell.html[RefCell in std::cell - Rust^]
+
+==== Change the content of RefCell
+
+* Using replace
++
+[source,rust]
+----
+use std::cell::RefCell;
+
+fn main() {
+    let a_ref_cell: RefCell<(u8,&str,String)> = RefCell::new(
+        (1, "foo", String::from("ab"))
+    );
+    let mut a_value = a_ref_cell.take();
+    a_value.0 += 1;
+    a_value.1 = "bar";
+    a_value.2.push_str("c");
+    a_ref_cell.replace(a_value);
+    assert_eq!(
+        a_ref_cell.take(),
+        (2, "bar", String::from("abc"))
+    );
+}
+----
+
+* Update tuple in `RefCell<(u8,&str,String)>`
++
+[source,rust]
+----
+use std::cell::RefCell;
+
+fn main() {
+    let a_ref_cell: RefCell<(u8,&str,String)> = RefCell::new(
+        (1, "foo", String::from("ab"))
+    );
+    a_ref_cell.borrow_mut().0 += 1;
+    a_ref_cell.borrow_mut().1 = "bar";
+    a_ref_cell.borrow_mut().2.push_str("c");
+    assert_eq!(
+        a_ref_cell.take(),
+        (2, "bar", String::from("abc"))
+    );
+}
+----
+
+* Using slices
++
+[source,rust]
+----
+use std::cell::RefCell;
+
+fn main() {
+    let names: Vec<RefCell<&str>> = vec![
+        RefCell::new("Alice"),
+        RefCell::new("Bob"),
+        RefCell::new("Carol"),
+    ];
+    let slice_a = &names[0..=1];
+    let slice_b = &names[1..=2];
+    let billy = "Billy";
+    slice_b[0].replace(billy);
+    assert_eq!(slice_a[1].borrow().clone(), "Billy");
+    assert_eq!(names[1].borrow().clone(), "Billy");
+    assert_eq!(
+        names.into_iter().map(
+            |v| v.into_inner()
+        ).collect::<Vec<&str>>(),
+        vec!["Alice", "Billy", "Carol"]
+    );
+}
+----
+
+* `Option<RefCell<u8>>`
++
+[source,rust]
+----
+use std::cell::RefCell;
+
+fn main() {
+    let some_a: Option<RefCell<u8>> = Some(RefCell::new(1));
+    if let Some(ref a) = some_a {
+        a.replace(2);
+    }
+    assert_eq!(some_a.unwrap().take(), 2);
+}
+----
++
+[source,rust]
+----
+use std::cell::RefCell;
+
+fn main() {
+    let some_a: Option<RefCell<u8>> = Some(RefCell::new(1));
+    some_a.as_ref().map(|v| {v.replace(2); v});
+    assert_eq!(some_a.unwrap().take(), 2);
+}
+----
+
+==== move value
+
+[source,rust]
+----
+use std::cell::RefCell;
+
+fn main() {
+    let hello = "hello";
+    let hello_ptr: *const u8 = hello.as_ptr();
+
+    let some_a: Option<RefCell<&str>> = Some(RefCell::new(hello));
+    let mut cur: Option<RefCell<&str>> = None;
+
+    assert_eq!(cur, None);
+    cur = some_a;
+
+    assert_eq!(cur.unwrap().take().as_ptr(), hello_ptr);
+}
+----
+
+==== Check borrowed
+
+[source,rust]
+----
+use std::cell::RefCell;
+
+fn main() {
+    let share: RefCell<u8> = RefCell::new(1);
+    match *share.borrow() {
+        0 => (),
+        _ => {
+            assert!(share.try_borrow_mut().is_err());
+        },
+    };
+    assert_eq!(share.borrow().clone(), 1);
+}
+----
+
+==== borrow/borrow_mut in if expression
+
+* Using if expression: `u8`
++
+[source,rust]
+----
+use std::cell::RefCell;
+
+fn main() {
+    let share: RefCell<u8> = RefCell::new(1);
+    if *share.borrow_mut() == 1 {
+        assert_eq!(*share.borrow() + 1, 2);
+    } else {
+        assert_eq!(*share.borrow() + 2, 3);
+    };
+}
+----
+
+* Using if expression: `Option<u8>`
++
+[source,rust]
+----
+use std::cell::RefCell;
+
+fn main() {
+    let share: RefCell<Option<u8>> = RefCell::new(None);
+    if *share.borrow() == None {
+        *share.borrow_mut() = Some(0);
+    };
+    assert_eq!(format!("{:?}", share.borrow()), "Some(0)");
+
+    *share.borrow_mut() = None;
+    if share.borrow().is_none() {
+        *share.borrow_mut() = Some(1);
+    };
+    assert_eq!(format!("{:?}", share.borrow()), "Some(1)");
+
+    if share.borrow().is_some() {
+        share.borrow_mut().replace(2);
+    };
+    assert_eq!(format!("{:?}", share.borrow()), "Some(2)");
+}
+----
+
+
+==== BorrowMutError using RefCell
+
+* Using `&&`
++
+[source,rust]
+----
+use std::cell::RefCell;
+
+fn main() {
+    let b = RefCell::new(true);
+    let _ = *b.borrow_mut() && *b.borrow_mut();
+}
+----
++
+.Result
+----
+thread 'main' panicked at 'already borrowed: BorrowMutError', src/main.rs:5:35
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+----
+
+* Using match expression: `u8`
++
+[source,rust]
+.borrow_mut_error.rs
+----
+use std::cell::RefCell;
+
+fn main() {
+    let share: RefCell<u8> = RefCell::new(1);
+    match *share.borrow() {
+        0 => (),
+        _ => { *share.borrow_mut() = 0; },
+    };
+}
+----
++
+.Result
+----
+thread 'main' panicked at 'already borrowed: BorrowMutError', .../borrow_mut_error.rs:7:23
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+----
+
+* Using match expression: `Option<u8>`
++
+[source,rust]
+----
+use std::cell::RefCell;
+
+fn main() {
+    let share: RefCell<Option<u8>> = RefCell::new(None);
+    match *share.borrow() {
+        Some(n) => {
+            assert_eq!(n + 1, 2)
+        },
+        _ => {
+            *share.borrow_mut() = Some(0);
+        },
+    };
+}
+----
++
+.Results
+----
+thread 'main' panicked at 'already borrowed: BorrowMutError', .../borrow_mut_error.rs:10:20
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+----
+
+* Using `if let Some()` expression
++
+[source,rust]
+----
+use std::cell::RefCell;
+
+fn main() {
+    let share: RefCell<Option<u8>> = RefCell::new(None);
+    if let Some(n) = *share.borrow() {
+        assert_eq!(n + 1, 2);
+    } else {
+        *share.borrow_mut() = Some(0);
+    };
+}
+----
++
+.Results
+----
+thread 'main' panicked at 'already borrowed: BorrowMutError', .../borrow_mut_error.rs:8:16
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+----
+
+* Using `if let None` expression
++
+[source,rust]
+----
+use std::cell::RefCell;
+
+fn main() {
+    let share: RefCell<Option<u8>> = RefCell::new(None);
+    if let None = *share.borrow() {
+        *share.borrow_mut() = Some(0);
+    };
+}
+----
++
+.Results
+----
+thread 'main' panicked at 'already borrowed: BorrowMutError', .../borrow_mut_error.rs:6:16
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+----
+
+* BorrowMutError
++
+[source,rust]
+----
+use std::cell::RefCell;
+
+fn main() {
+    let share: RefCell<Option<u8>> = RefCell::new(None);
+    match share.borrow().is_none() {
+        true => {
+            *share.borrow_mut() = Some(0);
+        },
+        false => (),
+    };
+    println!("{:?}", share.borrow());
+}
+----
++
+.Results
+----
+thread 'main' panicked at 'already borrowed: BorrowMutError', .../borrow_mut_error.rs:7:20
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+----
+
+==== BorrowError using RefCell
+
+* Using match expression
++
+[source,rust]
+.borrow_error.rs
+----
+use std::cell::RefCell;
+
+fn main() {
+    let share: RefCell<u8> = RefCell::new(1);
+    match *share.borrow_mut() {
+        0 => { 0 },
+        _ => { *share.borrow() + 1 },
+    };
+}
+----
++
+.Result
+----
+thread 'main' panicked at 'already mutably borrowed: BorrowError', .../borrow_error.rs:7:23
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+----
+
+=== RefCell and RefMut
+
+* Using tuple
++
+[source,rust]
+----
+use std::cell::{RefCell, RefMut};
+
+fn main() {
+    let c = RefCell::new((5, 'b'));
+    {
+        let b1: RefMut<(u8, char)> = c.borrow_mut();
+        let mut b2: RefMut<u8> = RefMut::map(b1, |t| &mut t.0);
+        *b2 = 42;
+    }
+    assert_eq!(*c.borrow(), (42, 'b'));
+}
+----
+
+* Using `Option<(u8, char)>`
++
+[source,rust]
+----
+use std::cell::{RefCell, RefMut};
+
+fn main() {
+    let c: RefCell<Option<(u8, char)>> = RefCell::new(Some((5, 'b')));
+    {
+        let mut b1: RefMut<Option<(u8, char)>> = c.borrow_mut();
+        b1.replace((42, 'b'));
+    }
+    assert_eq!(*c.borrow(), Some((42, 'b')));
+}
+----
++
+[source,rust]
+----
+use std::cell::{RefCell, RefMut};
+
+fn main() {
+    let c: RefCell<Option<(u8, char)>> = RefCell::new(Some((5, 'b')));
+    {
+        let mut b1: RefMut<Option<(u8, char)>> = c.borrow_mut();
+        b1.as_mut().map(|s| {s.0 = 42; s});
+    }
+    assert_eq!(*c.borrow(), Some((42, 'b')));
+}
+----
++
+[source,rust]
+----
+use std::cell::{RefCell, RefMut};
+
+fn main() {
+    let c = RefCell::new(Some((5, 'b')));
+    {
+        let b1: RefMut<Option<(u8, char)>> = c.borrow_mut();
+        RefMut::map(
+            b1,
+            |t_opts| {
+                match t_opts.as_mut() {
+                    Some(v) => {v.0 = 42},
+                    None => (),
+                };
+                t_opts
+            }
+        );
+    }
+    assert_eq!(*c.borrow(), Some((42, 'b')));
+}
+----
+
+==== Using Option
+
+* Using `Option<RefCell<(u8, char)>>`
++
+[source,rust]
+----
+use std::cell::{RefCell, RefMut};
+
+fn main() {
+    let some_pair = Some(RefCell::new((5, 'b')));
+    let ref_pair = some_pair.as_ref().unwrap();
+    {
+        let ref_mut_pair: RefMut<(u8, char)> = ref_pair.borrow_mut();
+        let mut ref_mut_num: RefMut<u8> = RefMut::map(
+            ref_mut_pair, |t| &mut t.0
+        );
+        *ref_mut_num = 42;
+    }
+    assert_eq!(*ref_pair.borrow(), (42, 'b'));
+}
+----
+
+* Using `Option<RefCell<TreeNode>>`
++
+[source,rust]
+----
+use std::cell::{Ref, RefCell, RefMut};
+
+#[derive(Default)]
+struct TreeNode { left: u8, right: u8 }
+
+fn main() {
+    let some_node: Option<RefCell<TreeNode>> = Some(
+        RefCell::new(TreeNode {left: 1, right: 2})
+    );
+    let node_ref: &RefCell<TreeNode> = some_node.as_ref().unwrap();
+    let l_or_r_ref = Ref::map(
+        node_ref.borrow(),
+        |n| &n.left
+    );
+    assert_eq!(*l_or_r_ref, 1);
+    assert_eq!(node_ref.borrow().left, 1);
+    assert_eq!(node_ref.borrow().right, 2);
+    drop(l_or_r_ref);
+
+    let mut l_or_r_ref_mut = RefMut::map(
+        node_ref.borrow_mut(),
+        |n| &mut n.right
+    );
+    *l_or_r_ref_mut += 1;
+    assert_eq!(*l_or_r_ref_mut, 3);
+}
+----
+
+==== Using struct
+
+* Using `RefCell<TreeNode>`
++
+[source,rust]
+----
+use std::cell::{RefCell, RefMut};
+
+struct TreeNode { left: u8, right: u8 }
+
+fn main() {
+    let node: RefCell<TreeNode> = RefCell::new(
+        TreeNode {left: 1, right: 2}
+    );
+    {
+        let node_ref_mut: RefMut<TreeNode> = node.borrow_mut();
+        let mut left_or_right = RefMut::map(
+            node_ref_mut, |v| &mut v.left
+        );
+        *left_or_right += 2;
+    }
+    assert_eq!(node.borrow().left, 3);
+    assert_eq!(node.borrow().right, 2);
+}
+----
+
+* Using `RefCell<Option<TreeNode>>`
++
+[source,rust]
+----
+use std::cell::{RefCell, RefMut};
+
+struct TreeNode { left: u8, right: u8 }
+
+fn main() {
+    let node: RefCell<Option<TreeNode>> = RefCell::new(
+        Some(TreeNode {left: 1, right: 2})
+    );
+    {
+        let mut some_node_ref_mut: RefMut<Option<TreeNode>>;
+        some_node_ref_mut = node.borrow_mut();
+        some_node_ref_mut.as_mut().unwrap().left += 2;
+    }
+    assert_eq!(node.borrow().as_ref().unwrap().left, 3);
+    assert_eq!(node.borrow().as_ref().unwrap().right, 2);
+}
+----
+
+* Using `RefCell<Option<TreeNode>>`
++
+[source,rust]
+----
+use std::cell::{RefCell, RefMut};
+use std::cmp::Ordering;
+
+struct TreeNode { key: u8, left: u8, right: u8 }
+
+fn main() {
+    let mut l_or_r :&mut u8;
+    let node: RefCell<Option<TreeNode>> = RefCell::new(None);
+
+    if node.borrow().is_none() {
+        node.replace(Some(TreeNode {key: 3, left: 1, right: 4}));
+    }
+
+    let ordering = node.borrow().as_ref().unwrap().key.cmp(&1);
+    let mut some_node_ref_mut: RefMut<Option<TreeNode>>;
+    some_node_ref_mut = node.borrow_mut();
+    let node_ref_mut: &mut TreeNode = some_node_ref_mut.as_mut().unwrap();
+    l_or_r = match ordering {
+        Ordering::Greater => &mut node_ref_mut.left,
+        _ => &mut node_ref_mut.right,
+    };
+    *l_or_r += 2;
+    drop(some_node_ref_mut);  // Necessary to suppress BorrowError //<1>
+
+    let ordering = node.borrow().as_ref().unwrap().key.cmp(&8);
+    some_node_ref_mut = node.borrow_mut();
+    let node_ref_mut: &mut TreeNode = some_node_ref_mut.as_mut().unwrap();
+    l_or_r = match ordering {
+        Ordering::Greater => &mut node_ref_mut.left,
+        _ => &mut node_ref_mut.right,
+    };
+    *l_or_r += 2;
+    drop(some_node_ref_mut);  // Necessary to suppress BorrowError //<1>
+
+    assert_eq!(node.borrow().as_ref().unwrap().left, 3); //<1>
+    assert_eq!(node.borrow().as_ref().unwrap().right, 6); //<1>
+}
+----
+<1> If you do not call the drop function, this program will crash with a run-time error.
++
+----
+thread 'main' panicked at 'already mutably borrowed: BorrowError', src/main.rs:35:21
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+----

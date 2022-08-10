@@ -1,0 +1,210 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+:icons: font
+
+include::header.adoc[]
+endif::[]
+
+== Install rust
+
+1. Install
++
+[source,console]
+----
+sudo apt update
+curl https://sh.rustup.rs -sSf | sh
+----
++
+[NOTE]
+====
+* The installation script automatically adds Rust to your system path after your next login to SSH.
+====
+
+. If you need to use Rust immediately without restarting terminal you can add Rust to path manually.
++
+[source,console]
+----
+$ . $HOME/.cargo/env
+$ rustc --version
+rustc 1.51.0 (2fd73fabe 2021-03-23)
+$
+----
+
+
+=== Installing Rust nightly
+
+. With rustup, Basics of Rust, it is very easy to install nightly:
++
+[source,console]
+----
+rustup default nightly
+----
+
+. The nightly version is updated very frequently, so you might want to update it every week or more often. To do so, you need to run this command:
++
+[source,console]
+----
+rustup update
+----
+
+=== Go back to the stable version
+
+. If you want to go back to the stable version, issue the following command:
++
+[source,console]
+----
+rustup default stable
+----
+
+. Apply updates
++
+[source,console]
+----
+rustup update
+----
+
+=== Benchmark
+
+==== test crate
+
+. Set nightly
++
+[source,console]
+----
+$ rustup override set nightly
+----
+
+. Install nightly
++
+[source,console]
+----
+$ rustup install nightly
+----
+
+. Add benchmarks:
++
+[source,rust]
+----
+#![feature(test)]
+extern crate test;
+
+//...
+
+#[cfg(test)]
+mod tests {
+    use test::Bencher;
+
+    #[bench]
+    fn bench_perm_tmp_vec_u32(b: &mut Bencher) {
+        use crate::perm_tmp_vec_u32;
+        
+        b.iter(|| {
+            for _ in 0..20 {
+                // 6! = 720 patterns
+                let mut result = Vec::<Vec<u32>>::new();
+                perm_tmp_vec_u32(vec![1, 2, 3, 4, 5, 6], &mut vec![], &mut result);
+                result.clear();
+            }
+        })
+    }
+
+    #[bench]
+    fn bench_perm_with_swap_u32(b: &mut Bencher) {
+        use crate::perm_with_swap_u32;
+        
+        b.iter(|| {
+            for _ in 0..20 {
+                // 6! = 720 patterns
+                let mut result = Vec::<Vec<u32>>::new();
+                perm_with_swap_u32(vec![1, 2, 3, 4, 5, 6], 0, &mut result);
+                result.clear();
+            }
+        })
+    }
+
+    #[bench]
+    fn bench_perm_with_swap_gen(b: &mut Bencher) {
+        use crate::perm_with_swap_gen;
+        
+        b.iter(|| {
+            for _ in 0..20 {
+                // 6! = 720 patterns
+                let mut result = Vec::<Vec<u32>>::new();
+                perm_with_swap_gen(vec![1, 2, 3, 4, 5, 6], 0, &mut result);
+                result.clear();
+            }
+        })
+    }
+
+    #[bench]
+    fn bench_perm_iterative_no_gen(b: &mut Bencher) {
+        use crate::perm_iterative_no_gen;
+        
+        b.iter(|| {
+            for _ in 0..20 {
+                // 6! = 720 patterns
+                let mut result = perm_iterative_no_gen(vec![1, 2, 3, 4, 5, 6]);
+                result.clear();
+            }
+        })
+    }
+
+    #[bench]
+    fn bench_perm_iterative_ordered_gen(b: &mut Bencher) {
+        use crate::perm_iterative_ordered_gen;
+        
+        b.iter(|| {
+            for _ in 0..20 {
+                // 6! = 720 patterns
+                let mut result = perm_iterative_ordered_gen(vec![1, 2, 3, 4, 5, 6]);
+                result.clear();
+            }
+        })
+    }
+}
+----
+
+. Run benchmarks:
++
+[source,console]
+----
+$ cargo bench
+   Compiling permutation v0.1.0 (.../projects/math/permutation)
+    Finished bench [optimized] target(s) in 4.57s
+     Running unittests (target/release/deps/permutation-a8a03217a213bc5a)
+
+running 10 tests
+test tests::test_perm_iterative_no_gen ... ignored
+test tests::test_perm_iterative_ordered_gen ... ignored
+test tests::test_perm_tmp_vec_u32 ... ignored
+test tests::test_perm_with_swap_gen ... ignored
+test tests::test_perm_with_swap_u32 ... ignored
+test tests::bench_perm_iterative_no_gen      ... bench:     721,800 ns/iter (+/- 252,102)
+test tests::bench_perm_iterative_ordered_gen ... bench:   2,510,677 ns/iter (+/- 217,588)
+test tests::bench_perm_tmp_vec_u32           ... bench:   5,281,755 ns/iter (+/- 992,021)
+test tests::bench_perm_with_swap_gen         ... bench:   2,727,402 ns/iter (+/- 182,668)
+test tests::bench_perm_with_swap_u32         ... bench:   2,699,400 ns/iter (+/- 152,745)
+
+test result: ok. 0 pass
+----
+
+==== criterion
+
+. First install cargo-criterion:
++
+[source,console]
+----
+cargo install cargo-criterion
+----
+
+. Then you can use it to run your Criterion-rs benchmarks:
++
+[source,console]
+----
+cargo criterion
+----
+
+.References
+* https://docs.rs/criterion/latest/criterion/index.html[criterion - Rust^]
+* https://github.com/bheisler/cargo-criterion[bheisler/cargo-criterion: Cargo extension for running Criterion.rs benchmarks^]
