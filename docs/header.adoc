@@ -1,0 +1,2 @@
+<<index.adoc#,Haskell>> {vbar}
+<<math.adoc#,Math>> +

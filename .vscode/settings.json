@@ -9,6 +9,7 @@
   "cSpell.words": [
     "accum",
     "Actix",
+    "adocbuild",
     "autowidth",
     "backtrace",
     "Binop",
@@ -62,6 +63,7 @@
     "structs",
     "summarizable",
     "tamasfe",
+    "tonynv",
     "tsplib",
     "tutorial",
     "unittests",

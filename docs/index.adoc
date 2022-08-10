@@ -1,0 +1,9 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+:icons: font
+
+include::header.adoc[]
+endif::[]
+
+== Rust examples
