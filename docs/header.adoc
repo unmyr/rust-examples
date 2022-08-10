@@ -1,4 +1,4 @@
-<<index.adoc#,Haskell>> {vbar}
+<<index.adoc#,Rust>> {vbar}
 <<algorithms.adoc#,Algorithms>> {vbar}
 <<match-expr.adoc#,Match>> {vbar}
 <<math.adoc#,Math>> {vbar}
