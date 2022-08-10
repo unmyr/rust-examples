@@ -370,6 +370,6 @@ fn main() {
 $ cargo run --bin clone_whole_vec_ref_as_mut
    ...
     Finished dev [unoptimized + debuginfo] target(s) in 3.98s
-     Running `/home/guest/tmp_rust/rust-examples/projects/algorithms/target/debug/clone_whole_vec_ref_as_mut`
+     Running `.../projects/algorithms/target/debug/clone_whole_vec_ref_as_mut`
 v1=["hello world"], v2=["hello world"]
 ----

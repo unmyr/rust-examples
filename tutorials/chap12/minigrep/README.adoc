@@ -1211,7 +1211,7 @@ To an admiring bog!
 [source,console]
 ----
 minigrep$ cargo run > output.txt
-   Compiling minigrep v0.1.0 (/home/guest/tmp_rust/rust-examples/tutorials/minigrep)
+   Compiling minigrep v0.1.0 (.../tutorials/minigrep)
     Finished dev [unoptimized + debuginfo] target(s) in 1.64s
      Running `target/debug/minigrep`
 minigrep$ cat output.txt

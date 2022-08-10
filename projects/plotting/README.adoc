@@ -40,7 +40,7 @@ Program received signal SIGILL, Illegal instruction.
 #0  0x00000000080dc4f5 in core::core_arch::x86::sse41::_mm_max_epi32 (a=..., b=...)
     at /rustc/f1edd0429582dd29cccacaf50fd134b05593bd9c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse41.rs:287
 #1  0x00000000080db055 in pathfinder_simd::x86::I32x4::max (self=..., other=...)
-    at /home/guest/.cargo/registry/src/github.com-1ecc6299db9ec823/pathfinder_simd-0.5.1/src/x86/mod.rs:705
+    at .../.cargo/registry/src/github.com-1ecc6299db9ec823/pathfinder_simd-0.5.1/src/x86/mod.rs:705
 ...
 #15 0x0000000008086288 in plotters_x_squared::main () at src/main.rs:6
 (gdb)
