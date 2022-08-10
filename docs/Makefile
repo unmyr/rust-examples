@@ -21,8 +21,5 @@ mkdir_and_copy:
 	-test ! -d $(SRC_IMAGES_DIR) || mkdir -p $(DST_IMAGES_DIR)
 	-test ! -d $(SRC_IMAGES_DIR) || cp $(CP_OPTS) $(SRC_IMAGES_DIR)/* $(DST_IMAGES_DIR)/
 
-$(DEST_DIR)/math.html: math.adoc header.adoc
-	asciidoctor --trace $(AD_OPTS_HTML5_STEM) -o "$@" "$<"
-
 $(DEST_DIR)/%.html: %.adoc header.adoc
 	asciidoctor --trace $(AD_OPTS_HTML5_ROUGE) -o "$@" "$<"
