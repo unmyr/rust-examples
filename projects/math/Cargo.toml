@@ -1,4 +1,5 @@
 [workspace]
+resolver = "2"
 members = [
     "collatz",
     "digits_sum_has_nth_roots",
