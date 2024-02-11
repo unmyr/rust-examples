@@ -1,8 +1,7 @@
 {
   "recommendations":[
-    "rust-lang.rust",
-    "vadimcn.vscode-lldb",
-    "tamasfe.even-better-toml",
-    "streetsidesoftware.code-spell-checker"
+    "rust-lang.rust-analyzer",
+    "streetsidesoftware.code-spell-checker",
+    "tamasfe.even-better-toml"
   ]
 }
