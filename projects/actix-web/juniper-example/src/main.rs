@@ -44,16 +44,14 @@ async fn main() -> io::Result<()> {
 
     // Start http server
     HttpServer::new(move || {
+        let cors = Cors::default()
+            .allowed_methods(vec!["POST", "GET"])
+            .supports_credentials()
+            .max_age(3600);
         App::new()
             .data(schema.clone())
             .wrap(middleware::Logger::default())
-            .wrap(
-                Cors::new()
-                    .allowed_methods(vec!["POST", "GET"])
-                    .supports_credentials()
-                    .max_age(3600)
-                    .finish(),
-            )
+            .wrap(cors)
             .service(web::resource("/graphql").route(web::post().to(graphql)))
             .service(web::resource("/graphiql").route(web::get().to(graphiql)))
     })
