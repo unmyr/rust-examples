@@ -12,17 +12,25 @@ $ cd simple-server/
 
 [source,console]
 ----
-[00:31:56] simple-server$ cargo build
-   Compiling proc-macro2 v1.0.28
-   Compiling unicode-xid v0.2.2
-   Compiling syn v1.0.75
-   Compiling libc v0.2.100
-   ...
-   Compiling awc v2.0.3
-   Compiling actix-web v3.3.2
+simple-server$ cargo build
+    Blocking waiting for file lock on build directory
+   Compiling tokio v1.36.0
+   Compiling aho-corasick v1.1.2
+   Compiling regex-automata v0.4.5
+   Compiling tokio-util v0.7.10
+   Compiling tracing v0.1.40
+   Compiling regex v1.10.3
+   Compiling actix-rt v2.9.0
+   Compiling actix-codec v0.5.2
+   Compiling h2 v0.3.24
+   Compiling actix-router v0.5.2
+   Compiling actix-web-codegen v4.2.2
+   Compiling actix-server v2.3.0
+   Compiling actix-http v3.6.0
+   Compiling actix-web v4.5.1
    Compiling simple-server v0.1.0 (<path-to-project>/simple-server)
-    Finished dev [unoptimized + debuginfo] target(s) in 4m 18s
-[00:36:18] simple-server$ 
+    Finished dev [unoptimized + debuginfo] target(s) in 1m 12s
+simple-server$ 
 ----
 
 === Run server
@@ -36,22 +44,7 @@ $ cargo run
 
 [source,console]
 ----
-$ curl --verbose -X GET http://localhost:8080/1234/john.doe/index.html
-Note: Unnecessary use of -X or --request, GET is already inferred.
-*   Trying 127.0.0.1...
-* TCP_NODELAY set
-* Connected to localhost (127.0.0.1) port 8080 (#0)
-> GET /1234/john.doe/index.html HTTP/1.1
-> Host: localhost:8080
-> User-Agent: curl/7.58.0
-> Accept: */*
->
-< HTTP/1.1 200 OK
-< content-length: 23
-< content-type: text/plain; charset=utf-8
-< date: Sat, 21 Aug 2021 15:56:51 GMT
-<
-* Connection #0 to host localhost left intact
+$ curl -X GET http://localhost:8080/1234/john.doe/index.html
 Hello john.doe! id:1234
 ----
 
