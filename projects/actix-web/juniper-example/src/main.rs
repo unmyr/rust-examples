@@ -5,7 +5,8 @@ use std::io;
 use std::sync::Arc;
 
 use actix_cors::Cors;
-use actix_web::{middleware, web, App, Error, HttpResponse, HttpServer};
+use actix_web::{middleware, route, web, App, HttpResponse, HttpServer, Responder};
+
 use juniper::http::graphiql::graphiql_source;
 use juniper::http::GraphQLRequest;
 
@@ -13,31 +14,27 @@ mod schema;
 
 use crate::schema::{create_schema, Schema};
 
-async fn graphiql() -> HttpResponse {
+#[route("/graphiql", method = "GET")]
+async fn graphiql() -> impl Responder {
     let html = graphiql_source("http://127.0.0.1:8080/graphql", None);
-    HttpResponse::Ok()
-        .content_type("text/html; charset=utf-8")
-        .body(html)
+    actix_web_lab::respond::Html(html)
 }
 
+#[route("/graphql", method = "POST")]
 async fn graphql(
     st: web::Data<Arc<Schema>>,
     data: web::Json<GraphQLRequest>,
-) -> Result<HttpResponse, Error> {
-    let user = web::block(move || {
-        let res = data.execute_sync(&st, &());
-        serde_json::to_string(&res)
-    })
-    .await?;
-    Ok(HttpResponse::Ok()
-        .content_type("application/json")
-        .body(user.unwrap().to_string()))
+) -> impl Responder {
+    let user = data.execute(&st, &()).await;
+    HttpResponse::Ok().json(user)
 }
 
 #[actix_web::main]
 async fn main() -> io::Result<()> {
     std::env::set_var("RUST_LOG", "actix_web=info");
     env_logger::init();
+
+    let port = 8080;
 
     // Create Juniper schema
     let schema = std::sync::Arc::new(create_schema());
@@ -53,10 +50,10 @@ async fn main() -> io::Result<()> {
             .app_data(state)
             .wrap(middleware::Logger::default())
             .wrap(cors)
-            .service(web::resource("/graphql").route(web::post().to(graphql)))
-            .service(web::resource("/graphiql").route(web::get().to(graphiql)))
+            .service(graphql)
+            .service(graphiql)
     })
-    .bind("127.0.0.1:8080")?
+    .bind(("0.0.0.0", port))?
     .run()
     .await
 }

@@ -155,12 +155,33 @@ $ cargo run
 }
 ----
 
-[source,console]
+==== Test /graphiql
+
+. Open with browser
++
+[source,plaintext]
 ----
-$ curl -X POST -H "Content-Type: application/json" -d '{"query": "{human(id: \"1234\") {name appearsIn homePlanet}}"}' http://127.0.0.1:8080/graphql | jq
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-100   141  100    79  100    62   4647   3647 --:--:-- --:--:-- --:--:--  8294
+http://127.0.0.1:8080/graphiql
+----
+
+. Input query
++
+[source,plaintext]
+----
+{human(id: "1234") {name appearsIn homePlanet}}
+----
+
+==== Test 
+
+* Linux
++
+[source,shell]
+----
+curl -X POST -H "Content-Type: application/json" -d '{"query": "{human(id: \"1234\") {name appearsIn homePlanet}}"}' http://127.0.0.1:8080/graphql | jq
+----
++
+[source,json]
+----
 {
   "data": {
     "human": {
@@ -172,6 +193,13 @@ $ curl -X POST -H "Content-Type: application/json" -d '{"query": "{human(id: \"1
     }
   }
 }
+----
+
+* PowerShell
++
+[source,powershell]
+----
+Invoke-WebRequest -Method POST -Header @{"Content-Type" = "application/json"} -ContentType 'application/json' -Body '{"query": "{human(id: \"1234\") {name appearsIn homePlanet}}"}' http://127.0.0.1:8080/graphql
 ----
 
 === References
