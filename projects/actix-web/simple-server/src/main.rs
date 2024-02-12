@@ -1,10 +1,8 @@
-use actix_web::{get, web, App, HttpServer, Responder};
+use actix_web::{App, HttpServer};
 
-#[get("/{id}/{name}/index.html")]
-async fn index(params: web::Path<(u32, String)>) -> impl Responder {
-    let (id, name) = params.into_inner();
-    format!("Hello {}! id:{}", name, id)
-}
+use api::index;
+
+mod api;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

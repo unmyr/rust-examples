@@ -5,29 +5,12 @@ use std::io;
 use std::sync::Arc;
 
 use actix_cors::Cors;
-use actix_web::{middleware, route, web, App, HttpResponse, HttpServer, Responder};
-
-use juniper::http::graphiql::graphiql_source;
-use juniper::http::GraphQLRequest;
+use actix_web::{middleware, web, App, HttpServer};
+use api::{graphiql, graphql};
+use schema::{create_schema, Schema};
 
 mod schema;
-
-use crate::schema::{create_schema, Schema};
-
-#[route("/graphiql", method = "GET")]
-async fn graphiql() -> impl Responder {
-    let html = graphiql_source("http://127.0.0.1:8080/graphql", None);
-    actix_web_lab::respond::Html(html)
-}
-
-#[route("/graphql", method = "POST")]
-async fn graphql(
-    st: web::Data<Arc<Schema>>,
-    data: web::Json<GraphQLRequest>,
-) -> impl Responder {
-    let user = data.execute(&st, &()).await;
-    HttpResponse::Ok().json(user)
-}
+mod api;
 
 #[actix_web::main]
 async fn main() -> io::Result<()> {
