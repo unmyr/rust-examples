@@ -7,5 +7,9 @@
 * https://actix.rs/docs/[Documentation^]
 * https://github.com/actix/actix-web[Actix Web is a powerful - GitHub^] +
   actix-web - Google Search
-* https://github.com/graphql-rust/juniper[juniper: GraphQL server library for Rust - GitHub^] +
+** https://github.com/actix/actix-web/blob/master/actix-web/MIGRATION-4.0.md[actix-web/actix-web/MIGRATION-4.0.md at master · actix/actix-web^]
+* https://docs.rs/actix-web-lab/latest/actix_web_lab/[actix_web_lab - Rust^]
+* Juniper
+** https://github.com/graphql-rust/juniper[juniper: GraphQL server library for Rust - GitHub^] +
   rust graphql Juniper - Google Search
+** https://graphql-rust.github.io/juniper/master/index.html[Introduction - Juniper Book (GraphQL server for Rust)^]
