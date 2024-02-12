@@ -162,6 +162,30 @@ Hello, world!
 * https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb[CodeLLDB - Visual Studio Marketplace^]
 * https://marketplace.visualstudio.com/items?itemName=tamasfe.even-better-toml[Even Better TOML - Visual Studio Marketplace^]
 
+=== Check outdated
+
+. Install `cargo-outdated`
++
+[source,shell]
+----
+cargo install --locked cargo-outdated
+----
+See: https://github.com/kbknapp/cargo-outdated[kbknapp/cargo-outdated: A cargo subcommand for displaying when Rust dependencies are out of date^]
+
+. Check outdated
++
+[source,shell]
+----
+cargo outdated
+----
+
+. Update dependencies
++
+[source,shell]
+----
+cargo update --recursive
+----
+
 === References
 
 * Rust 2021
