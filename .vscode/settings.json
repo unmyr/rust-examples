@@ -9,8 +9,10 @@
   "cSpell.words": [
     "accum",
     "Actix",
+    "adoc",
     "adocbuild",
     "alloc",
+    "asciidoctor",
     "autowidth",
     "backtrace",
     "bindgen",
