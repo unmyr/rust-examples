@@ -16,10 +16,10 @@ $ cd itertools-examples/
 [source,diff]
 ----
 @@ -4,3 +4,4 @@ version = "0.1.0"
- edition = "2021"
+ edition = "2024"
 
  [dependencies]
-+itertools = "0.9"
+itertools = "0.14"
 ----
 
 === Code
