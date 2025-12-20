@@ -13,17 +13,16 @@ $ cd monte-carlo/
 
 . The cargo test command runs all tests in our project.
 +
-[source,console]
+[source,shell]
 ----
-$ cargo test
-...
+cargo test
 ----
 
 === Run
 
 [source,console]
 ----
-$ cargo run --release
+$ cargo run --bin monte_carlo --release
     Finished release [optimized] target(s) in 0.28s
      Running `.../projects/math/target/release/monte_carlo`
          1, 0.0000000000 3.1415926536
