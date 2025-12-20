@@ -1,0 +1,28 @@
+
+= XOR Regression Example
+
+== Running the Example 1
+
+Learning and inference are performed by extending it to a continuous XOR function.
+Note that by adding cross terms to the input, the model is realized as a single-layer neural network.
+
+[stem,latexmath]
+++++
+y = w_0 + w_1*x_1 + w_2*x_2 + w_3(x_1*x_2)
+++++
+
+[source,shell]
+.Run the example 1
+----
+cargo run --bin xor_reg1 --release
+----
+
+[source,plaintext]
+.Results
+----
+== XOR Predictions ==
+Input: [0.0, 0.0, 0.0] => Predicted: -0.000
+Input: [0.0, 1.0, 0.0] => Predicted: 1.000
+Input: [1.0, 0.0, 0.0] => Predicted: 1.000
+Input: [1.0, 1.0, 1.0] => Predicted: -0.000
+----
