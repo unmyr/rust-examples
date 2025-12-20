@@ -1,4 +1,5 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use std::hint::black_box;
+use criterion::{criterion_group, criterion_main, Criterion};
 use factorial::factorial_recursive_if_else;
 use factorial::factorial_recursive_use_match;
 use factorial::factorial_iterative;

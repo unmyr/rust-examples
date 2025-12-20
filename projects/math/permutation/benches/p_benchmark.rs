@@ -1,4 +1,5 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use std::hint::black_box;
+use criterion::{criterion_group, criterion_main, Criterion};
 use permutation::v1_recursive_ordered_u32::gen_perm_with_tmp_vec_u32;
 use permutation::v2_recursive_unordered_u32::gen_perm_with_depth as gen_perm_with_depth_u32;
 use permutation::v3_recursive_unordered_gen::gen_perm_with_depth as gen_perm_with_depth_gen;

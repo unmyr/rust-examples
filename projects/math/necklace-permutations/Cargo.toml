@@ -10,7 +10,7 @@ path = "src/lib.rs"
 [dependencies]
 
 [dev-dependencies]
-criterion = "0.3"
+criterion = "0.8"
 
 [[bench]]
 name = "np_benchmark"
