@@ -1,7 +1,6 @@
 [workspace]
 resolver = "2"
 members = [
-    "plotlib-x-squared",
     "plotters-path-and-label",
     "plotters-x-squared",
 ]
