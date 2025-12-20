@@ -7,6 +7,7 @@
     "**/target/**": true
   },
   "rust-analyzer.linkedProjects": [
+    "projects/actix-web/Cargo.toml",
     "projects/algorithms/Cargo.toml",
     "projects/closures/Cargo.toml",
     "projects/collections/Cargo.toml",
@@ -27,7 +28,8 @@
     "projects/ownership/Cargo.toml",
     "projects/plotting/Cargo.toml",
     "projects/string-types/Cargo.toml",
-    "projects/threads/Cargo.toml"
+    "projects/threads/Cargo.toml",
+    "tutorials/Cargo.toml"
   ],
   "cSpell.words": [
     "accum",
