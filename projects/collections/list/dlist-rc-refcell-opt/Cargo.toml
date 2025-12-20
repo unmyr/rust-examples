@@ -1,7 +1,6 @@
 [package]
 name = "dlist-rc-refcell-opt"
 version = "0.1.0"
-edition = "2021"
-rust-version = "1.58"
+edition = "2024"
 
 [dependencies]
