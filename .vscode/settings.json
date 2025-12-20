@@ -35,6 +35,7 @@
     "hypot",
     "Iceburgh",
     "ifdef",
+    "ifndef",
     "imageproc",
     "imagesdir",
     "immut",
