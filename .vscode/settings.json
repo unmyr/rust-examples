@@ -6,6 +6,29 @@
   "files.watcherExclude": {
     "**/target/**": true
   },
+  "rust-analyzer.linkedProjects": [
+    "projects/algorithms/Cargo.toml",
+    "projects/closures/Cargo.toml",
+    "projects/collections/Cargo.toml",
+    "projects/errors/Cargo.toml",
+    "projects/fs/Cargo.toml",
+    "projects/generics/Cargo.toml",
+    "projects/hello-calc/Cargo.toml",
+    "projects/hello-world/Cargo.toml",
+    "projects/image/Cargo.toml",
+    "projects/interior-mutability/Cargo.toml",
+    "projects/lifetime/Cargo.toml",
+    "projects/loop-1million/Cargo.toml",
+    "projects/match-expressions/Cargo.toml",
+    "projects/math/Cargo.toml",
+    "projects/modules/Cargo.toml",
+    "projects/operator-overloading/Cargo.toml",
+    "projects/option-and-result/Cargo.toml",
+    "projects/ownership/Cargo.toml",
+    "projects/plotting/Cargo.toml",
+    "projects/string-types/Cargo.toml",
+    "projects/threads/Cargo.toml"
+  ],
   "cSpell.words": [
     "accum",
     "Actix",

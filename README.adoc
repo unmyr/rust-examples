@@ -42,6 +42,26 @@ $
   },
 ----
 
+=== Install Rust Analyzer
+
+1. Install rust-src
++
+[source,shell]
+----
+sudo apt install rust-src
+----
+
+2. Install rust-analyzer
+3. Add Cargo.toml path except project root to `rust-analyzer.linkedProjects[]` in `.vscode/settings.json`. (Optional)
++
+[source,json]
+.vscode/settings.json
+----
+  "rust-analyzer.linkedProjects": [
+    "<relative-path-from-the-project-root>/Cargo.toml"
+  ],
+----
+
 === Upgrade
 
 . Upgrade
