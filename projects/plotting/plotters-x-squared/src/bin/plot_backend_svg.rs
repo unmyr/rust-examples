@@ -1,27 +1,7 @@
-=== create a new binary project
-
-. Let's create a new binary project called `plotters-x-squared`
-+
-[source,console]
-----
-$ cargo new plotters-x-squared --bin
-     Created binary (application) `plotters-x-squared` package
-----
-+
-[source,console]
-----
-$ cd plotters-x-squared/
-----
-
-=== Code
-
-[source,rust]
-./src/bin/plot_backend_png.rs
-----
 use plotters::prelude::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let root = BitMapBackend::new("../images/plotters-x-squared.png", (640, 480)).into_drawing_area();
+    let root = SVGBackend::new("../images/plotters-x-squared.svg", (640, 480)).into_drawing_area();
     root.fill(&WHITE)?;
     let mut chart = ChartBuilder::on(&root)
         .caption("y=x^2", ("sans-serif", 50).into_font())
@@ -48,26 +28,3 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
-----
-
-=== Run the examples
-
-* Backend PNG
-+
-[source,shell]
-----
-cargo run --bin plot_backend_png --release
-----
-+
-.Results
-image::../images/plotters-x-squared.png[]
-
-* Backend SVG
-+
-[source,shell]
-----
-cargo run --bin plot_backend_svg --release
-----
-+
-.Results
-image::../images/plotters-x-squared.svg[]
