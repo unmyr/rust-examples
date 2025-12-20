@@ -15,7 +15,7 @@ fn main() {
 
     println!("*** Random Search ***");
     let mut total_dist_min = f32::MAX;
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     for n in 0..1814400 {
         (&mut route[1..]).shuffle(&mut rng);
         let total_dist_cur = tsp_data.calc_distance(&route);
