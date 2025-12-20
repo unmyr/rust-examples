@@ -49,4 +49,13 @@ fn main() {
 }
 ----
 
+1. Build and run the example
++
+[source,shell]
+----
+cargo run tmp.png
+----
+
+2. Check the generated image file `tmp.png` in the current directory.
++
 image::main.png[]
