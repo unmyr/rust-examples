@@ -14,7 +14,10 @@ mod api;
 
 #[actix_web::main]
 async fn main() -> io::Result<()> {
-    std::env::set_var("RUST_LOG", "actix_web=info");
+    // This std::env::set_var is unsafe in edition 2024
+    // See: https://github.com/rust-lang/rust/pull/124636
+    // std::env::set_var("RUST_LOG", "actix_web=info");
+
     env_logger::init();
 
     let port = 8080;

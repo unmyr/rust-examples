@@ -7,3 +7,5 @@ edition = "2024"
 
 [dependencies]
 actix-web = "4"
+# See: https://github.com/time-rs/time/issues/693
+time = ">= 0.3.38"

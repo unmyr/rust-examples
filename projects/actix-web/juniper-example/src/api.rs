@@ -10,7 +10,7 @@ use crate::schema::Schema;
 #[route("/graphiql", method = "GET")]
 async fn graphiql() -> impl Responder {
     let html = graphiql_source("http://127.0.0.1:8080/graphql", None);
-    actix_web_lab::respond::Html(html)
+    web::Html::new(html)
 }
 
 #[route("/graphql", method = "POST")]
