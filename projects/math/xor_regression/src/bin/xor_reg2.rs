@@ -13,9 +13,9 @@ fn main() {
 
     println!("== XOR Predictions ==");
     for input in test_inputs.rows() {
-        let x1 = input[0];
-        let x2 = input[1];
-        let pred = xor_continuous(x1, x2);
+        let x1 = &input[0];
+        let x2 = &input[1];
+        let pred = xor_continuous(*x1, *x2);
         println!("Input: [{}, {}] => Predicted: {:.3}", x1, x2, pred);
     }
 }
