@@ -9,9 +9,17 @@
 
 === Install
 
+. Install build-essential
++
+[source,shell]
+----
+sudo apt update
+sudo apt install -y build-essential
+----
+
 . Install
 +
-[source,console]
+[source,shell]
 ----
 sudo apt update
 curl https://sh.rustup.rs -sSf | sh
