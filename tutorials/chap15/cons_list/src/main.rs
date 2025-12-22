@@ -1,4 +1,5 @@
 enum List {
+    #[allow(unused)]
     Cons(i32, Box<List>),
     Nil,
 }
