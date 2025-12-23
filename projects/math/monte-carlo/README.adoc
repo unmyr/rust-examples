@@ -1,3 +1,22 @@
+== Monte Carlo Method for Estimating Pi
+
+Then, the probability that a point falls inside the circle in a single trial is π/4.
+In this case, the number of points _X_ that fall inside the circle follows a binomial distribution _B(n, π/4)_.
+(1回の試行で点が円内に入る確率はπ/4となります。 このとき、円内に入る点の数Xは二項分布B(n, π/4)に従います。)
+
+The estimate of π is given by the following formula: (πの推定値は次の式で与えられます。)
+[source,math]
+----
+π ≈ 4 * (X / n)
+----
+
+The standard deviation in this case is given by the following formula: (このときの標準偏差は次の式で与えられます。)
+
+[source,math]
+----
+σ(n) = 4 * sqrt((p(1-p))/n) =  4 * sqrt( (π/4) * (1 - π/4) / n )
+----
+
 === Create a new project
 
 . Let's create a new library project called `monte-carlo`
@@ -23,14 +42,20 @@ cargo test
 [source,console]
 ----
 $ cargo run --bin monte_carlo --release
-    Finished release [optimized] target(s) in 0.28s
-     Running `.../projects/math/target/release/monte_carlo`
-         1, 0.0000000000 3.1415926536
-        10, 2.8000000000 0.3415926536
-       100, 3.2400000000 0.0984073464
-      1000, 3.2280000000 0.0864073464
-     10000, 3.1232000000 0.0183926536
-    100000, 3.1342800000 0.0073126536
-   1000000, 3.1378120000 0.0037806536
-  10000000, 3.1416692000 0.0000765464
+calc_pi(1): error=0.8584073464102069
+calc_pi(10): error=0.3415926535897933
+calc_pi(100): error=0.05840734641020706
+calc_pi(1000): error=0.04559265358979303
+calc_pi(10000): error=0.016007346410206846
+calc_pi(100000): error=0.01220734641020682
+calc_pi(1000000): error=0.00013265358979319686
+calc_pi(10000000): error=0.00010894641020708917
+trial=         1, result=4.0000000000, error=0.8584073464, 2 sigma=3.2843667355, within_95%_conf=PASS
+trial=        10, result=2.8000000000, error=0.3415926536, 2 sigma=1.0386079555, within_95%_conf=PASS
+trial=       100, result=3.2000000000, error=0.0584073464, 2 sigma=0.3284366735, within_95%_conf=PASS
+trial=      1000, result=3.0960000000, error=0.0455926536, 2 sigma=0.1038607956, within_95%_conf=PASS
+trial=     10000, result=3.1576000000, error=0.0160073464, 2 sigma=0.0328436674, within_95%_conf=PASS
+trial=    100000, result=3.1538000000, error=0.0122073464, 2 sigma=0.0103860796, within_95%_conf=FAIL
+trial=   1000000, result=3.1414600000, error=0.0001326536, 2 sigma=0.0032843667, within_95%_conf=PASS
+trial=  10000000, result=3.1417016000, error=0.0001089464, 2 sigma=0.0010386080, within_95%_conf=PASS
 ----
