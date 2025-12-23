@@ -7,14 +7,16 @@ In this case, the number of points _X_ that fall inside the circle follows a bin
 The estimate of π is given by the following formula: (πの推定値は次の式で与えられます。)
 [source,math]
 ----
-π ≈ 4 * (X / n)
+\pi \approx 4 * \frac{X}{n}
 ----
+The expected value of this estimate is π, and the accuracy improves as the number of trials _n_ increases.
+(この推定値の期待値はπであり、試行回数nが増えるにつれて精度が向上します。)
 
 The standard deviation in this case is given by the following formula: (このときの標準偏差は次の式で与えられます。)
 
 [source,math]
 ----
-σ(n) = 4 * sqrt((p(1-p))/n) =  4 * sqrt( (π/4) * (1 - π/4) / n )
+\sigma(n) = 4 \sqrt{\frac{p(1-p)}{n}} = 4 \sqrt{ \frac{\frac{\pi}{4} (1 - \frac{\pi}{4})}{n} }
 ----
 
 === Create a new project
