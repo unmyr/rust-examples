@@ -13,5 +13,4 @@ members = [
     "permutation",
     "primes",
     "tsp-basic",
-    "xor_regression",
 ]
