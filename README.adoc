@@ -17,6 +17,14 @@ sudo apt update
 sudo apt install -y build-essential
 ----
 
+. Install dependencies for Plotters +
+See: https://docs.rs/plotters/0.3.7/plotters/[Plotters 0.3.7^]
++
+[source,shell]
+----
+sudo apt install -y pkg-config libfreetype6-dev libfontconfig1-dev
+----
+
 . Install
 +
 [source,shell]

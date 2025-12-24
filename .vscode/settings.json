@@ -87,6 +87,8 @@
     "latexmath",
     "leveloffset",
     "libc",
+    "libfontconfig",
+    "libfreetype",
     "libthread",
     "linfa",
     "Luma",
