@@ -3,6 +3,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 #[derive(Debug)]
+#[allow(unused)]
 enum List {
     Cons(i32, RefCell<Rc<List>>),
     Nil,
