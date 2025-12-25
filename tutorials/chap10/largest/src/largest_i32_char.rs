@@ -1,5 +1,5 @@
-use largest::{largest_i32_b, largest_char_b};
-use largest::{largest_i32_m, largest_char_m};
+use largest::{largest_char_b, largest_i32_b};
+use largest::{largest_char_m, largest_i32_m};
 
 fn main() {
     let number_list = vec![34, 50, 25, 100, 65];

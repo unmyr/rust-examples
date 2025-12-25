@@ -1,3 +1,19 @@
+fmt:
+	(cd chap09 && cargo fmt)
+	(cd chap10 && make fmt)
+	(cd chap12/minigrep && cargo fmt)
+	(cd chap13 && make fmt)
+	(cd chap15 && make fmt)
+	(cd chap16 && make fmt)
+	(cd chap17 && make fmt)
+	(cd chap20 && make fmt)
+	(cd guessing_game && cargo fmt)
+	(cd restaurant && cargo fmt)
+	(cd strings && cargo fmt)
+	(cd structs && cargo fmt)
+	(cd variables && cargo fmt)
+	(cd vectors && cargo fmt)
+
 clean:
 	(cd chap09 && cargo clean)
 	(cd chap10 && make clean)

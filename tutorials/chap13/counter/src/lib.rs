@@ -40,12 +40,11 @@ mod tests {
 
     #[test]
     fn using_zip() {
-        let mut iter = Counter::new()
-            .zip(Counter::new().skip(1));
-        assert_eq!(iter.next(), Some((1,2)));
-        assert_eq!(iter.next(), Some((2,3)));
-        assert_eq!(iter.next(), Some((3,4)));
-        assert_eq!(iter.next(), Some((4,5)));
+        let mut iter = Counter::new().zip(Counter::new().skip(1));
+        assert_eq!(iter.next(), Some((1, 2)));
+        assert_eq!(iter.next(), Some((2, 3)));
+        assert_eq!(iter.next(), Some((3, 4)));
+        assert_eq!(iter.next(), Some((4, 5)));
         assert_eq!(iter.next(), None);
     }
 
@@ -53,8 +52,8 @@ mod tests {
     fn using_other_iterator_trait_methods() {
         let sum: u32 = Counter::new()
             .zip(Counter::new().skip(1))
-            .map(|(a, b)| a * b)     // [1*2, 2*3, 3*4, 4*5]
-            .filter(|x| x % 3 == 0)  // [2*3, 3*4]
+            .map(|(a, b)| a * b) // [1*2, 2*3, 3*4, 4*5]
+            .filter(|x| x % 3 == 0) // [2*3, 3*4]
             .sum();
         assert_eq!(18, sum);
     }

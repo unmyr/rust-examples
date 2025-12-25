@@ -17,7 +17,7 @@ where
     fn new(calculation: T) -> Cacher<T> {
         Cacher {
             calculation,
-            value: HashMap::new()
+            value: HashMap::new(),
         }
     }
 
@@ -40,7 +40,7 @@ mod tests {
 
     #[test]
     fn call_with_different_values() {
-        let mut c = Cacher::new(|a| a*2);
+        let mut c = Cacher::new(|a| a * 2);
 
         let v1 = c.value(1);
         let v2 = c.value(2);

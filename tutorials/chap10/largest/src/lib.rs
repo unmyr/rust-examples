@@ -1,5 +1,5 @@
 pub fn largest_i32_m(list: &[i32]) -> i32 {
-    let mut largest = list[0];  // copy
+    let mut largest = list[0]; // copy
 
     for &item in list {
         if item > largest {
@@ -11,7 +11,7 @@ pub fn largest_i32_m(list: &[i32]) -> i32 {
 }
 
 pub fn largest_i32_b(list: &[i32]) -> &i32 {
-    let mut largest = &list[0];  // borrowing
+    let mut largest = &list[0]; // borrowing
 
     for item in list {
         if item > largest {
@@ -22,9 +22,8 @@ pub fn largest_i32_b(list: &[i32]) -> &i32 {
     largest
 }
 
-
 pub fn largest_char_m(list: &[char]) -> char {
-    let mut largest = list[0];  // copy
+    let mut largest = list[0]; // copy
 
     for &item in list {
         if item > largest {
@@ -36,7 +35,7 @@ pub fn largest_char_m(list: &[char]) -> char {
 }
 
 pub fn largest_char_b(list: &[char]) -> &char {
-    let mut largest = &list[0];  // borrowing
+    let mut largest = &list[0]; // borrowing
 
     for item in list {
         if item > largest {
@@ -48,11 +47,11 @@ pub fn largest_char_b(list: &[char]) -> &char {
 }
 
 pub fn largest_gen_m<T: PartialOrd + Copy>(list: &[T]) -> T {
-    let mut largest = list[0];  // copy
+    let mut largest = list[0]; // copy
 
     for &item in list {
         if item > largest {
-            largest = item;  // copy
+            largest = item; // copy
         }
     }
 
@@ -60,11 +59,11 @@ pub fn largest_gen_m<T: PartialOrd + Copy>(list: &[T]) -> T {
 }
 
 pub fn largest_gen_b<T: PartialOrd>(list: &[T]) -> &T {
-    let mut largest = &list[0];  // borrowing
+    let mut largest = &list[0]; // borrowing
 
     for item in list {
         if item > largest {
-            largest = item;  // borrowing
+            largest = item; // borrowing
         }
     }
 

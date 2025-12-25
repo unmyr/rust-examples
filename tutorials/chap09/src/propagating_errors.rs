@@ -21,7 +21,6 @@ fn read_username_from_file() -> Result<String, io::Error> {
 fn main() {
     match read_username_from_file() {
         Ok(str) => println!("str is {}", str),
-        Err(error) => panic!("Problem opening the file: {:?}", error)
+        Err(error) => panic!("Problem opening the file: {:?}", error),
     };
 }
-

@@ -1,7 +1,7 @@
-use std::thread;
-use std::sync::mpsc;
 use std::sync::Arc;
 use std::sync::Mutex;
+use std::sync::mpsc;
+use std::thread;
 
 pub struct ThreadPool {
     #[allow(dead_code)]
@@ -77,23 +77,28 @@ struct Worker {
 
 impl Worker {
     fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Message>>>) -> Worker {
-        let thread = thread::spawn(move || loop {
-            let message = receiver.lock().unwrap().recv().unwrap();
+        let thread = thread::spawn(move || {
+            loop {
+                let message = receiver.lock().unwrap().recv().unwrap();
 
-            match message {
-                Message::NewJob(job) => {
-                    println!("Worker {} got a job; executing.", id);
+                match message {
+                    Message::NewJob(job) => {
+                        println!("Worker {} got a job; executing.", id);
 
-                    job();
-                }
-                Message::Terminate => {
-                    println!("Worker {} was told to terminate.", id);
+                        job();
+                    }
+                    Message::Terminate => {
+                        println!("Worker {} was told to terminate.", id);
 
-                    break;
+                        break;
+                    }
                 }
             }
         });
 
-        Worker { id, thread: Some(thread) }
+        Worker {
+            id,
+            thread: Some(thread),
+        }
     }
 }

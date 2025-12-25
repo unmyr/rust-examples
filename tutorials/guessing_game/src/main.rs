@@ -7,7 +7,7 @@ fn main() {
 
     let secret_number = rand::thread_rng().gen_range(1, 101);
 
-    println!("The secret number is: {}", secret_number);    //秘密の数字は次の通り: {}
+    println!("The secret number is: {}", secret_number); //秘密の数字は次の通り: {}
     loop {
         println!("Please input your guess.");
 
@@ -32,7 +32,7 @@ fn main() {
                 // Quitting After a Correct Guess
                 println!("You win!");
                 break;
-            },
+            }
         }
     }
 }
