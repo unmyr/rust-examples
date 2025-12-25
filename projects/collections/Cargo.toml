@@ -18,5 +18,5 @@ members = [
     "tree/bt-rc-refcell-opt",
     "tree/bt-refcell-children-opt-rc",
     "tree/bt-refcell-opt-rc",
-    "vec"
+    "ndarray"
 ]
