@@ -1,6 +1,6 @@
-use std::rc::{Rc, Weak};
 use std::cell::RefCell;
 use std::fmt::{self, Debug};
+use std::rc::{Rc, Weak};
 
 pub struct DListNode<T: Debug> {
     value: T,
@@ -10,7 +10,11 @@ pub struct DListNode<T: Debug> {
 
 impl<T: Debug> DListNode<T> {
     pub fn new(v: T) -> DListNode<T> {
-        DListNode { value: v, next: None, prev: None }
+        DListNode {
+            value: v,
+            next: None,
+            prev: None,
+        }
     }
 }
 
@@ -25,23 +29,28 @@ impl<T: Debug> fmt::Display for DListNode<T> {
         match (self.prev.as_ref(), self.next.as_ref()) {
             (None, None) => {
                 write!(f, "DListNode({:?}, Nil, Nil)", self.value)
-            },
+            }
             (Some(prev), None) => {
                 write!(
-                    f, "DListNode({:?}, {:?}, Nil)",
+                    f,
+                    "DListNode({:?}, {:?}, Nil)",
                     self.value,
                     Rc::clone(&prev.upgrade().unwrap()).borrow().value
                 )
-            },
+            }
             (None, Some(next)) => {
                 write!(
-                    f, "DListNode({:?}, Nil, {:?}), {}",
-                    self.value, next.borrow().value, next.borrow()
+                    f,
+                    "DListNode({:?}, Nil, {:?}), {}",
+                    self.value,
+                    next.borrow().value,
+                    next.borrow()
                 )
-            },
+            }
             (Some(prev), Some(next)) => {
                 write!(
-                    f, "DListNode({:?}, {:?}, {:?}), {}",
+                    f,
+                    "DListNode({:?}, {:?}, {:?}), {}",
                     self.value,
                     Rc::clone(&prev.upgrade().unwrap()).borrow().value,
                     next.borrow().value,
@@ -81,9 +90,7 @@ impl<T: Debug> DList<T> {
         }
         node_new.prev = Some(Rc::downgrade(&cur));
 
-        cur.borrow_mut().next = Some(
-            Rc::new(RefCell::new(node_new))
-        );
+        cur.borrow_mut().next = Some(Rc::new(RefCell::new(node_new)));
     }
 }
 
@@ -172,7 +179,7 @@ impl<T: Debug> fmt::Display for DList<T> {
 }
 
 pub struct DListIterator<T: Debug> {
-    cur: Option<Weak<RefCell<DListNode<T>>>>
+    cur: Option<Weak<RefCell<DListNode<T>>>>,
 }
 
 impl<T: Debug> DList<T> {
@@ -191,7 +198,7 @@ impl<T: Debug> DList<T> {
     pub fn iter(&self) -> DListIterator<T> {
         if let Some(ref head) = self.head {
             DListIterator {
-                cur: Some(Rc::downgrade(&Rc::clone(head)))
+                cur: Some(Rc::downgrade(&Rc::clone(head))),
             }
         } else {
             DListIterator { cur: None }

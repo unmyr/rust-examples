@@ -18,18 +18,14 @@ impl<T> SList<T> {
     fn next_ref(&self) -> Option<&Rc<SList<T>>> {
         match self {
             SList::Nil => None,
-            SList::Cons(_, next_rc_ref) => {
-                Some(next_rc_ref)
-            },
+            SList::Cons(_, next_rc_ref) => Some(next_rc_ref),
         }
     }
 
     fn next_ref_mut(&mut self) -> Option<&mut Rc<SList<T>>> {
         match self {
             SList::Nil => None,
-            SList::Cons(_, next_rc_ref) => {
-                Some(next_rc_ref)
-            },
+            SList::Cons(_, next_rc_ref) => Some(next_rc_ref),
         }
     }
 
@@ -89,11 +85,9 @@ impl<T> SList<T> {
     /// assert_eq!(list.pop_back(), None);
     /// ```
     pub fn pop_back(&mut self) -> Option<T> {
-        let get_value = |n: SList<T>| {
-            match n {
-                SList::Nil => None,
-                SList::Cons(v_ref, _) => Some(v_ref),
-            }
+        let get_value = |n: SList<T>| match n {
+            SList::Nil => None,
+            SList::Cons(v_ref, _) => Some(v_ref),
         };
         let mut prev_rc_ref = match self {
             SList::Nil => return None,
@@ -102,26 +96,26 @@ impl<T> SList<T> {
                     // SList(x) -> SList(Nil)
                     // v
                     // SList(Nil)
-                    return get_value(
-                        std::mem::replace(self, SList::Nil)
-                    );
+                    return get_value(std::mem::replace(self, SList::Nil));
                 }
                 next_rc_ref
             }
         };
 
         let tail_prev_rc_ref = loop {
-            let is_prev_tail: bool = prev_rc_ref.next_ref().map(
-                |next_ref| next_ref.is_nil()
-            ).unwrap_or(false);
-            if is_prev_tail { break prev_rc_ref }
+            let is_prev_tail: bool = prev_rc_ref
+                .next_ref()
+                .map(|next_ref| next_ref.is_nil())
+                .unwrap_or(false);
+            if is_prev_tail {
+                break prev_rc_ref;
+            }
 
             prev_rc_ref = Rc::get_mut(prev_rc_ref)?.next_ref_mut()?;
         };
 
-        let tail_node: SList<T> = std::mem::replace(
-            Rc::get_mut(tail_prev_rc_ref).unwrap(), SList::Nil
-        );
+        let tail_node: SList<T> =
+            std::mem::replace(Rc::get_mut(tail_prev_rc_ref).unwrap(), SList::Nil);
         get_value(tail_node)
     }
 
@@ -140,23 +134,25 @@ impl<T> SList<T> {
         let head_rc_ref = self.next_ref_mut()?;
 
         let head_node: SList<T>;
-        head_node = std::mem::replace(
-            Rc::get_mut(head_rc_ref).unwrap(), SList::Nil
-        );
+        head_node = std::mem::replace(Rc::get_mut(head_rc_ref).unwrap(), SList::Nil);
         let head_node_old = std::mem::replace(self, head_node);
         match head_node_old {
             SList::Nil => None,
-            SList::Cons(v_ref, _) => Some(v_ref)
+            SList::Cons(v_ref, _) => Some(v_ref),
         }
     }
 }
 
 impl<T> From<T> for SList<T> {
-    fn from(v: T) -> Self { SList::new(v, SList::Nil) }
+    fn from(v: T) -> Self {
+        SList::new(v, SList::Nil)
+    }
 }
 
 impl<T> Default for SList<T> {
-    fn default() -> Self { SList::Nil }
+    fn default() -> Self {
+        SList::Nil
+    }
 }
 
 impl<T: Debug> Debug for SList<T> {

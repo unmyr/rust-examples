@@ -1,6 +1,6 @@
+use std::cmp::Ordering;
 use std::fmt::{self};
 use std::rc::Rc;
-use std::cmp::Ordering;
 
 pub struct TreeNode<K> {
     key: K,
@@ -23,25 +23,24 @@ impl<T: fmt::Debug> fmt::Debug for TreeNode<T> {
         match (self.left.as_ref(), self.right.as_ref()) {
             (None, None) => {
                 write!(f, "TreeNode(Nil,{:?},Nil)", self.key)
-            },
+            }
             (Some(left), Some(right)) => {
-                write!(f,
+                write!(
+                    f,
                     "{:?}, TreeNode({:?},{:?},{:?}), {:?}",
                     left, left.key, self.key, right.key, right
                 )
-            },
+            }
             (None, Some(right)) => {
-                write!(f,
+                write!(
+                    f,
                     "TreeNode(Nil,{:?},{:?}), {:?}",
                     self.key, right.key, right
                 )
-            },
+            }
             (Some(left), None) => {
-                write!(f,
-                    "{:?}, TreeNode({:?},{:?},Nil)",
-                    left, left.key, self.key
-                )
-            },
+                write!(f, "{:?}, TreeNode({:?},{:?},Nil)", left, left.key, self.key)
+            }
         }
     }
 }
@@ -53,9 +52,7 @@ pub struct BTree<K> {
 
 impl<K> BTree<K> {
     pub fn new() -> Self {
-        BTree {
-            head: None,
-        }
+        BTree { head: None }
     }
 }
 
@@ -101,13 +98,15 @@ impl<K: Ord> BTree<K> {
             }
             assert_eq!(1, Rc::strong_count(&cur));
             if cur.key.cmp(&key) == Ordering::Greater {
-                Rc::get_mut(&mut cur).unwrap().left.replace(
-                    Rc::new(TreeNode::new(key))
-                );
+                Rc::get_mut(&mut cur)
+                    .unwrap()
+                    .left
+                    .replace(Rc::new(TreeNode::new(key)));
             } else {
-                Rc::get_mut(&mut cur).unwrap().right.replace(
-                    Rc::new(TreeNode::new(key))
-                );
+                Rc::get_mut(&mut cur)
+                    .unwrap()
+                    .right
+                    .replace(Rc::new(TreeNode::new(key)));
             }
             unsafe {
                 let ptr = Rc::into_raw(cur);
@@ -142,7 +141,7 @@ impl<K: Clone> BTree<K> {
         stack = Vec::new();
         let mut cur = Some(Rc::clone(cur_ref.as_ref().unwrap()));
 
-        let mut results: Vec<K> = vec!();
+        let mut results: Vec<K> = vec![];
 
         'outer: loop {
             // Traverse the subtree on the left while adding nodes to the stack.
@@ -152,11 +151,9 @@ impl<K: Clone> BTree<K> {
                     cur = None;
                 } else {
                     // cur = Rc::clone(cur.as_ref().unwrap()).left;
-                    cur = Some(
-                        Rc::clone(
-                            Rc::clone(cur.as_ref().unwrap()).left.as_ref().unwrap()
-                        )
-                    )
+                    cur = Some(Rc::clone(
+                        Rc::clone(cur.as_ref().unwrap()).left.as_ref().unwrap(),
+                    ))
                 }
             }
 

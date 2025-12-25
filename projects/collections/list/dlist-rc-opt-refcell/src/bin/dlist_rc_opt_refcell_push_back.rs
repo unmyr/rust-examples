@@ -5,10 +5,7 @@ fn main() {
     assert_eq!(format!("{:?}", list), "DList[]");
 
     list.push_back(1);
-    assert_eq!(
-        format!("{:?}", list),
-        "DList[(1, prev:Nil, next:Nil)]"
-    );
+    assert_eq!(format!("{:?}", list), "DList[(1, prev:Nil, next:Nil)]");
 
     list.push_back(2);
     assert_eq!(

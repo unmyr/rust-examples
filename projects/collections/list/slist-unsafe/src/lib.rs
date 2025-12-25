@@ -1,6 +1,6 @@
 use std::default::Default;
+use std::fmt::{Debug, Display, Formatter, Result};
 use std::ptr::NonNull;
-use std::fmt::{Display, Debug, Formatter, Result};
 
 #[derive(Debug)]
 pub struct ListNode<T: Debug> {
@@ -10,19 +10,18 @@ pub struct ListNode<T: Debug> {
 
 impl<T: Debug> ListNode<T> {
     pub fn new(v: T) -> ListNode<T> {
-        ListNode { value: v, next: None }
+        ListNode {
+            value: v,
+            next: None,
+        }
     }
 }
 
 impl<T: Debug> Display for ListNode<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self.next {
-            Some(ref next) => {
-                unsafe {
-                    write!(f, "ListNode({:?}), {}", self.value, next.as_ref())
-                }
-            },
-            None => write!(f, "ListNode({:?})", self.value)
+            Some(ref next) => unsafe { write!(f, "ListNode({:?}), {}", self.value, next.as_ref()) },
+            None => write!(f, "ListNode({:?})", self.value),
         }
     }
 }
@@ -42,9 +41,7 @@ impl<T: Clone + Debug> SinglyLinkedList<T> {
     /// list.push_back(2);
     /// ```
     pub fn push_back(&mut self, v: T) {
-        let node_new = NonNull::<ListNode<T>>::new(
-            Box::into_raw(Box::new(ListNode::<T>::new(v)))
-        );
+        let node_new = NonNull::<ListNode<T>>::new(Box::into_raw(Box::new(ListNode::<T>::new(v))));
         let mut cur: NonNull<ListNode<T>>;
         cur = match self.head {
             Some(cur) => cur,
@@ -100,7 +97,7 @@ impl<T: Clone + Debug> SinglyLinkedList<T> {
             self.head = None;
         }
 
-        let node : Box<ListNode<T>>;
+        let node: Box<ListNode<T>>;
         node = unsafe { Box::from_raw(cur.as_ptr()) };
         Some(node.value.clone())
     }
@@ -122,9 +119,7 @@ impl<T: Clone + Debug> SinglyLinkedList<T> {
             None => return None,
         };
         self.head = None;
-        let node : Box<ListNode<T>> = unsafe {
-            Box::from_raw(head.as_ptr())
-        };
+        let node: Box<ListNode<T>> = unsafe { Box::from_raw(head.as_ptr()) };
         self.head = node.next;
         let value = node.value.clone();
         Some(value)
@@ -144,9 +139,7 @@ impl<T: Clone + Debug> SinglyLinkedList<T> {
     /// ```
     pub fn iter(&self) -> SinglyLinkedListIterator<T> {
         if let Some(head) = self.head {
-            SinglyLinkedListIterator {
-                cur: Some(head)
-            }
+            SinglyLinkedListIterator { cur: Some(head) }
         } else {
             SinglyLinkedListIterator { cur: None }
         }
@@ -156,18 +149,14 @@ impl<T: Clone + Debug> SinglyLinkedList<T> {
 impl<T: Debug> Display for SinglyLinkedList<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self.head {
-            Some(ref head) => {
-                unsafe {
-                    write!(f, "SinglyLinkedList[{}]", head.as_ref())
-                }
-            }
-            None => write!(f, "SinglyLinkedList[]")
+            Some(ref head) => unsafe { write!(f, "SinglyLinkedList[{}]", head.as_ref()) },
+            None => write!(f, "SinglyLinkedList[]"),
         }
     }
 }
 
 pub struct SinglyLinkedListIterator<T: Debug> {
-    cur: Option<NonNull<ListNode<T>>>
+    cur: Option<NonNull<ListNode<T>>>,
 }
 
 impl<T: Clone + Debug> Iterator for SinglyLinkedListIterator<T> {
@@ -198,7 +187,10 @@ impl<T: Debug> Drop for SinglyLinkedList<T> {
 
 impl<T: Debug> Drop for ListNode<T> {
     fn drop(&mut self) {
-        println!("> Dropping: {:p}(value: {:?}, next: {:?})", self, self.value, self.next);
+        println!(
+            "> Dropping: {:p}(value: {:?}, next: {:?})",
+            self, self.value, self.next
+        );
     }
 }
 

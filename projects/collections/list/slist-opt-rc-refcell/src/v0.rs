@@ -1,6 +1,6 @@
+use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
-use std::cell::RefCell;
 
 pub struct ListNode<T> {
     value: T,
@@ -9,7 +9,10 @@ pub struct ListNode<T> {
 
 impl<T> ListNode<T> {
     pub fn new(v: T) -> ListNode<T> {
-        ListNode { value: v, next: None }
+        ListNode {
+            value: v,
+            next: None,
+        }
     }
 }
 
@@ -18,8 +21,8 @@ impl<T: fmt::Debug> fmt::Display for ListNode<T> {
         match self.next {
             Some(ref next) => {
                 write!(f, "ListNode({:?}), {}", self.value, next.borrow())
-            },
-            None => write!(f, "ListNode({:?})", self.value)
+            }
+            None => write!(f, "ListNode({:?})", self.value),
         }
     }
 }
@@ -31,9 +34,7 @@ pub struct SinglyLinkedList<T> {
 
 impl<T> SinglyLinkedList<T> {
     pub fn new() -> SinglyLinkedList<T> {
-        SinglyLinkedList {
-            head: None,
-        }
+        SinglyLinkedList { head: None }
     }
 
     pub fn push_back(&mut self, v: T) {
@@ -50,12 +51,12 @@ impl<T> SinglyLinkedList<T> {
         loop {
             let cur_cloned = match cur {
                 None => break,
-                Some(ref n) => Rc::clone(n)
+                Some(ref n) => Rc::clone(n),
             };
             cur = match cur_cloned.borrow().next {
                 Some(ref next) => Some(Rc::clone(next)),
                 None => {
-                    cur_cloned.borrow_mut().next = Some(Rc::new(RefCell::new(node_new)));  //<1>
+                    cur_cloned.borrow_mut().next = Some(Rc::new(RefCell::new(node_new))); //<1>
                     return;
                 }
             };
@@ -69,7 +70,7 @@ impl<T: fmt::Debug> fmt::Display for SinglyLinkedList<T> {
             Some(ref head) => {
                 write!(f, "SinglyLinkedList[{}]", head.borrow())
             }
-            None => write!(f, "SinglyLinkedList[]")
+            None => write!(f, "SinglyLinkedList[]"),
         }
     }
 }

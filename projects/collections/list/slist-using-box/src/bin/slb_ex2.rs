@@ -8,7 +8,10 @@ pub struct ListNode<T> {
 
 impl<T> ListNode<T> {
     pub fn new(v: T) -> ListNode<T> {
-        ListNode { value: v, next: None }
+        ListNode {
+            value: v,
+            next: None,
+        }
     }
 }
 
@@ -17,8 +20,8 @@ impl<T: std::fmt::Debug> std::fmt::Debug for ListNode<T> {
         match self.next {
             Some(ref next) => {
                 write!(f, "ListNode({:?}, _), {:?}", self.value, next)
-            },
-            None => write!(f, "ListNode({:?}, None)", self.value)
+            }
+            None => write!(f, "ListNode({:?}, None)", self.value),
         }
     }
 }

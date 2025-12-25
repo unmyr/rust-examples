@@ -71,13 +71,13 @@ fn test_iter_unwrap_failed() {
 #[ignore]
 #[test]
 fn test_iter_last_add() {
-//     let mut list: SinglyLinkedList<u8> = Default::default();
-//     list.push_back(1);
-//     let mut iter = list.iter();
-//     assert_eq!(iter.next(), Some(&1));
-//     list.push_back(2);
-//     assert_eq!(list.pop_back(), Some(2));
-//     assert_eq!(iter.next(), None);
+    //     let mut list: SinglyLinkedList<u8> = Default::default();
+    //     list.push_back(1);
+    //     let mut iter = list.iter();
+    //     assert_eq!(iter.next(), Some(&1));
+    //     list.push_back(2);
+    //     assert_eq!(list.pop_back(), Some(2));
+    //     assert_eq!(iter.next(), None);
 }
 
 #[test]
@@ -120,5 +120,8 @@ fn test_pop_front_and_display_2() {
     list.push_back(2);
     list.push_back(3);
     assert_eq!(list.pop_front(), Some(1));
-    assert_eq!(format!("{}", list), "SinglyLinkedList[ListNode(2), ListNode(3)]");
+    assert_eq!(
+        format!("{}", list),
+        "SinglyLinkedList[ListNode(2), ListNode(3)]"
+    );
 }

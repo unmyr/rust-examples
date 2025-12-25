@@ -1,6 +1,6 @@
-use std::rc::Rc;
 use std::cell::{Ref, RefCell, RefMut};
 use std::cmp::Ordering;
+use std::rc::Rc;
 
 pub struct TreeNode<K> {
     key: K,
@@ -10,7 +10,11 @@ pub struct TreeNode<K> {
 
 impl<K> From<K> for TreeNode<K> {
     fn from(key: K) -> Self {
-        TreeNode { key, left: None, right: None }
+        TreeNode {
+            key,
+            left: None,
+            right: None,
+        }
     }
 }
 
@@ -19,25 +23,36 @@ impl<T: std::fmt::Debug> std::fmt::Debug for TreeNode<T> {
         match (self.left.as_ref(), self.right.as_ref()) {
             (None, None) => {
                 write!(f, "TreeNode(Nil,{:?},Nil)", self.key)
-            },
+            }
             (Some(left), Some(right)) => {
-                write!(f,
+                write!(
+                    f,
                     "{:?}, TreeNode({:?},{:?},{:?}), {:?}",
-                    left.borrow(), left.borrow().key, self.key, right.borrow().key, right.borrow()
+                    left.borrow(),
+                    left.borrow().key,
+                    self.key,
+                    right.borrow().key,
+                    right.borrow()
                 )
-            },
+            }
             (None, Some(right)) => {
-                write!(f,
+                write!(
+                    f,
                     "TreeNode(Nil,{:?},{:?}), {:?}",
-                    self.key, right.borrow().key, right.borrow()
+                    self.key,
+                    right.borrow().key,
+                    right.borrow()
                 )
-            },
+            }
             (Some(left), None) => {
-                write!(f,
+                write!(
+                    f,
                     "{:?}, TreeNode({:?},{:?},Nil)",
-                    left.borrow(), left.borrow().key, self.key
+                    left.borrow(),
+                    left.borrow().key,
+                    self.key
                 )
-            },
+            }
         }
     }
 }
@@ -61,7 +76,9 @@ fn main() {
         left: None,
         right: Some(Rc::new(RefCell::new(TreeNode::from("z")))),
     };
-    let tree = BTree { head: Some(Rc::new(RefCell::new(tree_nodes))) };
+    let tree = BTree {
+        head: Some(Rc::new(RefCell::new(tree_nodes))),
+    };
     let key = "d";
 
     let cur_rc_ref: &Rc<RefCell<TreeNode<&str>>>;
@@ -75,9 +92,7 @@ fn main() {
         next_node = RefMut::map(cur_ref, |n| &mut n.right);
     }
     if next_node.is_none() {
-        next_node.replace(
-            Rc::new(RefCell::new(TreeNode::from("d")))
-        );
+        next_node.replace(Rc::new(RefCell::new(TreeNode::from("d"))));
     }
     drop(next_node);
 

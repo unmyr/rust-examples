@@ -1,6 +1,6 @@
-use std::rc::{Rc, Weak};
 use std::cell::{RefCell, RefMut};
 use std::fmt::{self, Debug};
+use std::rc::{Rc, Weak};
 
 pub struct DListNode<T: Debug> {
     value: RefCell<Option<T>>,
@@ -28,63 +28,66 @@ impl<T: Debug> fmt::Debug for DListNode<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match (self.prev.upgrade(), self.next.as_ref()) {
             (None, None) => {
-                write!(f, "({:?}, prev:Nil, next:Nil)", self.value.borrow().as_ref().unwrap())
-            },
-            (Some(ref prev_rc_ref), None) => {
-                match prev_rc_ref.as_ref() {
-                    Some(prev_cell_ref) => {
-                        write!(
-                            f, "(value:{:?}, prev:{:?}, next:Nil)",
-                            self.value.borrow().as_ref().unwrap(),
-                            prev_cell_ref.borrow().value.borrow().as_ref().unwrap()
-                        )
-                    },
-                    None => {
-                        write!(
-                            f, "(value:{:?}, prev:Nil, next:Nil)",
-                            self.value.borrow().as_ref().unwrap()
-                        )
-                    }
+                write!(
+                    f,
+                    "({:?}, prev:Nil, next:Nil)",
+                    self.value.borrow().as_ref().unwrap()
+                )
+            }
+            (Some(ref prev_rc_ref), None) => match prev_rc_ref.as_ref() {
+                Some(prev_cell_ref) => {
+                    write!(
+                        f,
+                        "(value:{:?}, prev:{:?}, next:Nil)",
+                        self.value.borrow().as_ref().unwrap(),
+                        prev_cell_ref.borrow().value.borrow().as_ref().unwrap()
+                    )
                 }
-
+                None => {
+                    write!(
+                        f,
+                        "(value:{:?}, prev:Nil, next:Nil)",
+                        self.value.borrow().as_ref().unwrap()
+                    )
+                }
             },
             (None, Some(next)) => {
                 write!(
-                    f, "(value:{:?}, prev:Nil, next:{:?}) -> {:?}",
+                    f,
+                    "(value:{:?}, prev:Nil, next:{:?}) -> {:?}",
                     self.value.borrow().as_ref().unwrap(),
                     next.borrow().value.borrow().as_ref().unwrap(),
                     next.borrow()
                 )
-            },
-            (Some(ref prev_rc_ref), Some(next)) => {
-                match prev_rc_ref.as_ref() {
-                    Some(prev_cell_ref) => {
-                        write!(
-                            f, "(value:{:?}, prev:{:?}, next:{:?}) -> {:?}",
-                            self.value.borrow().as_ref().unwrap(),
-                            prev_cell_ref.borrow().value.borrow().as_ref().unwrap(),
-                            next.borrow().value.borrow().as_ref().unwrap(),
-                            next.borrow()
-                        )
-                    },
-                    None => {
-                        write!(
-                            f, "(value:{:?}, prev:Nil, next:{:?}) -> {:?}",
-                            self.value.borrow().as_ref().unwrap(),
-                            next.borrow().value.borrow().as_ref().unwrap(),
-                            next.borrow()
-                        )
-                    },
-                }
-
             }
+            (Some(ref prev_rc_ref), Some(next)) => match prev_rc_ref.as_ref() {
+                Some(prev_cell_ref) => {
+                    write!(
+                        f,
+                        "(value:{:?}, prev:{:?}, next:{:?}) -> {:?}",
+                        self.value.borrow().as_ref().unwrap(),
+                        prev_cell_ref.borrow().value.borrow().as_ref().unwrap(),
+                        next.borrow().value.borrow().as_ref().unwrap(),
+                        next.borrow()
+                    )
+                }
+                None => {
+                    write!(
+                        f,
+                        "(value:{:?}, prev:Nil, next:{:?}) -> {:?}",
+                        self.value.borrow().as_ref().unwrap(),
+                        next.borrow().value.borrow().as_ref().unwrap(),
+                        next.borrow()
+                    )
+                }
+            },
         }
     }
 }
 
 #[derive(Default)]
 pub struct DList<T: Debug> {
-    head: Rc<Option<RefCell<DListNode<T>>>>
+    head: Rc<Option<RefCell<DListNode<T>>>>,
 }
 
 impl<T: Debug> DList<T> {
@@ -123,10 +126,7 @@ impl<T: Debug> DList<T> {
             }
             assert_eq!(Rc::strong_count(&next_rc), 1);
             if let Some(cur_opt) = Rc::get_mut(&mut next_rc) {
-                Option::<RefCell<DListNode<T>>>::replace(
-                    cur_opt,
-                    RefCell::new(node_new)
-                );
+                Option::<RefCell<DListNode<T>>>::replace(cur_opt, RefCell::new(node_new));
             } else {
                 println!("Failed.");
             }
@@ -171,20 +171,15 @@ impl<T: Debug> DList<T> {
 
         let node: DListNode<T> = match Rc::try_unwrap(old_head) {
             Ok(some_refcell) => some_refcell.unwrap().into_inner(),
-            Err(_rc) => {
-                return None
-            },
+            Err(_rc) => return None,
         };
         let value: Option<T> = node.value.into_inner();
 
-        let _ = std::mem::replace(
-            &mut self.head, node.next
-        );
+        let _ = std::mem::replace(&mut self.head, node.next);
 
         value
     }
 }
-
 
 impl<T: Clone + Debug> DList<T> {
     /// # Examples
@@ -216,18 +211,13 @@ impl<T: Clone + Debug> DList<T> {
         let tail_rc = cur;
 
         // Update to None to the next pointer on the previous node.
-        let prev_weak = Weak::clone(
-            &(tail_rc.as_ref().as_ref().unwrap().borrow().prev)
-        );
+        let prev_weak = Weak::clone(&(tail_rc.as_ref().as_ref().unwrap().borrow().prev));
 
         if let Some(prev_rc) = prev_weak.upgrade() {
-            RefMut::map(
-                prev_rc.as_ref().as_ref().unwrap().borrow_mut(),
-                |v| {
-                    v.next = Rc::new(None);
-                    v
-                }
-            );
+            RefMut::map(prev_rc.as_ref().as_ref().unwrap().borrow_mut(), |v| {
+                v.next = Rc::new(None);
+                v
+            });
         } else {
             self.head = Rc::new(None);
         }
@@ -256,7 +246,7 @@ impl<T: Debug> fmt::Debug for DList<T> {
 }
 
 pub struct DListIterator<T: Debug> {
-    cur: Option<Weak<Option<RefCell<DListNode<T>>>>>
+    cur: Option<Weak<Option<RefCell<DListNode<T>>>>>,
 }
 
 impl<T: Debug> DList<T> {
@@ -277,9 +267,7 @@ impl<T: Debug> DList<T> {
             DListIterator { cur: None }
         } else {
             DListIterator {
-                cur: Some(
-                    Rc::downgrade(&Rc::clone(&self.head))
-                )
+                cur: Some(Rc::downgrade(&Rc::clone(&self.head))),
             }
         }
     }
@@ -305,9 +293,12 @@ impl<T: Clone + Debug> Iterator for DListIterator<T> {
         };
 
         if let Some(cur_cell) = cur_strong.as_ref() {
-            self.cur = cur_cell.borrow().next.as_ref().as_ref().map(
-                |_next_cell| Rc::downgrade(&Rc::clone(&cur_cell.borrow().next))
-            );
+            self.cur = cur_cell
+                .borrow()
+                .next
+                .as_ref()
+                .as_ref()
+                .map(|_next_cell| Rc::downgrade(&Rc::clone(&cur_cell.borrow().next)));
         }
         cur_val
     }

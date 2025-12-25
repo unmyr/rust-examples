@@ -1,6 +1,6 @@
-use std::rc::{Rc, Weak};
-use std::cell::{RefCell};
+use std::cell::RefCell;
 use std::fmt::{self, Debug};
+use std::rc::{Rc, Weak};
 
 pub struct DListNode<T: Debug> {
     value: RefCell<Option<T>>,
@@ -29,30 +29,48 @@ impl<T: Debug> fmt::Debug for DListNode<T> {
         match (self.prev.upgrade(), self.next.borrow().as_ref()) {
             (None, None) => {
                 write!(
-                    f, "(value:{:?}, prev:Nil, next:Nil)",
+                    f,
+                    "(value:{:?}, prev:Nil, next:Nil)",
                     self.value.borrow().as_ref().unwrap()
                 )
-            },
+            }
             (Some(ref prev_rc_ref), None) => {
                 write!(
-                    f, "(value:{:?}, prev:{:?}, next:Nil)",
+                    f,
+                    "(value:{:?}, prev:{:?}, next:Nil)",
                     self.value.borrow().as_ref().unwrap(),
-                    prev_rc_ref.borrow().as_ref().unwrap().value.borrow().as_ref().unwrap(),
+                    prev_rc_ref
+                        .borrow()
+                        .as_ref()
+                        .unwrap()
+                        .value
+                        .borrow()
+                        .as_ref()
+                        .unwrap(),
                 )
-            },
+            }
             (None, Some(next)) => {
                 write!(
-                    f, "(value:{:?}, prev:Nil, next:{:?}) -> {:?}",
+                    f,
+                    "(value:{:?}, prev:Nil, next:{:?}) -> {:?}",
                     self.value.borrow().as_ref().unwrap(),
                     next.value.borrow().as_ref().unwrap(),
                     next,
                 )
-            },
+            }
             (Some(ref prev_rc_ref), Some(next)) => {
                 write!(
-                    f, "(value:{:?}, prev:{:?}, next:{:?}) -> {:?}",
+                    f,
+                    "(value:{:?}, prev:{:?}, next:{:?}) -> {:?}",
                     self.value.borrow().as_ref().unwrap(),
-                    prev_rc_ref.borrow().as_ref().unwrap().value.borrow().as_ref().unwrap(),
+                    prev_rc_ref
+                        .borrow()
+                        .as_ref()
+                        .unwrap()
+                        .value
+                        .borrow()
+                        .as_ref()
+                        .unwrap(),
                     next.value.borrow().as_ref().unwrap(),
                     next,
                 )
@@ -63,7 +81,7 @@ impl<T: Debug> fmt::Debug for DListNode<T> {
 
 #[derive(Default)]
 pub struct DList<T: Debug> {
-    head: Rc<RefCell<Option<DListNode<T>>>>
+    head: Rc<RefCell<Option<DListNode<T>>>>,
 }
 
 impl<T: Clone + Debug> DList<T> {
@@ -117,9 +135,7 @@ impl<T: Clone + Debug> DList<T> {
         head = Rc::new(RefCell::new(None));
         self.head.swap(&head);
         let node: DListNode<T> = match Rc::try_unwrap(head) {
-            Ok(head_cell) => {
-                head_cell.into_inner().unwrap()
-            }
+            Ok(head_cell) => head_cell.into_inner().unwrap(),
             Err(_head_rc) => return None,
         };
         let value: Option<T> = node.value.replace(None);
@@ -135,9 +151,7 @@ impl<T: Clone + Debug> DList<T> {
         }
 
         let mut node: DListNode<T> = match Rc::try_unwrap(next) {
-            Ok(head_cell) => {
-                head_cell.into_inner().unwrap()
-            }
+            Ok(head_cell) => head_cell.into_inner().unwrap(),
             Err(_head_rc) => return value,
         };
         let _ = std::mem::replace(&mut node.prev, Weak::new());
@@ -175,25 +189,19 @@ impl<T: Clone + Debug> DList<T> {
         // Update to None to the next pointer on the previous node.
         let last = cur;
 
-        let last_prev_weak = Weak::clone(
-            &last.borrow().as_ref().unwrap().prev
-        );
+        let last_prev_weak = Weak::clone(&last.borrow().as_ref().unwrap().prev);
 
         if last_prev_weak.upgrade().is_some() {
-            let last_prev_rc = Rc::clone(
-                last_prev_weak.upgrade().as_ref().unwrap()
-            );
+            let last_prev_rc = Rc::clone(last_prev_weak.upgrade().as_ref().unwrap());
 
             let some_last_prev = last_prev_rc.replace(None);
             if let Some(last_prev_node) = some_last_prev {
                 drop(last_prev_node.next);
-                last_prev_rc.replace(
-                    Some(DListNode {
-                        value: last_prev_node.value,
-                        next: Rc::new(RefCell::new(None)),
-                        prev: last_prev_node.prev,
-                    })
-                );
+                last_prev_rc.replace(Some(DListNode {
+                    value: last_prev_node.value,
+                    next: Rc::new(RefCell::new(None)),
+                    prev: last_prev_node.prev,
+                }));
             }
         } else {
             let some_last_prev = self.head.replace(None);
@@ -206,11 +214,10 @@ impl<T: Clone + Debug> DList<T> {
 
         assert_eq!(1, Rc::strong_count(&last));
         match Rc::try_unwrap(last) {
-            Ok(last_cell) => {
-                last_cell.into_inner().map(
-                    |node| node.value.borrow().clone()
-                ).unwrap()
-            }
+            Ok(last_cell) => last_cell
+                .into_inner()
+                .map(|node| node.value.borrow().clone())
+                .unwrap(),
             Err(_last_rc) => None,
         }
     }
@@ -234,7 +241,7 @@ impl<T: Debug> fmt::Debug for DList<T> {
 }
 
 pub struct DListIterator<T: Debug> {
-    cur: Option<Weak<RefCell<Option<DListNode<T>>>>>
+    cur: Option<Weak<RefCell<Option<DListNode<T>>>>>,
 }
 
 impl<T: Debug> DList<T> {
@@ -255,9 +262,7 @@ impl<T: Debug> DList<T> {
             DListIterator { cur: None }
         } else {
             DListIterator {
-                cur: Some(
-                    Rc::downgrade(&Rc::clone(&self.head))
-                )
+                cur: Some(Rc::downgrade(&Rc::clone(&self.head))),
             }
         }
     }
@@ -283,9 +288,11 @@ impl<T: Clone + Debug> Iterator for DListIterator<T> {
         };
 
         if let Some(cur_node_ref) = cur_strong.borrow().as_ref() {
-            self.cur = cur_node_ref.next.borrow().as_ref().map(
-                |_next_node_ref| Rc::downgrade(&Rc::clone(&cur_node_ref.next))
-            );
+            self.cur = cur_node_ref
+                .next
+                .borrow()
+                .as_ref()
+                .map(|_next_node_ref| Rc::downgrade(&Rc::clone(&cur_node_ref.next)));
         }
         cur_val
     }

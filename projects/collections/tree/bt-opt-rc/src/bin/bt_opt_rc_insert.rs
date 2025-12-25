@@ -3,15 +3,12 @@ use bt_opt_rc::BTree;
 fn main() {
     //      4
     //    2   6
-    //  1    5   
+    //  1    5
     let mut tree: BTree<u8> = Default::default();
     assert_eq!(format!("{:?}", tree), "BTree={}");
 
     tree.insert(4);
-    assert_eq!(
-        format!("{:?}", tree),
-        "BTree={TreeNode(Nil,4,Nil)}"
-    );
+    assert_eq!(format!("{:?}", tree), "BTree={TreeNode(Nil,4,Nil)}");
 
     tree.insert(2);
     assert_eq!(

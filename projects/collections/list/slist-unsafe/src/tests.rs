@@ -59,7 +59,7 @@ fn test_iter_unwrap_failed() {
     let mut iter = list.iter();
     assert_eq!(iter.next(), Some(1));
     assert_eq!(list.pop_back(), Some(2));
-    assert_eq!(iter.next(), None);  // NG: Accessing the freed memory!
+    assert_eq!(iter.next(), None); // NG: Accessing the freed memory!
 
     list.push_back(2);
     let mut iter = list.iter();
@@ -85,9 +85,9 @@ fn test_iter_drop_next_item() {
     let mut list: SinglyLinkedList<u8> = Default::default();
     list.push_back(1);
     list.push_back(2);
-    let mut iter = list.iter();             // The next pointer points to 1.
-    assert_eq!(list.pop_front(), Some(1));  // node 1 is dropped.
-    assert_eq!(iter.next(), None);          // NG: Accessing the freed memory!
+    let mut iter = list.iter(); // The next pointer points to 1.
+    assert_eq!(list.pop_front(), Some(1)); // node 1 is dropped.
+    assert_eq!(iter.next(), None); // NG: Accessing the freed memory!
 }
 
 #[test]
@@ -95,10 +95,10 @@ fn test_iter_drop_prev_item() {
     let mut list: SinglyLinkedList<u8> = Default::default();
     list.push_back(1);
     list.push_back(2);
-    let mut iter = list.iter();            // The next pointer points to 1.
-    assert_eq!(iter.next(), Some(1));      // The next pointer points to 2.
+    let mut iter = list.iter(); // The next pointer points to 1.
+    assert_eq!(iter.next(), Some(1)); // The next pointer points to 2.
     assert_eq!(list.pop_front(), Some(1)); // node 1 is dropped.
-    assert_eq!(iter.next(), Some(2));      // The next pointer points to None.
+    assert_eq!(iter.next(), Some(2)); // The next pointer points to None.
     assert_eq!(iter.next(), None);
 }
 
@@ -118,5 +118,8 @@ fn test_pop_front_and_display_2() {
     list.push_back(2);
     list.push_back(3);
     assert_eq!(list.pop_front(), Some(1));
-    assert_eq!(format!("{}", list), "SinglyLinkedList[ListNode(2), ListNode(3)]");
+    assert_eq!(
+        format!("{}", list),
+        "SinglyLinkedList[ListNode(2), ListNode(3)]"
+    );
 }

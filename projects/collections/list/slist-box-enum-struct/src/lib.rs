@@ -2,12 +2,15 @@ use std::fmt::{Debug, Formatter, Result};
 
 pub struct ConsCell<T> {
     value: T,
-    next: Box<SList<T>>
+    next: Box<SList<T>>,
 }
 
 impl<T> ConsCell<T> {
     fn new(v: T, next: SList<T>) -> Self {
-        ConsCell { value: v, next: Box::new(next) }
+        ConsCell {
+            value: v,
+            next: Box::new(next),
+        }
     }
 }
 
@@ -68,9 +71,7 @@ impl<T> SList<T> {
         let head_node: SList<T>;
         head_node = std::mem::replace(self, SList::Nil);
 
-        let _ = std::mem::replace(
-            self, SList::Cons(ConsCell::new(v, head_node))
-        );
+        let _ = std::mem::replace(self, SList::Cons(ConsCell::new(v, head_node)));
     }
 }
 
@@ -81,7 +82,9 @@ impl<T> From<T> for SList<T> {
 }
 
 impl<T> Default for SList<T> {
-    fn default() -> Self { SList::Nil }
+    fn default() -> Self {
+        SList::Nil
+    }
 }
 
 impl<T: Debug> Debug for SList<T> {

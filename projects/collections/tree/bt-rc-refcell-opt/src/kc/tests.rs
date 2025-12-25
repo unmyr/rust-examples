@@ -13,7 +13,6 @@ fn test_insert() {
     );
 }
 
-
 #[test]
 fn test_to_vec_traversal_1_to_6() {
     let tree: BTree<u8> = Default::default();
@@ -58,12 +57,12 @@ fn test_to_vec_traversal_1_to_6() {
     tree.insert(1);
     tree.insert(6);
     tree.insert(5);
-    assert_eq!(tree.to_vec_pre_order(),     vec![4, 2, 1, 6, 5]);
-    assert_eq!(tree.to_vec_pre_order_rc(),  vec![4, 2, 1, 6, 5]);
-    assert_eq!(tree.to_vec_in_order(),      vec![1, 2, 4, 5, 6]);
-    assert_eq!(tree.to_vec_in_order_rc(),   vec![1, 2, 4, 5, 6]);
+    assert_eq!(tree.to_vec_pre_order(), vec![4, 2, 1, 6, 5]);
+    assert_eq!(tree.to_vec_pre_order_rc(), vec![4, 2, 1, 6, 5]);
+    assert_eq!(tree.to_vec_in_order(), vec![1, 2, 4, 5, 6]);
+    assert_eq!(tree.to_vec_in_order_rc(), vec![1, 2, 4, 5, 6]);
     assert_eq!(tree.to_vec_post_order_rc(), vec![1, 2, 5, 6, 4]);
-    assert_eq!(tree.to_vec_post_order(),    vec![1, 2, 5, 6, 4]);
+    assert_eq!(tree.to_vec_post_order(), vec![1, 2, 5, 6, 4]);
     assert_eq!(
         tree.iter_in_order().collect::<Vec<u8>>(),
         vec![1, 2, 4, 5, 6]

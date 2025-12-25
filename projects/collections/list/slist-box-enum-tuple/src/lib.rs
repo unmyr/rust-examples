@@ -62,7 +62,9 @@ impl<T> From<T> for SList<T> {
 }
 
 impl<T> Default for SList<T> {
-    fn default() -> Self { SList::Nil }
+    fn default() -> Self {
+        SList::Nil
+    }
 }
 
 impl<T: Debug> Debug for SList<T> {

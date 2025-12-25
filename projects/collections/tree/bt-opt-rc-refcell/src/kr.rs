@@ -1,7 +1,7 @@
-use std::fmt::{self};
-use std::rc::Rc;
 use std::cell::{RefCell, RefMut};
 use std::cmp::Ordering;
+use std::fmt::{self};
+use std::rc::Rc;
 
 pub struct TreeNode<'a, K> {
     key: &'a K,
@@ -24,25 +24,36 @@ impl<'a, T: fmt::Debug> fmt::Debug for TreeNode<'a, T> {
         match (self.left.as_ref(), self.right.as_ref()) {
             (None, None) => {
                 write!(f, "TreeNode(Nil,{:?},Nil)", self.key)
-            },
+            }
             (Some(left), Some(right)) => {
-                write!(f,
+                write!(
+                    f,
                     "{:?}, TreeNode({:?},{:?},{:?}), {:?}",
-                    left.borrow(), left.borrow().key, self.key, right.borrow().key, right.borrow()
+                    left.borrow(),
+                    left.borrow().key,
+                    self.key,
+                    right.borrow().key,
+                    right.borrow()
                 )
-            },
+            }
             (None, Some(right)) => {
-                write!(f,
+                write!(
+                    f,
                     "TreeNode(Nil,{:?},{:?}), {:?}",
-                    self.key, right.borrow().key, right.borrow()
+                    self.key,
+                    right.borrow().key,
+                    right.borrow()
                 )
-            },
+            }
             (Some(left), None) => {
-                write!(f,
+                write!(
+                    f,
                     "{:?}, TreeNode({:?},{:?},Nil)",
-                    left.borrow(), left.borrow().key, self.key
+                    left.borrow(),
+                    left.borrow().key,
+                    self.key
                 )
-            },
+            }
         }
     }
 }
@@ -54,9 +65,7 @@ pub struct BTree<'a, K> {
 
 impl<'a, K> BTree<'a, K> {
     pub fn new() -> Self {
-        BTree {
-            head: None,
-        }
+        BTree { head: None }
     }
 }
 
@@ -73,9 +82,8 @@ impl<'a, K: Ord> BTree<'a, K> {
     /// ```
     pub fn insert(&mut self, key_ref: &'a K) {
         if self.head.is_none() {
-            self.head.replace(
-                Rc::new(RefCell::new(TreeNode::new(key_ref)))
-            );
+            self.head
+                .replace(Rc::new(RefCell::new(TreeNode::new(key_ref))));
             return;
         }
         let cur_ref: &Rc<RefCell<TreeNode<K>>>;
@@ -95,9 +103,7 @@ impl<'a, K: Ord> BTree<'a, K> {
             }
 
             if some_rc_ref_mut.is_none() {
-                some_rc_ref_mut.replace(
-                    Rc::new(RefCell::new(TreeNode::new(key_ref)))
-                );
+                some_rc_ref_mut.replace(Rc::new(RefCell::new(TreeNode::new(key_ref))));
                 return;
             }
 

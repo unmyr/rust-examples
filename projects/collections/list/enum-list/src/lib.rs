@@ -15,8 +15,8 @@ pub enum List {
 
 #[cfg(test)]
 mod tests {
-    use std::rc::Rc;
     use crate::List::{Cons, Nil};
+    use std::rc::Rc;
 
     #[test]
     fn test_share() {

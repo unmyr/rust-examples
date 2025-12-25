@@ -1,7 +1,7 @@
-use std::fmt::{self};
-use std::rc::Rc;
 use std::cell::{Ref, RefCell};
 use std::cmp::Ordering;
+use std::fmt::{self};
+use std::rc::Rc;
 
 pub struct TreeNode<K> {
     key: K,
@@ -24,25 +24,24 @@ impl<T: fmt::Debug> fmt::Debug for TreeNode<T> {
         match (self.left.borrow().as_ref(), self.right.borrow().as_ref()) {
             (None, None) => {
                 write!(f, "TreeNode(Nil,{:?},Nil)", self.key)
-            },
+            }
             (Some(left), Some(right)) => {
-                write!(f,
+                write!(
+                    f,
                     "{:?}, TreeNode({:?},{:?},{:?}), {:?}",
                     left, left.key, self.key, right.key, right
                 )
-            },
+            }
             (None, Some(right)) => {
-                write!(f,
+                write!(
+                    f,
                     "TreeNode(Nil,{:?},{:?}), {:?}",
                     self.key, right.key, right
                 )
-            },
+            }
             (Some(left), None) => {
-                write!(f,
-                    "{:?}, TreeNode({:?},{:?},Nil)",
-                    left, left.key, self.key
-                )
-            },
+                write!(f, "{:?}, TreeNode({:?},{:?},Nil)", left, left.key, self.key)
+            }
         }
     }
 }
@@ -80,7 +79,8 @@ impl<K: Ord> BTree<K> {
             let next = match cur_ref.as_ref().unwrap().key.cmp(&key) {
                 Ordering::Greater => &cur_ref.as_ref().unwrap().left,
                 _ => &cur_ref.as_ref().unwrap().right,
-            }.clone();
+            }
+            .clone();
             drop(cur_ref);
 
             cur = next;
@@ -101,7 +101,8 @@ impl<K: Clone> BTree<K> {
     /// ```
     pub fn to_vec_pre_order_rc(&self) -> Vec<K> {
         fn traverse_pre_order<K: Clone>(
-            cur: Rc<RefCell<Option<TreeNode<K>>>>, results: &mut Vec<K>
+            cur: Rc<RefCell<Option<TreeNode<K>>>>,
+            results: &mut Vec<K>,
         ) {
             match Rc::clone(&cur).borrow().as_ref() {
                 Some(node) => {
@@ -121,7 +122,7 @@ impl<K: Clone> BTree<K> {
         cur_ref = &self.head;
         let cur = Rc::clone(cur_ref);
 
-        let mut results: Vec<K> = vec!();
+        let mut results: Vec<K> = vec![];
 
         traverse_pre_order(cur, &mut results);
         results
@@ -149,7 +150,7 @@ impl<K: Clone> BTree<K> {
         stack = Vec::new();
         let mut cur = Rc::clone(cur_ref);
 
-        let mut results: Vec<K> = vec!();
+        let mut results: Vec<K> = vec![];
 
         'outer: loop {
             while let Some(node) = Rc::clone(&cur).borrow().as_ref() {
@@ -187,7 +188,8 @@ impl<K: Clone> BTree<K> {
     /// ```
     pub fn to_vec_in_order_rc(&self) -> Vec<K> {
         fn traverse_in_order<K: Clone>(
-            cur: Rc<RefCell<Option<TreeNode<K>>>>, results: &mut Vec<K>
+            cur: Rc<RefCell<Option<TreeNode<K>>>>,
+            results: &mut Vec<K>,
         ) {
             match Rc::clone(&cur).borrow().as_ref() {
                 Some(node) => {
@@ -207,7 +209,7 @@ impl<K: Clone> BTree<K> {
         cur_ref = &self.head;
         let cur = Rc::clone(cur_ref);
 
-        let mut results: Vec<K> = vec!();
+        let mut results: Vec<K> = vec![];
 
         traverse_in_order(cur, &mut results);
         results
@@ -234,7 +236,7 @@ impl<K: Clone> BTree<K> {
         stack = Vec::new();
         let mut cur = Rc::clone(cur_ref);
 
-        let mut results: Vec<K> = vec!();
+        let mut results: Vec<K> = vec![];
 
         'outer: loop {
             // Traverse the subtree on the left while adding nodes to the stack.
@@ -276,7 +278,8 @@ impl<K: Clone> BTree<K> {
     /// ```
     pub fn to_vec_post_order_rc(&self) -> Vec<K> {
         fn traverse_post_order<K: Clone>(
-            cur: Rc<RefCell<Option<TreeNode<K>>>>, results: &mut Vec<K>
+            cur: Rc<RefCell<Option<TreeNode<K>>>>,
+            results: &mut Vec<K>,
         ) {
             match Rc::clone(&cur).borrow().as_ref() {
                 Some(node) => {
@@ -296,7 +299,7 @@ impl<K: Clone> BTree<K> {
         cur_ref = &self.head;
         let cur = Rc::clone(cur_ref);
 
-        let mut results: Vec<K> = vec!();
+        let mut results: Vec<K> = vec![];
 
         traverse_post_order(cur, &mut results);
         results
@@ -323,7 +326,7 @@ impl<K: Clone> BTree<K> {
         stack = Vec::new();
         let mut cur = Rc::clone(cur_ref);
 
-        let mut results: Vec<K> = vec!();
+        let mut results: Vec<K> = vec![];
 
         'outer: loop {
             while let Some(node) = Rc::clone(&cur).borrow().as_ref() {
@@ -366,12 +369,12 @@ impl<K: Clone> BTree<K> {
     pub fn iter_in_order(&self) -> BTreeIterator<K> {
         BTreeIterator {
             results: self.to_vec_in_order(),
-            cur: Some(0)
+            cur: Some(0),
         }
     }
 }
 
-impl<K:Clone> Iterator for BTreeIterator<K> {
+impl<K: Clone> Iterator for BTreeIterator<K> {
     type Item = K;
     fn next(&mut self) -> Option<Self::Item> {
         self.cur.as_ref()?;

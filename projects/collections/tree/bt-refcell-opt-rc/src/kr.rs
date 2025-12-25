@@ -1,7 +1,7 @@
-use std::fmt::{self};
-use std::rc::Rc;
 use std::cell::RefCell;
 use std::cmp::Ordering;
+use std::fmt::{self};
+use std::rc::Rc;
 
 pub struct TreeNode<'a, K> {
     key: &'a K,
@@ -24,25 +24,24 @@ impl<'a, T: fmt::Debug> fmt::Debug for TreeNode<'a, T> {
         match (self.left.borrow().clone(), self.right.borrow().clone()) {
             (None, None) => {
                 write!(f, "TreeNode(Nil,{:?},Nil)", self.key)
-            },
+            }
             (Some(ref left), Some(ref right)) => {
-                write!(f,
+                write!(
+                    f,
                     "{:?}, TreeNode({:?},{:?},{:?}), {:?}",
                     left, left.key, self.key, right.key, right
                 )
-            },
+            }
             (None, Some(ref right)) => {
-                write!(f,
+                write!(
+                    f,
                     "TreeNode(Nil,{:?},{:?}), {:?}",
                     self.key, right.key, right
                 )
-            },
+            }
             (Some(ref left), None) => {
-                write!(f,
-                    "{:?}, TreeNode({:?},{:?},Nil)",
-                    left, left.key, self.key
-                )
-            },
+                write!(f, "{:?}, TreeNode({:?},{:?},Nil)", left, left.key, self.key)
+            }
         }
     }
 }
@@ -65,9 +64,9 @@ impl<'a, K: Ord> BTree<'a, K> {
     /// ```
     pub fn insert(&self, key_ref: &'a K) {
         if self.head.borrow().as_ref().is_none() {
-            self.head.borrow_mut().replace(
-                Rc::new(TreeNode::new(key_ref))
-            );
+            self.head
+                .borrow_mut()
+                .replace(Rc::new(TreeNode::new(key_ref)));
             return;
         }
         let cur_cell_ref = self.head.borrow();
@@ -83,14 +82,10 @@ impl<'a, K: Ord> BTree<'a, K> {
                 _ => &cur.right,
             };
             if cur_cell_ref.borrow().is_none() {
-                cur_cell_ref.replace(
-                    Some(Rc::new(TreeNode::new(key_ref))
-                ));
+                cur_cell_ref.replace(Some(Rc::new(TreeNode::new(key_ref))));
                 return;
             }
-            let work: Rc<TreeNode<K>> = Rc::clone(
-                cur_cell_ref.borrow().as_ref().unwrap()
-            );
+            let work: Rc<TreeNode<K>> = Rc::clone(cur_cell_ref.borrow().as_ref().unwrap());
             cur = work;
         }
     }

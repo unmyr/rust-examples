@@ -5,16 +5,10 @@ fn main() {
     assert_eq!(format!("{:?}", list), "SList(Nil)");
 
     list.push_back(1);
-    assert_eq!(
-        format!("{:?}", list),
-        "SList(1) -> SList(Nil)"
-    );
+    assert_eq!(format!("{:?}", list), "SList(1) -> SList(Nil)");
 
     list.push_back(2);
-    assert_eq!(
-        format!("{:?}", list),
-        "SList(1) -> SList(2) -> SList(Nil)"
-    );
+    assert_eq!(format!("{:?}", list), "SList(1) -> SList(2) -> SList(Nil)");
 
     list.push_back(3);
     assert_eq!(

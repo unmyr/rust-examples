@@ -1,9 +1,8 @@
+use std::cell::RefCell;
 use std::default::Default;
 use std::fmt;
 use std::rc::Rc;
 use std::rc::Weak;
-use std::cell::RefCell;
-
 
 pub struct ListNode<T> {
     value: T,
@@ -12,7 +11,10 @@ pub struct ListNode<T> {
 
 impl<T> ListNode<T> {
     pub fn new(v: T) -> ListNode<T> {
-        ListNode { value: v, next: None }
+        ListNode {
+            value: v,
+            next: None,
+        }
     }
 }
 
@@ -21,8 +23,8 @@ impl<T: fmt::Debug> fmt::Display for ListNode<T> {
         match self.next {
             Some(ref next) => {
                 write!(f, "ListNode({:?}), {}", self.value, next.borrow())
-            },
-            None => write!(f, "ListNode({:?})", self.value)
+            }
+            None => write!(f, "ListNode({:?})", self.value),
         }
     }
 }
@@ -55,9 +57,7 @@ impl<T> SinglyLinkedList<T> {
             cur = Rc::clone(next);
         }
 
-        cur.borrow_mut().next = Some(
-            Rc::new(RefCell::new(node_new))
-        );
+        cur.borrow_mut().next = Some(Rc::new(RefCell::new(node_new)));
     }
 
     /// # Examples
@@ -135,7 +135,7 @@ impl<T> SinglyLinkedList<T> {
     pub fn iter(&self) -> SinglyLinkedListIterator<T> {
         if let Some(ref head) = self.head {
             SinglyLinkedListIterator {
-                cur: Some(Rc::downgrade(&Rc::clone(head)))
+                cur: Some(Rc::downgrade(&Rc::clone(head))),
             }
         } else {
             SinglyLinkedListIterator { cur: None }
@@ -149,16 +149,16 @@ impl<T: fmt::Debug> fmt::Display for SinglyLinkedList<T> {
             Some(ref head) => {
                 write!(f, "SinglyLinkedList[{}]", head.borrow())
             }
-            None => write!(f, "SinglyLinkedList[]")
+            None => write!(f, "SinglyLinkedList[]"),
         }
     }
 }
 
 pub struct SinglyLinkedListIterator<T> {
-    cur: Option<Weak<RefCell<ListNode<T>>>>
+    cur: Option<Weak<RefCell<ListNode<T>>>>,
 }
 
-impl<T:Clone> Iterator for SinglyLinkedListIterator<T> {
+impl<T: Clone> Iterator for SinglyLinkedListIterator<T> {
     type Item = T;
     fn next(&mut self) -> Option<Self::Item> {
         let cur_weak = match self.cur {

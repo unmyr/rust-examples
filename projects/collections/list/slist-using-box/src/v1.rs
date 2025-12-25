@@ -8,14 +8,15 @@ struct ListNode<T> {
 
 impl<T: fmt::Debug> ListNode<T> {
     fn new(v: T) -> ListNode<T> {
-        ListNode { value: v, next: None }
+        ListNode {
+            value: v,
+            next: None,
+        }
     }
 
     fn push_back(&mut self, v: T) {
         match &mut self.next {
-            None => {
-                self.next = Some(Box::new(ListNode::new(v)))
-            },
+            None => self.next = Some(Box::new(ListNode::new(v))),
             Some(ref mut next) => next.push_back(v),
         }
     }
@@ -26,8 +27,8 @@ impl<T: fmt::Debug> fmt::Display for ListNode<T> {
         match self.next {
             Some(ref next) => {
                 write!(f, "ListNode({:?}), {}", self.value, next)
-            },
-            None => write!(f, "ListNode({:?})", self.value)
+            }
+            None => write!(f, "ListNode({:?})", self.value),
         }
     }
 }
@@ -128,10 +129,10 @@ impl<T: fmt::Debug> SinglyLinkedList<T> {
     /// assert_eq!(iter.next(), Some(&2));
     /// assert_eq!(iter.next(), None);
     /// ```
-    pub fn iter(&self) -> SinglyLinkedListIterator<'_,T> {
+    pub fn iter(&self) -> SinglyLinkedListIterator<'_, T> {
         return SinglyLinkedListIterator {
-            next: self.head.as_deref()
-        }
+            next: self.head.as_deref(),
+        };
     }
 }
 
@@ -139,16 +140,16 @@ impl<T: fmt::Debug> fmt::Display for SinglyLinkedList<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.head {
             Some(ref head) => write!(f, "SinglyLinkedList[{}]", head),
-            None => write!(f, "SinglyLinkedList[]")
+            None => write!(f, "SinglyLinkedList[]"),
         }
     }
 }
 
-pub struct SinglyLinkedListIterator<'a, T:'a> {
-    next: Option<&'a ListNode<T>>
+pub struct SinglyLinkedListIterator<'a, T: 'a> {
+    next: Option<&'a ListNode<T>>,
 }
 
-impl<'a, T: fmt::Debug> Iterator for SinglyLinkedListIterator<'a,T> {
+impl<'a, T: fmt::Debug> Iterator for SinglyLinkedListIterator<'a, T> {
     type Item = &'a T;
     fn next(&mut self) -> Option<Self::Item> {
         self.next.map(|node| {

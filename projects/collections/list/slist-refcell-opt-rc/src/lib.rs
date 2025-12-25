@@ -1,6 +1,6 @@
+use std::cell::RefCell;
 use std::default::Default;
 use std::fmt;
-use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
 pub struct ListNode<T> {
@@ -10,7 +10,10 @@ pub struct ListNode<T> {
 
 impl<T> ListNode<T> {
     pub fn new(v: T) -> ListNode<T> {
-        ListNode { value: v, next: RefCell::new(None) }
+        ListNode {
+            value: v,
+            next: RefCell::new(None),
+        }
     }
 }
 
@@ -19,8 +22,8 @@ impl<T: fmt::Debug> fmt::Display for ListNode<T> {
         match self.next.borrow().as_ref() {
             Some(next) => {
                 write!(f, "ListNode({:?}), {}", self.value, next)
-            },
-            None => write!(f, "ListNode({:?})", self.value)
+            }
+            None => write!(f, "ListNode({:?})", self.value),
         }
     }
 }
@@ -130,7 +133,7 @@ impl<T> SinglyLinkedList<T> {
     pub fn iter(&self) -> SinglyLinkedListIterator<T> {
         if let Some(head) = self.head.borrow().as_ref() {
             SinglyLinkedListIterator {
-                cur: Some(Rc::downgrade(&Rc::clone(head)))
+                cur: Some(Rc::downgrade(&Rc::clone(head))),
             }
         } else {
             SinglyLinkedListIterator { cur: None }
@@ -144,16 +147,16 @@ impl<T: fmt::Debug> fmt::Display for SinglyLinkedList<T> {
             Some(ref head) => {
                 write!(f, "SinglyLinkedList[{}]", head)
             }
-            None => write!(f, "SinglyLinkedList[]")
+            None => write!(f, "SinglyLinkedList[]"),
         }
     }
 }
 
 pub struct SinglyLinkedListIterator<T> {
-    cur: Option<Weak<ListNode<T>>>
+    cur: Option<Weak<ListNode<T>>>,
 }
 
-impl<T:Clone> Iterator for SinglyLinkedListIterator<T> {
+impl<T: Clone> Iterator for SinglyLinkedListIterator<T> {
     type Item = T;
     fn next(&mut self) -> Option<Self::Item> {
         self.cur.as_ref()?;
@@ -164,7 +167,7 @@ impl<T:Clone> Iterator for SinglyLinkedListIterator<T> {
             None => {
                 self.cur = None;
                 return None;
-            },
+            }
         };
 
         let cur_val = cur_strong.value.clone();

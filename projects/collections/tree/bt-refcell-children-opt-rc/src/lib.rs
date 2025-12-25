@@ -1,7 +1,7 @@
+use std::cell::{RefCell, RefMut};
+use std::cmp::Ordering;
 use std::fmt::{self, Debug};
 use std::rc::Rc;
-use std::cell::{RefMut, RefCell};
-use std::cmp::Ordering;
 
 pub struct TreeNodes<K> {
     left: Option<Rc<TreeNode<K>>>,
@@ -17,37 +17,40 @@ impl<K> TreeNode<K> {
     pub fn new(key: K) -> Self {
         TreeNode {
             key,
-            children: RefCell::new(
-                TreeNodes { left: None, right: None }
-            ),
+            children: RefCell::new(TreeNodes {
+                left: None,
+                right: None,
+            }),
         }
     }
 }
 
 impl<K: Debug> fmt::Debug for TreeNode<K> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match (self.children.borrow().left.as_ref(), self.children.borrow().right.as_ref()) {
+        match (
+            self.children.borrow().left.as_ref(),
+            self.children.borrow().right.as_ref(),
+        ) {
             (None, None) => {
                 write!(f, "TreeNode(Nil,{:?},Nil)", self.key)
-            },
+            }
             (Some(ref left), Some(ref right)) => {
-                write!(f,
+                write!(
+                    f,
                     "{:?}, TreeNode({:?},{:?},{:?}), {:?}",
                     left, left.key, self.key, right.key, right
                 )
-            },
+            }
             (None, Some(ref right)) => {
-                write!(f,
+                write!(
+                    f,
                     "TreeNode(Nil,{:?},{:?}), {:?}",
                     self.key, right.key, right
                 )
-            },
+            }
             (Some(ref left), None) => {
-                write!(f,
-                    "{:?}, TreeNode({:?},{:?},Nil)",
-                    left, left.key, self.key
-                )
-            },
+                write!(f, "{:?}, TreeNode({:?},{:?},Nil)", left, left.key, self.key)
+            }
         }
     }
 }
@@ -69,26 +72,22 @@ impl<K: Ord> BTree<K> {
     /// println!("{:?}", &tree);
     /// ```
     pub fn insert(&mut self, key: K) {
-        let mut cur: Rc<TreeNode<K>>  = match self.head.as_ref() {
+        let mut cur: Rc<TreeNode<K>> = match self.head.as_ref() {
             Some(head_rc_ref) => Rc::clone(head_rc_ref),
             None => {
-                self.head.replace(
-                    Rc::new(TreeNode::new(key))
-                );
+                self.head.replace(Rc::new(TreeNode::new(key)));
                 return;
-            },
+            }
         };
 
         loop {
-            let mut some_node_ref = RefMut::map(
-                cur.children.borrow_mut(),
-                |children_ref| {
+            let mut some_node_ref =
+                RefMut::map(cur.children.borrow_mut(), |children_ref| {
                     match cur.key.cmp(&key) {
                         Ordering::Greater => &mut children_ref.left,
                         _ => &mut children_ref.right,
                     }
-                }
-            );
+                });
             if some_node_ref.is_none() {
                 some_node_ref.replace(Rc::new(TreeNode::new(key)));
                 return;
@@ -112,17 +111,17 @@ impl<K: Clone> BTree<K> {
     /// assert_eq!(tree.to_vec_in_order(), vec!["A", "E", "S"]);
     /// ```
     pub fn to_vec_in_order(&self) -> Vec<K> {
-        let head_rc: Rc<TreeNode<K>>  = match self.head.as_ref() {
+        let head_rc: Rc<TreeNode<K>> = match self.head.as_ref() {
             Some(head_rc_ref) => Rc::clone(head_rc_ref),
             None => {
                 return Vec::new();
-            },
+            }
         };
 
         let mut stack: Vec<Rc<TreeNode<K>>>;
         stack = Vec::new();
 
-        let mut results: Vec<K> = vec!();
+        let mut results: Vec<K> = vec![];
 
         let mut cur = Some(head_rc);
         'outer: loop {
@@ -132,7 +131,7 @@ impl<K: Clone> BTree<K> {
                 match Rc::clone(&cur_rc).children.borrow().left.as_ref() {
                     Some(left_rc_ref) => {
                         cur = Some(Rc::clone(left_rc_ref));
-                    },
+                    }
                     None => {
                         cur = None;
                     }
@@ -149,9 +148,7 @@ impl<K: Clone> BTree<K> {
                 };
 
                 results.push(cur_right.key.clone());
-                if let Some(right_rc_ref) = Rc::clone(
-                    &cur_right
-                ).children.borrow().right.as_ref() {
+                if let Some(right_rc_ref) = Rc::clone(&cur_right).children.borrow().right.as_ref() {
                     cur = Some(Rc::clone(right_rc_ref));
                     continue 'outer;
                 }

@@ -17,10 +17,7 @@ fn main() {
     );
 
     assert_eq!(list.pop_front(), Some(2));
-    assert_eq!(
-        format!("{:?}", list),
-        "DList[(3, prev:Nil, next:Nil)]"
-    );
+    assert_eq!(format!("{:?}", list), "DList[(3, prev:Nil, next:Nil)]");
 
     assert_eq!(list.pop_front(), Some(3));
     assert_eq!(format!("{:?}", list), "DList[]");

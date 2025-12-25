@@ -100,13 +100,13 @@ fn test_iter_drop_prev_item() {
     let mut list: DList<u8> = Default::default();
     list.push_back(1);
     list.push_back(2);
-    let mut iter = list.iter();            // The next pointer points to 1.
-    assert_eq!(iter.next(), Some(1));      // The next pointer points to 2.
+    let mut iter = list.iter(); // The next pointer points to 1.
+    assert_eq!(iter.next(), Some(1)); // The next pointer points to 2.
 
     // The contents of node 1 will be replaced by node 2,
     // and as a result, node 2 will be dropped.
     assert_eq!(list.pop_front(), Some(1));
-    assert_eq!(iter.next(), None);        // The next pointer points to None.
+    assert_eq!(iter.next(), None); // The next pointer points to None.
 }
 
 #[test]
@@ -115,7 +115,10 @@ fn test_pop_front_and_display_1() {
     list.push_back(1);
     list.push_back(2);
     assert_eq!(list.pop_front(), Some(1));
-    assert_eq!(format!("{:?}", list), "DList[(value:2, prev:Nil, next:Nil)]");
+    assert_eq!(
+        format!("{:?}", list),
+        "DList[(value:2, prev:Nil, next:Nil)]"
+    );
 }
 
 #[test]
@@ -126,5 +129,8 @@ fn test_pop_front_and_display_2() {
     list.push_back(2);
     list.push_back(3);
     assert_eq!(list.pop_front(), Some(1));
-    assert_eq!(format!("{:?}", list), "DList[(value:2, prev:Nil, next:3) -> (value:3, prev:2, next:Nil)]");
+    assert_eq!(
+        format!("{:?}", list),
+        "DList[(value:2, prev:Nil, next:3) -> (value:3, prev:2, next:Nil)]"
+    );
 }
