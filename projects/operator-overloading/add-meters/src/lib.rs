@@ -17,9 +17,6 @@ mod tests {
     #[test]
     fn test_add() {
         use crate::{Meters, Millimeters};
-        assert_eq!(
-            Millimeters(1) + Meters(2),
-            Millimeters(2001)
-        )
+        assert_eq!(Millimeters(1) + Meters(2), Millimeters(2001))
     }
 }

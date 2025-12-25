@@ -12,7 +12,7 @@ impl Add for Time {
 
     fn add(self, other: Time) -> Time {
         let sum_sec = self.sec + other.sec;
-        let sum_min = self.min + other.min  + sum_sec / 60;
+        let sum_min = self.min + other.min + sum_sec / 60;
         let sum_hour = self.hour + other.hour;
         Time {
             sec: sum_sec % 60,
@@ -28,8 +28,20 @@ mod tests {
     fn test_add() {
         use crate::Time;
         assert_eq!(
-            Time { hour: 0, min: 59, sec: 59 } + Time { hour: 0, min: 0, sec: 2 },
-            Time { hour: 1, min: 0, sec: 1 }
+            Time {
+                hour: 0,
+                min: 59,
+                sec: 59
+            } + Time {
+                hour: 0,
+                min: 0,
+                sec: 2
+            },
+            Time {
+                hour: 1,
+                min: 0,
+                sec: 1
+            }
         );
     }
 }
