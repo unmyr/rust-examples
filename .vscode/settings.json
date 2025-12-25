@@ -83,6 +83,7 @@
     "imageproc",
     "imagesdir",
     "immut",
+    "inplace",
     "itertools",
     "latexmath",
     "leveloffset",
