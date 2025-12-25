@@ -1,6 +1,7 @@
 use std::ops::Add;
 
 #[derive(Debug, PartialEq)]
+#[allow(unused)]
 struct Time {
     sec: i32,
     min: i32,

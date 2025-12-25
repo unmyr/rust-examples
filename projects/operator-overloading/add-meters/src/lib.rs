@@ -1,6 +1,7 @@
 use std::ops::Add;
 
 #[derive(Debug, PartialEq)]
+#[allow(unused)]
 struct Millimeters(u32);
 struct Meters(u32);
 
