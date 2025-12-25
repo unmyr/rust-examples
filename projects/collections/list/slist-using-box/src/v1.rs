@@ -17,7 +17,7 @@ impl<T: fmt::Debug> ListNode<T> {
     fn push_back(&mut self, v: T) {
         match &mut self.next {
             None => self.next = Some(Box::new(ListNode::new(v))),
-            Some(ref mut next) => next.push_back(v),
+            Some(next) => next.push_back(v),
         }
     }
 }

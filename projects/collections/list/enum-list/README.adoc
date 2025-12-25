@@ -137,7 +137,7 @@ impl fmt::Display for List {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             List::Nil => write!(f, "Nil"),
-            List::Cons(value, ref next) => {
+            List::Cons(value, next) => {
                 write!(f, "Cons({}, {})", value, next)
             }
         }
@@ -181,6 +181,7 @@ Nil
 .src/bin/enum_list_share.rs
 ----
 #[derive(Debug)]
+#[allow(unused)]
 enum List {
     Cons(Rc<RefCell<i32>>, Rc<List>),
     Nil,

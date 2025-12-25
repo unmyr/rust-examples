@@ -10,7 +10,7 @@ impl fmt::Display for List {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             List::Nil => write!(f, "Nil"),
-            List::Cons(value, ref next) => {
+            List::Cons(value, next) => {
                 write!(f, "Cons({}, {})", value, next)
             }
         }

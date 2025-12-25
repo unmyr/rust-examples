@@ -238,7 +238,7 @@ impl<T: Debug> fmt::Debug for DList<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.head.as_ref() {
             None => write!(f, "DList[]"),
-            Some(ref head) => {
+            Some(head) => {
                 write!(f, "DList[{:?}]", head.borrow())
             }
         }
