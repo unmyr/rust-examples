@@ -35,13 +35,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Training with Linear Regression
     let model = LinearRegression::default().fit(&dataset).unwrap();
 
-    // Test predictions
+    // Test inputs for XOR
     let test_inputs = ndarray::array![
-        [0.0, 0.0, 0.0],
-        [0.0, 1.0, 0.0],
-        [1.0, 0.0, 0.0],
-        [1.0, 1.0, 1.0]
+        [0.0, 0.0],
+        [0.0, 1.0],
+        [1.0, 0.0],
+        [1.0, 1.0]
     ];
+
+    // Add an interaction term as a new column to test_inputs
+    let test_inputs = {
+        let mut extended = Array2::<f64>::zeros((test_inputs.nrows(), 3));
+        for (i, row) in test_inputs.outer_iter().enumerate() {
+            extended[[i, 0]] = row[0];
+            extended[[i, 1]] = row[1];
+            extended[[i, 2]] = row[0] * row[1];
+        }
+        extended
+    };
+
+    // Test predictions
     let predictions: Array1<f64> = model.predict(&test_inputs);
 
     println!("== XOR Predictions ==");
