@@ -104,6 +104,7 @@
     "nalgebra",
     "ndarray",
     "NODELAY",
+    "nrows",
     "plotlib",
     "powf",
     "powi",
