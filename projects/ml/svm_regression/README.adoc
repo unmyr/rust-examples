@@ -1,0 +1,37 @@
+== SVM Regression Example
+This example demonstrates Support Vector Machine (SVM) regression using a linear kernel.
+The dataset consists of two-dimensional points labeled with binary targets (0 or 1). The SVM model is trained to classify these points based on their features.
+
+.References
+* https://docs.rs/linfa/0.8.1/linfa/[Crate linfa^]
+** https://docs.rs/linfa/0.8.1/linfa/dataset/index.html[Module dataset^]
+* https://docs.rs/linfa-svm/latest/linfa_svm/[Crate linfa_svm^]
+** https://docs.rs/linfa-svm/latest/linfa_svm/struct.Svm.html[linfa_svm::Svm struct^]
+* https://docs.rs/linfa-preprocessing/latest/linfa_preprocessing/[Crate linfa_preprocessing^]
+
+=== Example1: Classifying linearly separable data using SVM
+Learning and inference are performed using a linear SVM model.
+
+[source,shell]
+.Run the SVM classification example
+----
+cargo run --bin svm_linear_classify --release
+----
+
+The output includes the scaled training data, the trained SVM model parameters, and the prediction results for new data points.
+
+[source,plaintext]
+----
+== Scaled training data ==
+DatasetBase { records: [[-1.4638501094227998, -1.4638501094227998],
+ [-0.87831006565368, -0.87831006565368],
+ [-0.29277002188455997, -0.29277002188455997],
+ [0.29277002188455997, 0.29277002188455997],
+ [0.87831006565368, 0.87831006565368],
+ [1.4638501094227998, 1.4638501094227998]], shape=[6, 2], strides=[2, 1], layout=Cc (0x5), const ndim=2, targets: [false, false, false, true, true, true], shape=[6], strides=[1], layout=CFcf (0xf), const ndim=1, weights: [], shape=[0], strides=[0], layout=CFcf (0xf), const ndim=1, feature_names: [], target_names: [] }
+
+== SVM Model ==
+Svm { alpha: [-0.0, -0.2, -0.2, 0.2, 0.2, 0.0], rho: 0.0, r: None, exit_reason: ReachedThreshold, iterations: 5, obj: -0.5805714285714285, kernel_method: Linear, sep_hyperplane: Linear([0.46843203501529607, 0.46843203501529607], shape=[2], strides=[1], layout=CFcf (0xf), const ndim=1), probability_coeffs: None, phantom: PhantomData<bool> }
+
+Prediction results: [false, false, true, true], shape=[4], strides=[1], layout=CFcf (0xf), const ndim=1
+----
