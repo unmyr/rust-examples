@@ -12,11 +12,10 @@ fn main() {
         [5.0, 5.0],
         [6.0, 6.0],
     ];
-    let train_labels: ndarray::ArrayBase<ndarray::OwnedRepr<bool>, ndarray::Dim<[usize; 1]>> =
-        array![false, false, false, true, true, true];
+    let train_labels = array![false, false, false, true, true, true];
 
     let train_dataset = DatasetBase::new(train_features, train_labels);
-    let train_scaler = LinearScaler::<_>::standard().fit(&train_dataset).unwrap();
+    let train_scaler = LinearScaler::<f64>::standard().fit(&train_dataset).unwrap();
     let train_dataset_scaled = train_scaler.transform(train_dataset);
     println!("== Scaled training data ==\n{:?}\n", train_dataset_scaled);
     let model = Svm::<f64, bool>::params()
