@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
+    "plotters-3d-gallery",
     "plotters-path-and-label",
     "plotters-x-squared",
 ]
