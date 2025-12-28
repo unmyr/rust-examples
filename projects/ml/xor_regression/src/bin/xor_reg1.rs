@@ -36,12 +36,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let model = LinearRegression::default().fit(&dataset).unwrap();
 
     // Test inputs for XOR
-    let test_inputs = ndarray::array![
-        [0.0, 0.0],
-        [0.0, 1.0],
-        [1.0, 0.0],
-        [1.0, 1.0]
-    ];
+    let test_inputs = ndarray::array![[0.0, 0.0], [0.0, 1.0], [1.0, 0.0], [1.0, 1.0]];
 
     // Add an interaction term as a new column to test_inputs
     let test_inputs = {
@@ -58,10 +53,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let predictions: Array1<f64> = model.predict(&test_inputs);
 
     println!("== XOR Predictions ==");
+    println!("predictions={}", predictions[0]);
     for (input, pred) in test_inputs.outer_iter().zip(predictions.iter()) {
         println!("Input: {:?} => Predicted: {:.3}", input.to_vec(), pred);
     }
 
+    let xor_continuous_pred = |x, y| {
+        let input = ndarray::array![[x, y, x * y]];
+        let pred: Array1<f64> = model.predict(&input);
+        return pred[0];
+    };
     let root = BitMapBackend::gif("images/xor_reg1.gif", (600, 400), 100)?.into_drawing_area();
     for pitch in 0..157 {
         root.fill(&WHITE)?;
@@ -85,7 +86,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             SurfaceSeries::xoz(
                 (-2..=20).map(|i| i as f64 * 0.05),
                 (-2..=20).map(|i| i as f64 * 0.05),
-                xor_continuous,
+                xor_continuous_pred,
             )
             .style_func(&|&v| (VulcanoHSL::get_color(v * 1.0)).into()),
         )?;
