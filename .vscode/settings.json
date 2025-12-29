@@ -108,6 +108,7 @@
     "NODELAY",
     "nrows",
     "plotlib",
+    "plotly",
     "powf",
     "powi",
     "println",

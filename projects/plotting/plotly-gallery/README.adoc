@@ -1,0 +1,6 @@
+=== Example 1: Surface plot
+
+[source,shell]
+----
+cargo run --bin "plotly_sin_x_y" --release
+----

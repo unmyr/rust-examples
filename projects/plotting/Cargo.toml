@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
+    "plotly-gallery",
     "plotters-2d-gallery",
     "plotters-3d-gallery",
 ]
