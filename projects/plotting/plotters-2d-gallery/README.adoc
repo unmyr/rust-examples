@@ -1,0 +1,24 @@
+=== Example 1: Plot x squared and output in png/svg format
+
+[source,shell]
+----
+cargo run --bin plotters_x_squared_backend_png --release
+cargo run --bin plotters_x_squared_backend_svg --release
+----
+
+.Output png image for example 1
+image::../images/plotters_x_squared_backend_png.png[]
+
+.Output svg image for example 1
+image::../images/plotters_x_squared_backend_svg.svg[]
+
+
+=== Example 2: Plot labels points
+
+[source,shell]
+----
+cargo run --bin plotters_plot_labeled_points --release
+----
+
+.Output image for example 2
+image::../images/plotters_plot_labeled_points.png[]
