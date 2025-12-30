@@ -1,5 +1,5 @@
-use std::fs;
 use base64::Engine;
+use std::fs;
 
 use actix_web::{App, HttpResponse, HttpServer, web};
 use actix_web::{Responder, get};
@@ -53,32 +53,27 @@ async fn view_glb(params: web::Path<String>) -> impl Responder {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     // Vertex data (XYZ)
-    let positions: Vec<[f32; 3]> = vec![[0.0, 0.5, 0.0], [-0.5, -0.5, 0.0], [0.5, -0.5, 0.0]];
-    let (min, max) = ([-0.5, -0.5, 0.0], [0.5, 0.5, 0.0]);
+    let vertices: Vec<[f32; 3]> = vec![[0.0, 0.5, 0.0], [-0.5, -0.5, 0.0], [0.5, -0.5, 0.0]];
+    let (min, max): ([f32; 3], [f32; 3]) = ([-0.5, -0.5, 0.0], [0.5, 0.5, 0.0]);
 
     // Building the glTF structure (minimal configuration)
     let mut root = gltf_json::Root::default();
 
     // Convert to a binary buffer
     let mut buffer_data = Vec::new();
-    for i in 0..positions.len() {
-        let pos = positions[i];
+    for pos in &vertices {
         for v in pos {
             buffer_data.extend_from_slice(&v.to_le_bytes());
         }
     }
 
     // Buffer definition
-    let buffer_length = positions.len() * std::mem::size_of::<[f32; 3]>();
-    let custom_engine: base64::engine::GeneralPurpose = base64::engine::GeneralPurpose::new(
-        &base64::alphabet::URL_SAFE,
-        base64::engine::general_purpose::NO_PAD,
-    );
+    let buffer_length = vertices.len() * std::mem::size_of::<[f32; 3]>();
     let buffer = root.push(gltf_json::Buffer {
         byte_length: USize64::from(buffer_length),
         uri: Some(
             "data:application/octet-stream;base64,".to_string()
-                + &custom_engine.encode(&buffer_data),
+                + &base64::engine::general_purpose::STANDARD.encode(&buffer_data),
         ),
         extensions: Default::default(),
         extras: Default::default(),
@@ -97,7 +92,7 @@ async fn main() -> std::io::Result<()> {
     let positions = root.push(gltf_json::Accessor {
         buffer_view: Some(buffer_view),
         byte_offset: Some(USize64(0)),
-        count: USize64::from(positions.len()),
+        count: USize64::from(vertices.len()),
         component_type: Valid(gltf_json::accessor::GenericComponentType(
             gltf_json::accessor::ComponentType::F32,
         )),
