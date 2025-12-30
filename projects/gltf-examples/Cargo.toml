@@ -1,0 +1,13 @@
+[package]
+name = "gltf-examples"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+gltf-json = "1.4"
+serde_json = "1"
+base64 = "0"
+actix-web = "4"
+actix-cors = "0"
+# See: https://github.com/time-rs/time/issues/693
+time = ">= 0.3.38"

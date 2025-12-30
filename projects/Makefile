@@ -6,6 +6,7 @@ clean:
 	(cd errors && cargo clean)
 	(cd fs && cargo clean)
 	(cd generics/point && cargo clean)
+	(cd gltf-examples && cargo clean)
 	(cd hello-calc && cargo clean)
 	(cd hello-world && cargo clean)
 	(cd interior-mutability && cargo clean)

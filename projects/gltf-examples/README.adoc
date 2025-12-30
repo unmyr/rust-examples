@@ -1,0 +1,6 @@
+== GLTF Examples
+
+This directory contains a collection of example glTF files demonstrating various features of the glTF format. For more information about the glTF format and its specifications, you can refer to the following resources:
+
+* https://docs.rs/gltf-json/latest/gltf_json/[Crate gltf_json^]
+* https://github.com/gltf-rs/gltf/blob/main/examples/export/main.rs[gltf-rs Export Example^]
