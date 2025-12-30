@@ -49,9 +49,11 @@ async fn view_glb(params: web::Path<String>) -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let server = HttpServer::new(|| {
+    let addr = "127.0.0.1:3000";
+    let cors_endpoint = format!("http://{}", addr);
+    let server = HttpServer::new(move || {
         let cors = actix_cors::Cors::default()
-            .allowed_origin("https://127.0.0.1:3000")
+            .allowed_origin(cors_endpoint.as_str())
             .allowed_methods(vec!["GET"])
             .allowed_headers(vec![
                 actix_web::http::header::AUTHORIZATION,
@@ -66,7 +68,7 @@ async fn main() -> std::io::Result<()> {
             .service(data_glb_gltf)
             .service(view_glb)
     })
-    .bind("127.0.0.1:3000")?;
+    .bind(addr)?;
 
     println!("Listening on http://{}", server.addrs().first().unwrap());
     server.run().await
