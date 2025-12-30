@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
+    "array",
     "list/dlist-opt-rc-refcell",
     "list/dlist-rc-opt-refcell",
     "list/dlist-rc-refcell-opt",
@@ -12,11 +13,12 @@ members = [
     "list/slist-refcell-opt-rc",
     "list/slist-unsafe",
     "list/slist-using-box",
+    "ndarray",
     "tree/bt-cmd",
     "tree/bt-opt-rc-refcell",
     "tree/bt-opt-rc",
     "tree/bt-rc-refcell-opt",
     "tree/bt-refcell-children-opt-rc",
     "tree/bt-refcell-opt-rc",
-    "ndarray"
+    "vec",
 ]
