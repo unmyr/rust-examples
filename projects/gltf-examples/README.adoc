@@ -4,3 +4,22 @@ This directory contains a collection of example glTF files demonstrating various
 
 * https://docs.rs/gltf-json/latest/gltf_json/[Crate gltf_json^]
 * https://github.com/gltf-rs/gltf/blob/main/examples/export/main.rs[gltf-rs Export Example^]
+
+== Run examples
+
+1. Generate glTF files
++
+[source,shell]
+----
+cargo run --bin gen_gltf_triangle_grayscale --release
+cargo run --bin gen_gltf_triangle_v_colors --release
+cargo run --bin gen_gltf_triangle_red --release
+----
+
+2. View glTF files
++
+[source,shell]
+----
+cargo run --bin gltf_viewer --release
+----
+
