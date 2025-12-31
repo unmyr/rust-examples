@@ -23,6 +23,14 @@ fn it_ndarray_mapv_inplace() {
 }
 
 #[test]
+fn it_ndarray_2d_index_access() {
+    // Example of index access to a two-dimensional array
+    let mut w = ndarray::Array2::<u8>::zeros((3, 3));
+    w[[1, 2]] = 42; // Set element at row 1, column 2
+    assert_eq!(w[[1, 2]], 42);
+}
+
+#[test]
 fn it_ndarray_2d_extend_column_1() {
     use ndarray::Array2;
 
