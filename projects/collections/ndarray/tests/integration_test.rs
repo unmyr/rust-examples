@@ -30,6 +30,62 @@ fn it_ndarray_2d_index_access() {
     assert_eq!(w[[1, 2]], 42);
 }
 
+// Gets a specific row view.
+#[test]
+fn it_ndarray_2d_get_a_specific_row_view() {
+    use ndarray::arr2;
+
+    let a = arr2(&[[1, 2], [3, 4], [5, 6]]);
+    let row1 = a.row(1);
+    println!("row(1)={:?}", row1);
+    assert_eq!(&row1, &ndarray::array![3, 4]);
+}
+
+// Fill specific rows with zeros
+#[test]
+fn it_ndarray_2d_fill_specific_rows_with_zeros() {
+    use ndarray::arr2;
+
+    let a = arr2(&[[1, 2], [3, 4], [5, 6]]);
+    let mut b = a.clone();
+    let mut row_mut = b.row_mut(1);
+    row_mut.fill(0);
+    println!("b={:?}", b);
+    assert_eq!(b, arr2(&[[1, 2], [0, 0], [5, 6]]));
+}
+
+#[test]
+fn it_ndarray_array_elementwise_multiplication() {
+    let v = ndarray::array![2, -4];
+    println!("{:?}", &v * &v);
+    assert_eq!(&v * &v, ndarray::array![4, 16]);
+}
+
+// Multiplies two matrices.
+#[test]
+fn it_ndarray_2d_matrix_multiplication_1() {
+    use ndarray::arr2;
+
+    let a = arr2(&[[1, 2, 1], [0, 1, 1]]);
+    let b = arr2(&[[1, 0], [0, 1], [1, 1]]);
+    let c = a.dot(&b);
+    println!("{:?}", c);
+    println!("{} {}\n{} {}", c[(0, 0)], c[(0, 1)], c[(1, 0)], c[(1, 1)]);
+    assert_eq!(c[(0, 0)], 2);
+    assert_eq!(c[(0, 1)], 3);
+    assert_eq!(c[(1, 0)], 1);
+    assert_eq!(c[(1, 1)], 2);
+    assert_eq!(c, arr2(&[[2, 3], [1, 2]]));
+}
+
+#[test]
+fn it_ndarray_2d_matrix_multiplication_2() {
+    let w_1 = ndarray::array![[0.1, 0.2], [0.3, 0.4]];
+    let x_1 = ndarray::array![1., 0.];
+    let b_1 = ndarray::array![0.1, 0.1];
+    assert_eq!(w_1.dot(&x_1) + b_1, ndarray::array![0.2, 0.4]);
+}
+
 #[test]
 fn it_ndarray_2d_extend_column_1() {
     use ndarray::Array2;
