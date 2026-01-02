@@ -1,7 +1,7 @@
 use ndarray::Array1;
 
 #[test]
-fn it_ndarray_mapv() {
+fn it_ndarray_1d_mapv() {
     // Create a 1D array
     let arr = Array1::from(vec![1, 2, 3, 4, 5]);
 
@@ -12,7 +12,7 @@ fn it_ndarray_mapv() {
 }
 
 #[test]
-fn it_ndarray_mapv_inplace() {
+fn it_ndarray_1d_mapv_inplace() {
     // Create a 1D array
     let mut arr = Array1::from(vec![1, 2, 3, 4, 5]);
 
@@ -59,6 +59,26 @@ fn it_ndarray_array_elementwise_multiplication() {
     let v = ndarray::array![2, -4];
     println!("{:?}", &v * &v);
     assert_eq!(&v * &v, ndarray::array![4, 16]);
+}
+
+// broadcasting
+// See: https://docs.rs/ndarray/latest/ndarray/struct.ArrayBase.html#broadcasting
+#[test]
+fn main() {
+    use ndarray::arr2;
+
+    // We can add because the shapes are compatible even if not equal.
+    // The `b` array is shape 1 × 2 but acts like a 4 × 2 array.
+    let a = arr2(&[[1., 1.], [1., 2.], [3., 3.], [4., 4.]]);
+    let b = arr2(&[[0., 1.]]);
+    let c = arr2(&[[1., 2.], [1., 3.], [3., 4.], [4., 5.]]);
+    assert!(c == &a + &b);
+
+    let a = arr2(&[[1., 1.], [1., 2.], [3., 3.], [4., 4.]]);
+    let b = arr2(&[[1., 2.]]);
+    let c = arr2(&[[1., 2.], [1., 4.], [3., 6.], [4., 8.]]);
+    println!("{:?}", &a * &b);
+    assert!(c == &a * &b);
 }
 
 // Multiplies two matrices.
