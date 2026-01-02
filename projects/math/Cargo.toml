@@ -9,7 +9,6 @@ members = [
     "itertools-examples",
     "monte-carlo",
     "nalgebra-example-mutmal",
-    "ndarray-example-mutmal",
     "necklace-permutations",
     "permutation",
     "primes",
