@@ -119,6 +119,7 @@
     "powi",
     "println",
     "refcell",
+    "relu",
     "repr",
     "rngs",
     "rustc",
