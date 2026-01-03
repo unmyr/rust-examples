@@ -1,10 +1,11 @@
 use num_traits::Float;
+use rand::Rng;
 use std::time::Instant;
 
-use rand::Rng;
 #[allow(unused)]
 #[derive(Debug)]
 enum Activation {
+    ReLU,
     Sigmoid,
     Tanh,
 }
@@ -14,8 +15,21 @@ impl std::fmt::Display for Activation {
         match *self {
             Activation::Sigmoid => write!(f, "sigmoid"),
             Activation::Tanh => write!(f, "tanh"),
+            Activation::ReLU => write!(f, "ReLU"),
         }
     }
+}
+
+fn relu<T: Float>(x: T) -> T {
+    if x > T::zero() { x } else { T::zero() }
+}
+
+// fn relu_derivative<T: Float>(x: T) -> T {
+//     if x > T::zero() { T::one() } else { T::zero() }
+// }
+
+fn relu_derivative_from_output<T: Float>(s: T) -> T {
+    if s > T::zero() { T::one() } else { T::zero() }
 }
 
 // The domain is [0, 1]
@@ -66,6 +80,13 @@ fn forward<T: Float + 'static>(
     ndarray::Array2<T>,
 ) {
     match function {
+        Activation::ReLU => {
+            let h1_out = h1.dot(input) + bias1;
+            let h1_out_s = h1_out.mapv(relu);
+            let h2_out = h2.dot(&h1_out_s) + bias2;
+            let h2_out_s = h2_out.mapv(sigmoid);
+            (h1_out, h1_out_s, h2_out, h2_out_s)
+        }
         Activation::Sigmoid => {
             let h1_out = h1.dot(input) + bias1;
             let h1_out_s = h1_out.mapv(sigmoid);
@@ -143,6 +164,9 @@ fn main() {
             delta_h2_total_work.assign(&delta_sum_h2.view());
 
             let delta_h1 = match activation {
+                Activation::ReLU => {
+                    h2.t().dot(&delta_h2) * h1_out_s.mapv(relu_derivative_from_output)
+                }
                 Activation::Sigmoid => {
                     h2.t().dot(&delta_h2) * h1_out_s.mapv(sigmoid_derivative_from_output)
                 }
