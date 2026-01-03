@@ -120,9 +120,6 @@ fn main() {
     for n in 0..n_samples {
         let mut h2s_outputs = ndarray::Array2::<f64>::zeros((1, mini_batch_size));
 
-        let mut delta_h2_list = ndarray::Array2::<f64>::zeros((1, mini_batch_size));
-        let mut delta_h1_list = ndarray::Array2::<f64>::zeros((2, mini_batch_size));
-
         // Accumulate the gradient for each sample
         let mut grad_h2 = ndarray::Array2::zeros(h2.dim());
         let mut grad_h1 = ndarray::Array2::zeros(h1.dim());
@@ -133,7 +130,6 @@ fn main() {
             let (x1, x2) = (in_col_v[[0, 0]], in_col_v[[1, 0]]);
             // let (x1, x2) = (rng.random_range(0.0..=1.0), rng.random_range(0.0..=1.0));
             let y_train = ndarray::arr2::<f64, 1>(&[[xor_continuous(x1, x2)]]);
-            // println!("(x1,y1)=({:.0},{:.0}); y_train={:.0}", x1, x2, y_train);
             let (_h1_out, h1_out_s, _h2_out, h2_out_s) =
                 forward::<f64>(&activation, &in_col_v.view(), &h1, &bias1, &h2, &bias2);
             let mut h2s_output_column = h2s_outputs.column_mut(i);
@@ -141,16 +137,11 @@ fn main() {
 
             let output_error = &h2_out_s - &y_train;
             let delta_h2 = &output_error * &h2_out_s.mapv(sigmoid_derivative_from_output);
-            let mut delta_h2_column = delta_h2_list.column_mut(i);
-            delta_h2_column.assign(&delta_h2.column(0).view());
 
-            // println!("h1_out_s={}", h1_out_s);
-            // println!("delta_h2={}", delta_h2);
             let mut delta_h2_total_work = delta_h2_total.column_mut(0);
             let delta_sum_h2 = &delta_h2_total_work.view() + &delta_h2.column(0).view();
             delta_h2_total_work.assign(&delta_sum_h2.view());
 
-            // println!("in_col_v={}", in_col_v);
             let delta_h1 = match activation {
                 Activation::Sigmoid => {
                     h2.t().dot(&delta_h2) * h1_out_s.mapv(sigmoid_derivative_from_output)
@@ -159,25 +150,20 @@ fn main() {
                     h2.t().dot(&delta_h2) * h1_out_s.mapv(tanh_derivative_from_output)
                 }
             };
-            // println!("delta_h1={}", delta_h1);
 
             // Calculate gradients in a loop (using cross products)
             grad_h2 += &delta_h2.dot(&h1_out_s.t());
             grad_h1 += &delta_h1.dot(&in_col_v.t());
 
-            let mut delta_h1_column = delta_h1_list.column_mut(i);
-            delta_h1_column.assign(&delta_h1.column(0).view());
             let mut delta_h1_total_work = delta_h1_total.column_mut(0);
             let delta_sum_h1 = &delta_h1_total_work.view() + &delta_h1.column(0).view();
             delta_h1_total_work.assign(&delta_sum_h1.view());
         }
         h2 = &h2 - &grad_h2 * learning_rate / (mini_batch_size as f64);
         bias2 = &bias2 - learning_rate * &delta_h2_total / (mini_batch_size as f64);
-        // println!("h2={:.4} bias2={:.4}", h2, bias2);
 
         h1 = &h1 - &grad_h1 * learning_rate / (mini_batch_size as f64);
         bias1 = &bias1 - learning_rate * &delta_h1_total / (mini_batch_size as f64);
-        // println!("h1={:.4} bias1={:.4}", h1, bias1);
 
         let loss = (&h2s_outputs - &test_answers).powf(2.).sum() / (mini_batch_size as f64);
         if n == 0 || n % 1000 == 999 {
@@ -190,10 +176,8 @@ fn main() {
             );
         }
     }
-    // println!(
-    //     "Trained weights: h1={:.4}, bias1: {:.4}, h2={:.4}, bias2: {:.4}",
-    //     h1, bias1, h2, bias2
-    // );
+
+    println!("== Results ==");
     let elapsed_time = t_0.elapsed();
     println!(
         "learning_rate={}, n_samples={}, mini_batch_size={}, activation={:?}, elapsed time={:.2}[s] {:?}[s/sample]",
