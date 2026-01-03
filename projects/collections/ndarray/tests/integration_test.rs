@@ -76,7 +76,6 @@ fn it_ndarray_1d_2d_sum() {
     assert_eq!(arr2_f32.sum(), 21.);
 }
 
-
 #[test]
 fn it_ndarray_1d_2d_product() {
     // Create a 1D array
@@ -158,7 +157,7 @@ fn it_ndarray_array_elementwise_multiplication() {
 // broadcasting
 // See: https://docs.rs/ndarray/latest/ndarray/struct.ArrayBase.html#broadcasting
 #[test]
-fn main() {
+fn it_ndarray_2d_broadcast_add() {
     use ndarray::arr2;
 
     // We can add because the shapes are compatible even if not equal.
@@ -167,6 +166,12 @@ fn main() {
     let b = arr2(&[[0., 1.]]);
     let c = arr2(&[[1., 2.], [1., 3.], [3., 4.], [4., 5.]]);
     assert!(c == &a + &b);
+}
+
+// Multiply each row of the matrix by [1, 2]
+#[test]
+fn it_ndarray_2d_broadcast_multiply_each_row() {
+    use ndarray::arr2;
 
     let a = arr2(&[[1., 1.], [1., 2.], [3., 3.], [4., 4.]]);
     let b = arr2(&[[1., 2.]]);
@@ -176,6 +181,58 @@ fn main() {
 }
 
 // Multiplies two matrices.
+#[test]
+fn it_ndarray_2d_matrix_multiplication_m22_m21() {
+    // use ndarray::{arr1,arr2};
+
+    let a = ndarray::arr2(&[[1, 2], [3, 4]]);
+    // column vector
+    let b_col_v = ndarray::arr2(&[[1], [2]]);
+    let c = &a.dot(&b_col_v);
+    assert_eq!(&a.shape(), &[2, 2]);
+    assert_eq!(&b_col_v.shape(), &[2, 1]);
+    assert_eq!(&c.shape(), &[2, 1]);
+    assert_eq!(
+        c,
+        ndarray::arr2(&[
+            [a[(0, 0)] * b_col_v[(0, 0)] + a[(0, 1)] * b_col_v[(1, 0)]],
+            [a[(1, 0)] * b_col_v[(0, 0)] + a[(1, 1)] * b_col_v[(1, 0)]]
+        ])
+    );
+
+    // Transpose a row vector to a column vector
+    let b_raw_v = ndarray::arr2(&[[1, 2]]);
+    let c = &a.dot(&b_raw_v.t());
+    assert_eq!(&a.shape(), &[2, 2]);
+    assert_eq!(&b_raw_v.shape(), &[1, 2]);
+    assert_eq!(&b_raw_v.t().shape(), &[2, 1]);
+    assert_eq!(&c.shape(), &[2, 1]);
+    assert_eq!(
+        c,
+        ndarray::arr2(&[
+            [a[(0, 0)] * b_raw_v.t()[(0, 0)] + a[(0, 1)] * b_raw_v.t()[(1, 0)]],
+            [a[(1, 0)] * b_raw_v.t()[(0, 0)] + a[(1, 1)] * b_raw_v.t()[(1, 0)]]
+        ])
+    );
+
+    // Treats 1D vectors as column vectors,
+    // i.e. when you multiply a 2x2 matrix by a 1D vector, the result has the shape
+    //      of a 1D vector instead of a 2D column vector.
+    let b = ndarray::arr1(&[1, 2]);
+    let c = &a.dot(&b);
+    println!("&a.dot(&b)={}", &a.dot(&b));
+    assert_eq!(&a.shape(), &[2, 2]);
+    assert_eq!(&b.shape(), &[2]);
+    assert_eq!(&c.shape(), &[2]);
+    assert_eq!(
+        c,
+        ndarray::arr1(&[
+            a[(0, 0)] * b[0] + a[(0, 1)] * b[1],
+            a[(1, 0)] * b[0] + a[(1, 1)] * b[1]
+        ])
+    );
+}
+
 #[test]
 fn it_ndarray_2d_matrix_multiplication_1() {
     use ndarray::arr2;
