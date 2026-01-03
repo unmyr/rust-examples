@@ -1,5 +1,5 @@
-// use ndarray::IndexLonger;
 use num_traits::Float;
+use std::time::Instant;
 
 use rand::Rng;
 #[allow(unused)]
@@ -116,6 +116,7 @@ fn main() {
         "learning_rate={}, n_samples={}, mini_batch_size={}, activation={:?}",
         learning_rate, n_samples, mini_batch_size, activation
     );
+    let t_0 = Instant::now();
     for n in 0..n_samples {
         let mut h2s_outputs = ndarray::Array2::<f64>::zeros((1, mini_batch_size));
 
@@ -193,9 +194,15 @@ fn main() {
     //     "Trained weights: h1={:.4}, bias1: {:.4}, h2={:.4}, bias2: {:.4}",
     //     h1, bias1, h2, bias2
     // );
+    let elapsed_time = t_0.elapsed();
     println!(
-        "learning_rate={}, n_samples={}, mini_batch_size={}, activation={:?}",
-        learning_rate, n_samples, mini_batch_size, activation
+        "learning_rate={}, n_samples={}, mini_batch_size={}, activation={:?}, elapsed time={:.2}[s] {:?}[s/sample]",
+        learning_rate,
+        n_samples,
+        mini_batch_size,
+        activation,
+        elapsed_time.as_secs() as f32,
+        (elapsed_time.as_secs() as f32) / (n_samples as f32)
     );
     println!("== XOR Predictions ==");
     let mut correct_counts = 0;
