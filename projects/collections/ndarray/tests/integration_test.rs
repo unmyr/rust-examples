@@ -23,6 +23,89 @@ fn it_ndarray_1d_mapv_inplace() {
 }
 
 #[test]
+fn it_ndarray_1d_2d_mean() {
+    // Create a 1D array
+    let arr1_empty_i32 = ndarray::arr1::<i32>(&[]);
+    assert_eq!(arr1_empty_i32.shape(), &[0]);
+    assert_eq!(arr1_empty_i32.mean(), None);
+
+    let arr1_i32 = ndarray::arr1(&[1, 2, 3, 1, 3, 5]);
+    let arr1_f32 = ndarray::arr1::<f32>(&[1., 2., 3., 1., 3., 5.]);
+    assert_eq!(arr1_i32.shape(), &[6]);
+    assert_eq!(arr1_i32.mean(), Some(2));
+    assert_eq!(arr1_f32.mean(), Some(2.5));
+
+    // Create a 2D array
+    let arr2_empty_i32 = ndarray::arr2::<i32, 2>(&[]);
+    assert_eq!(arr2_empty_i32.shape(), &[0, 2]);
+    assert_eq!(arr2_empty_i32.mean(), None);
+
+    let arr2_i32 = ndarray::arr2(&[[1, 2], [3, 1], [3, 5]]);
+    let arr2_f32 = ndarray::arr2::<f32, 2>(&[[1., 2.], [3., 1.], [3., 5.]]);
+    assert_eq!(arr2_i32.shape(), &[3, 2]);
+    assert_eq!(arr2_i32.mean(), Some(2));
+    assert_eq!(arr2_f32.shape(), &[3, 2]);
+    assert_eq!(arr2_f32.mean(), Some(2.5));
+}
+
+#[test]
+fn it_ndarray_1d_2d_sum() {
+    // Create a 1D array
+    let arr1_empty_i32 = ndarray::Array1::<i32>::zeros(0);
+    assert!(arr1_empty_i32.sum() == 0);
+    assert!(arr1_empty_i32.shape() == &[0]);
+
+    let arr1_i32 = ndarray::arr1(&[1, 2, 3, 4, 5, 6]);
+    let arr1_f32 = arr1_i32.mapv(|v| v as f32);
+    assert_eq!(arr1_i32.sum(), 21);
+    assert_eq!(arr1_f32.sum(), 21.);
+
+    // Create a 2D array
+    let arr2_empty_i32 = ndarray::Array2::<i32>::zeros((0, 2));
+    assert_eq!(arr2_empty_i32.shape(), &[0, 2]);
+    assert_eq!(arr2_empty_i32.sum(), 0);
+    let arr2_empty_f32 = ndarray::Array2::<f32>::zeros((0, 2));
+    assert_eq!(arr2_empty_f32.shape(), &[0, 2]);
+    assert_eq!(arr2_empty_f32.sum(), 0.);
+
+    let arr2_i32 = ndarray::arr2(&[[1, 2], [3, 4], [5, 6]]);
+    let arr2_f32 = arr2_i32.mapv(|v| v as f32);
+    assert_eq!(arr2_i32.shape(), &[3, 2]);
+    assert_eq!(arr2_i32.sum(), 21);
+    assert_eq!(arr2_f32.shape(), &[3, 2]);
+    assert_eq!(arr2_f32.sum(), 21.);
+}
+
+
+#[test]
+fn it_ndarray_1d_2d_product() {
+    // Create a 1D array
+    let arr1_empty_i32 = ndarray::Array1::<i32>::zeros(0);
+    assert!(arr1_empty_i32.shape() == &[0]);
+    assert!(arr1_empty_i32.product() == 1);
+
+    let arr1_i32 = ndarray::arr1(&[1, 2, 3, 4, 5, 6]);
+    let arr1_f32 = arr1_i32.mapv(|v| v as f32);
+    assert_eq!(arr1_i32.product(), 720);
+    assert_eq!(arr1_f32.product(), 720.);
+
+    // Create a 2D array
+    let arr2_empty_i32 = ndarray::Array2::<i32>::zeros((0, 2));
+    assert_eq!(arr2_empty_i32.shape(), &[0, 2]);
+    assert_eq!(arr2_empty_i32.product(), 1);
+    let arr2_empty_f32 = ndarray::Array2::<f32>::zeros((0, 2));
+    assert_eq!(arr2_empty_f32.shape(), &[0, 2]);
+    assert_eq!(arr2_empty_f32.product(), 1.);
+
+    let arr2_i32 = ndarray::arr2(&[[1, 2], [3, 4], [5, 6]]);
+    let arr2_f32 = arr2_i32.mapv(|v| v as f32);
+    assert_eq!(arr2_i32.shape(), &[3, 2]);
+    assert_eq!(arr2_i32.product(), 720);
+    assert_eq!(arr2_f32.shape(), &[3, 2]);
+    assert_eq!(arr2_f32.product(), 720.);
+}
+
+#[test]
 fn it_ndarray_2d_index_access() {
     // Example of index access to a two-dimensional array
     let mut w = ndarray::Array2::<u8>::zeros((3, 3));
@@ -46,12 +129,23 @@ fn it_ndarray_2d_get_a_specific_row_view() {
 fn it_ndarray_2d_fill_specific_rows_with_zeros() {
     use ndarray::arr2;
 
-    let a = arr2(&[[1, 2], [3, 4], [5, 6]]);
+    let a = arr2(&[[1, 2], [3, 4], [5, 6], [7, 8]]);
     let mut b = a.clone();
+
+    let row = b.row_mut(0);
+    row.mapv_into(|v| 2 * v);
+
     let mut row_mut = b.row_mut(1);
     row_mut.fill(0);
+
+    let mut row_mut = b.row_mut(2);
+    row_mut.assign(&ndarray::array![-5, -6].view());
+
+    let mut row_mut = b.row_mut(3);
+    row_mut.assign(&ndarray::arr1(&[-7, -8]).view());
+
     println!("b={:?}", b);
-    assert_eq!(b, arr2(&[[1, 2], [0, 0], [5, 6]]));
+    assert_eq!(b, arr2(&[[2, 4], [0, 0], [-5, -6], [-7, -8]]));
 }
 
 #[test]
