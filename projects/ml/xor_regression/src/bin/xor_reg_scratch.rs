@@ -1,10 +1,19 @@
+use clap::Parser;
 use num_traits::Float;
 use rand::Rng;
 use std::time::Instant;
 
+#[derive(clap::Parser)]
+struct Args {
+    /// Activation function to use (identity, relu, sigmoid, tanh)
+    #[clap(long="activation", short='a', default_value = "sigmoid", help="Sets the activation function (identity, relu, sigmoid, tanh)")]
+    activation: String,
+}
+
 #[allow(unused)]
 #[derive(Debug)]
 enum Activation {
+    Identity,
     ReLU,
     Sigmoid,
     Tanh,
@@ -13,6 +22,7 @@ enum Activation {
 impl std::fmt::Display for Activation {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match *self {
+            Activation::Identity => write!(f, "identity"),
             Activation::Sigmoid => write!(f, "sigmoid"),
             Activation::Tanh => write!(f, "tanh"),
             Activation::ReLU => write!(f, "ReLU"),
@@ -20,13 +30,19 @@ impl std::fmt::Display for Activation {
     }
 }
 
+// Identity function (does nothing)
+fn identity<T>(x: T) -> T {
+    x
+}
+
+// The derivative of the identity function is always 1
+fn identity_derivative_from_output<T: Float>(_: T) -> T {
+    T::one()
+}
+
 fn relu<T: Float>(x: T) -> T {
     if x > T::zero() { x } else { T::zero() }
 }
-
-// fn relu_derivative<T: Float>(x: T) -> T {
-//     if x > T::zero() { T::one() } else { T::zero() }
-// }
 
 fn relu_derivative_from_output<T: Float>(s: T) -> T {
     if s > T::zero() { T::one() } else { T::zero() }
@@ -37,18 +53,9 @@ fn sigmoid<T: Float>(x: T) -> T {
     T::one() / (T::one() + (-x).exp())
 }
 
-// fn sigmoid_derivative<T: Float>(x: T) -> T {
-//     let s = sigmoid(x);
-//     s * (T::one() - s)
-// }
-
 // Calculated from the output of the activation function
 fn sigmoid_derivative_from_output<T: Float>(s: T) -> T {
     s * (T::one() - s)
-}
-
-fn xor_continuous<T: Float>(x1: T, x2: T) -> T {
-    x1 + x2 - T::from(2.0).unwrap() * x1 * x2
 }
 
 // The domain is [-1,1]
@@ -56,14 +63,13 @@ fn tanh<T: Float>(x: T) -> T {
     x.tanh()
 }
 
-// fn tanh_derivative<T: Float>(x: T) -> T {
-//     let t = x.tanh();
-//     T::one() - t * t
-// }
-
 // Calculated from the output of the activation function
 fn tanh_derivative_from_output<T: Float>(t: T) -> T {
     T::one() - t * t
+}
+
+fn xor_continuous<T: Float>(x1: T, x2: T) -> T {
+    x1 + x2 - T::from(2.0).unwrap() * x1 * x2
 }
 
 fn forward<T: Float + 'static>(
@@ -80,6 +86,13 @@ fn forward<T: Float + 'static>(
     ndarray::Array2<T>,
 ) {
     match function {
+        Activation::Identity => {
+            let h1_out = h1.dot(input) + bias1;
+            let h1_out_s = h1_out.mapv(sigmoid);
+            let h2_out = h2.dot(&h1_out_s) + bias2;
+            let h2_out_s = h2_out.mapv(identity);
+            (h1_out, h1_out_s, h2_out, h2_out_s)
+        }
         Activation::ReLU => {
             let h1_out = h1.dot(input) + bias1;
             let h1_out_s = h1_out.mapv(relu);
@@ -105,10 +118,27 @@ fn forward<T: Float + 'static>(
 }
 
 fn main() {
+    // Parse command-line arguments
+    let args = Args::parse();
+
+    // Retrieve the value of --activation argument
+    let activation = match String::from(&args.activation).as_str() {
+        "identity" => Activation::Identity,
+        "relu" => Activation::ReLU,
+        "sigmoid" => Activation::Sigmoid,
+        "tanh" => Activation::Tanh,
+        _ => {
+            // Handle unknown activation function
+            // Using default activation function instead.
+            eprintln!(
+                "WARNING: Unknown activation function specified; using sigmoid function instead: {}",
+                &args.activation 
+            );
+            Activation::Sigmoid
+        }
+    };
     let mut rng = rand::rng();
-    let activation = Activation::Tanh;
     let init_random_value = true;
-    // let activation = Activation::Sigmoid;
 
     // Test predictions
     let n_samples = 20000;
@@ -157,13 +187,20 @@ fn main() {
             h2s_output_column.assign(&h2_out_s.column(0).view());
 
             let output_error = &h2_out_s - &y_train;
-            let delta_h2 = &output_error * &h2_out_s.mapv(sigmoid_derivative_from_output);
-
+            let delta_h2 = match activation {
+                Activation::Identity => {
+                    &output_error * &h2_out_s.mapv(identity_derivative_from_output)
+                }
+                _ => &output_error * &h2_out_s.mapv(sigmoid_derivative_from_output),
+            };
             let mut delta_h2_total_work = delta_h2_total.column_mut(0);
             let delta_sum_h2 = &delta_h2_total_work.view() + &delta_h2.column(0).view();
             delta_h2_total_work.assign(&delta_sum_h2.view());
 
             let delta_h1 = match activation {
+                Activation::Identity => {
+                    h2.t().dot(&delta_h2) * h1_out_s.mapv(sigmoid_derivative_from_output)
+                }
                 Activation::ReLU => {
                     h2.t().dot(&delta_h2) * h1_out_s.mapv(relu_derivative_from_output)
                 }
