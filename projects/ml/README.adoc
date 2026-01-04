@@ -2,7 +2,7 @@
 
 ==== Sigmoid function
 
-The range of the sigmoid function($\sigma(x)$) is [0, 1].
+The range of the sigmoid function( $\sigma(x)$ ) is [0, 1].
 
 [source,math]
 ----
