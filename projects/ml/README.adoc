@@ -2,7 +2,7 @@
 
 ==== Sigmoid function
 
-The range of the sigmoid function( $\sigma(x)$ ) is [0, 1].
+The sigmoid function $\sigma(x) = \frac{1}{1 + e^{-x}}$ is commonly used in neural networks. The range of the sigmoid function( $\sigma(x)$ ) is $[0, 1]$.
 
 [source,math]
 ----
