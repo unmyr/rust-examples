@@ -1,0 +1,97 @@
+=== Activation Functions
+
+==== Sigmoid function
+
+The range of the sigmoid function is $\[0, 1]\$.
+
+[source,math]
+----
+\begin{aligned}
+\sigma(x) &= \frac{1}{1 + e^{-x}} \\
+\sigma'(x) &= \sigma(x)\left(1 - \sigma(x)\right)
+\end{aligned}
+----
+
+[source,rust]
+----
+fn sigmoid<T: Float>(x: T) -> T {
+    T::one() / (T::one() + (-x).exp())
+}
+
+fn sigmoid_derivative<T: Float>(x: T) -> T {
+    let s = sigmoid(x);
+    s * (T::one() - s)
+}
+----
+
+=== Hyperbolic tangent function and its derivative
+
+The range of the tanh function is $\[-1, 1]\$.
+
+[source,math]
+----
+\begin{aligned}
+\tanh(x) &= \frac{e^x - e^{-x}}{e^x + e^{-x}} \\
+\frac{d}{dx} \tanh(x) &= 1 - \tanh^2(x)
+\end{aligned}
+----
+
+[source,rust]
+----
+fn tanh<T: Float>(x: T) -> T {
+    x.tanh()
+}
+
+fn tanh_derivative<T: Float>(x: T) -> T {
+    let t = x.tanh();
+    T::one() - t * t
+}
+----
+
+=== ReLU function and its derivative
+
+[source,math]
+----
+\begin{aligned}
+\mathrm{ReLU}(x) &= \max(0, x) \\
+\frac{d}{dx} \mathrm{ReLU}(x) &= 
+\begin{cases}
+1 & \text{if } x > 0 \\
+0 & \text{if } x \leq 0
+\end{cases}
+\end{aligned}
+----
+
+[source,rust]
+----
+fn relu<T: Float>(x: T) -> T {
+    if x > T::zero() { x } else { T::zero() }
+}
+
+fn relu_derivative<T: Float>(x: T) -> T {
+    if x > T::zero() { T::one() } else { T::zero() }
+}
+----
+
+=== Identity function and its derivative
+
+[source,math]
+----
+\begin{aligned}
+f(x) &= x \\
+f'(x) &= 1
+\end{aligned}
+----
+
+[source,rust]
+----
+// Identity function (does nothing)
+fn identity<T>(x: T) -> T {
+    x
+}
+
+// The derivative of the identity function is always 1
+fn identity_derivative_from_output<T: Float>(_: T) -> T {
+    T::one()
+}
+----
