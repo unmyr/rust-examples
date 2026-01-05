@@ -46,11 +46,23 @@ fn identity_derivative_from_output<T: Float>(_: T) -> T {
 }
 
 fn relu<T: Float>(x: T) -> T {
-    if x > T::zero() { x } else { T::zero() }
+    if x > T::zero() {
+        x
+    } else {
+        // T::zero()
+        // Leaky ReLU
+        T::from(0.01).unwrap() * x
+    }
 }
 
 fn relu_derivative_from_output<T: Float>(s: T) -> T {
-    if s > T::zero() { T::one() } else { T::zero() }
+    if s > T::zero() {
+        T::one()
+    } else {
+        // T::zero()
+        // Leaky ReLU
+        T::from(0.01).unwrap()
+    }
 }
 
 // The domain is [0, 1]
