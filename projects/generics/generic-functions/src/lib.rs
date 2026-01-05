@@ -1,7 +1,4 @@
 pub mod ml_functions;
-pub mod identity_functions;
-pub mod relu_functions;
-pub mod tanh_functions;
 
 /// Computes the L2 norm (Euclidean distance) between two points (x, y).
 /// # Examples

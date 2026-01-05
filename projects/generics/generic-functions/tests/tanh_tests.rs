@@ -1,7 +1,7 @@
 // Test tanh function
 #[test]
 fn test_tanh() {
-    use generic_functions::tanh_functions::tanh;
+    use generic_functions::ml_functions::tanh;
 
     // Test tanh function on f32 and f64 types
     let x = 0.0f32;
@@ -16,7 +16,7 @@ fn test_tanh() {
 // Test tanh_derivative function
 #[test]
 fn test_tanh_derivative() {
-    use generic_functions::tanh_functions::tanh_derivative;
+    use generic_functions::ml_functions::tanh_derivative;
     // Test tanh_derivative function on f32 and f64 types
     let x = 0.0f32;
     let y = tanh_derivative(x);

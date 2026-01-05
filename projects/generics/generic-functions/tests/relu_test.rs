@@ -1,6 +1,6 @@
 #[test]
 fn it_relu() {
-    use generic_functions::relu_functions::relu;
+    use generic_functions::ml_functions::relu;
 
     // Test various cases for ReLU function on integers
     assert!(relu(-1) == 0);
@@ -16,7 +16,7 @@ fn it_relu() {
 
 #[test]
 fn it_relu_derivative() {
-    use generic_functions::relu_functions::relu_derivative;
+    use generic_functions::ml_functions::relu_derivative;
 
     // Test various cases for ReLU derivative on integers
     assert!(relu_derivative(-1) == 0);
