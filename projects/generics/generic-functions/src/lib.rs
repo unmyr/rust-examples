@@ -1,3 +1,4 @@
+pub mod ml_functions;
 pub mod identity_functions;
 pub mod relu_functions;
 pub mod tanh_functions;
@@ -10,17 +11,6 @@ pub mod tanh_functions;
 /// ```
 pub fn l2_norm<T: num_traits::Float>(x: T, y: T) -> T {
     (x * x + y * y).sqrt()
-}
-
-/// Computes the sigmoid function for a given input `x`.
-/// # Examples
-///
-/// ```rust
-/// use generic_functions::sigmoid;
-/// assert!((sigmoid(0.0_f32) - 0.5).abs() < 1e-6);
-/// ```
-pub fn sigmoid<T: num_traits::Float>(x: T) -> T {
-    T::one() / (T::one() + (-x).exp())
 }
 
 /// Sum number in Vec
