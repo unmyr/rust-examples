@@ -6,7 +6,12 @@ use std::time::Instant;
 #[derive(clap::Parser)]
 struct Args {
     /// Activation function to use (identity, relu, sigmoid, tanh)
-    #[clap(long="activation", short='a', default_value = "sigmoid", help="Sets the activation function (identity, relu, sigmoid, tanh)")]
+    #[clap(
+        long = "activation",
+        short = 'a',
+        default_value = "sigmoid",
+        help = "Sets the activation function (identity, relu, sigmoid, tanh)"
+    )]
     activation: String,
 }
 
@@ -85,36 +90,21 @@ fn forward<T: Float + 'static>(
     ndarray::Array2<T>,
     ndarray::Array2<T>,
 ) {
-    match function {
-        Activation::Identity => {
-            let h1_out = h1.dot(input) + bias1;
-            let h1_out_s = h1_out.mapv(sigmoid);
-            let h2_out = h2.dot(&h1_out_s) + bias2;
-            let h2_out_s = h2_out.mapv(identity);
-            (h1_out, h1_out_s, h2_out, h2_out_s)
-        }
-        Activation::ReLU => {
-            let h1_out = h1.dot(input) + bias1;
-            let h1_out_s = h1_out.mapv(relu);
-            let h2_out = h2.dot(&h1_out_s) + bias2;
-            let h2_out_s = h2_out.mapv(sigmoid);
-            (h1_out, h1_out_s, h2_out, h2_out_s)
-        }
-        Activation::Sigmoid => {
-            let h1_out = h1.dot(input) + bias1;
-            let h1_out_s = h1_out.mapv(sigmoid);
-            let h2_out = h2.dot(&h1_out_s) + bias2;
-            let h2_out_s = h2_out.mapv(sigmoid);
-            (h1_out, h1_out_s, h2_out, h2_out_s)
-        }
-        Activation::Tanh => {
-            let h1_out = h1.dot(input) + bias1;
-            let h1_out_s = h1_out.mapv(tanh);
-            let h2_out = h2.dot(&h1_out_s) + bias2;
-            let h2_out_s = h2_out.mapv(sigmoid);
-            (h1_out, h1_out_s, h2_out, h2_out_s)
-        }
-    }
+    let h1_out = h1.dot(input) + bias1;
+    let h1_out_s = match function {
+        Activation::Identity => h1_out.mapv(sigmoid),
+        Activation::ReLU => h1_out.mapv(relu),
+        Activation::Sigmoid => h1_out.mapv(sigmoid),
+        Activation::Tanh => h1_out.mapv(tanh),
+    };
+    let h2_out = h2.dot(&h1_out_s) + bias2;
+    let h2_out_s = match function {
+        Activation::Identity => h2_out.mapv(identity),
+        Activation::ReLU => h2_out.mapv(sigmoid),
+        Activation::Sigmoid => h2_out.mapv(sigmoid),
+        Activation::Tanh => h2_out.mapv(sigmoid),
+    };
+    (h1_out, h1_out_s, h2_out, h2_out_s)
 }
 
 fn main() {
@@ -132,7 +122,7 @@ fn main() {
             // Using default activation function instead.
             eprintln!(
                 "WARNING: Unknown activation function specified; using sigmoid function instead: {}",
-                &args.activation 
+                &args.activation
             );
             Activation::Sigmoid
         }
