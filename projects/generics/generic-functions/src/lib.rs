@@ -1,3 +1,4 @@
+pub mod identity_functions;
 pub mod relu_functions;
 
 /// Computes the L2 norm (Euclidean distance) between two points (x, y).
