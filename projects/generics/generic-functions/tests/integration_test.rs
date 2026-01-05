@@ -10,12 +10,17 @@ fn it_l2_norm() {
 fn it_sigmoid() {
     use generic_functions::sigmoid;
 
+    // Test sigmoid function on f32 and f64 types
     let x = 0.0f32;
     let y = sigmoid(x);
     assert!((y - 0.5).abs() < 1e-6);
 
     let x = 0.0f64;
     let y = sigmoid(x);
+    assert!((y - 0.5).abs() < 1e-6);
+
+    // Alternatively, using turbofish syntax
+    let y = sigmoid::<f32>(0.0);
     assert!((y - 0.5).abs() < 1e-6);
 }
 
