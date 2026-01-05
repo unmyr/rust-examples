@@ -147,6 +147,41 @@ fn it_ndarray_2d_fill_specific_rows_with_zeros() {
     assert_eq!(b, arr2(&[[2, 4], [0, 0], [-5, -6], [-7, -8]]));
 }
 
+// Replace all elements in a 3×2 matrix
+#[test]
+fn it_ndarray_2d_replace_all_elements() {
+    // Create a 3x2 matrix
+    let mut m: ndarray::ArrayBase<ndarray::OwnedRepr<i32>, ndarray::Dim<[usize; 2]>, i32> =
+        ndarray::arr2(&[[1, 2], [3, 4], [5, 6]]);
+    assert_eq!(&m.shape(), &[3, 2]);
+    assert_eq!(&m.dim(), &(3, 2));
+
+    // Replace with new values from a ndarray
+    let new_m = ndarray::arr2(&[[10, 20], [30, 40], [50, 60]]);
+    m.assign(&new_m);
+    println!("\nAfter assigning new values:\n{m}");
+    assert_eq!(&m, ndarray::arr2(&[[10, 20], [30, 40], [50, 60]]));
+    assert_eq!(&m.row(0).view(), &ndarray::arr1(&[10, 20]).view());
+    assert_eq!(&m.row(1).view(), &ndarray::arr1(&[30, 40]).view());
+    assert_eq!(&m.row(2).view(), &ndarray::arr1(&[50, 60]).view());
+
+    // Create a 3x2 matrix
+    let mut m: ndarray::ArrayBase<ndarray::OwnedRepr<i32>, ndarray::Dim<[usize; 2]>, i32> =
+        ndarray::arr2(&[[1, 2], [3, 4], [5, 6]]);
+    assert_eq!(&m.shape(), &[3, 2]);
+    assert_eq!(&m.dim(), &(3, 2));
+
+    // Replace with new values from a vector
+    let new_values = vec![10, 20, 30, 40, 50, 60];
+    let new_m = &ndarray::Array2::from_shape_vec(m.dim(), new_values).unwrap();
+    m.assign(&new_m);
+    println!("\nAfter assigning new values:\n{m}");
+    assert_eq!(&m, ndarray::arr2(&[[10, 20], [30, 40], [50, 60]]));
+    assert_eq!(&m.row(0).view(), &ndarray::arr1(&[10, 20]).view());
+    assert_eq!(&m.row(1).view(), &ndarray::arr1(&[30, 40]).view());
+    assert_eq!(&m.row(2).view(), &ndarray::arr1(&[50, 60]).view());
+}
+
 #[test]
 fn it_ndarray_array_elementwise_multiplication() {
     let v = ndarray::array![2, -4];
