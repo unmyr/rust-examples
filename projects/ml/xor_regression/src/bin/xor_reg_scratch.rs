@@ -79,17 +79,19 @@ fn xor_continuous<T: Float>(x1: T, x2: T) -> T {
 
 fn forward<T: Float + 'static>(
     function: &Activation,
-    input: &ndarray::ArrayBase<ndarray::ViewRepr<&T>, ndarray::Dim<[usize; 2]>>,
-    h1: &ndarray::ArrayBase<ndarray::OwnedRepr<T>, ndarray::Dim<[usize; 2]>>,
-    bias1: &ndarray::ArrayBase<ndarray::OwnedRepr<T>, ndarray::Dim<[usize; 2]>>,
-    h2: &ndarray::ArrayBase<ndarray::OwnedRepr<T>, ndarray::Dim<[usize; 2]>>,
-    bias2: &ndarray::ArrayBase<ndarray::OwnedRepr<T>, ndarray::Dim<[usize; 2]>>,
+    input: &ndarray::ArrayView2<T>,
+    layer1: (&ndarray::Array2<T>, &ndarray::Array2<T>),
+    layer2: (&ndarray::Array2<T>, &ndarray::Array2<T>),
 ) -> (
     ndarray::Array2<T>,
     ndarray::Array2<T>,
-    ndarray::Array2<T>,
-    ndarray::Array2<T>,
+    Vec<ndarray::Array2<T>>,
 ) {
+    let (h1, bias1) = layer1;
+    let (h2, bias2) = layer2;
+
+    let current_input = input.clone().into_owned();
+    let mut activations = vec![current_input];
     let h1_out = h1.dot(input) + bias1;
     let h1_out_s = match function {
         Activation::Identity => h1_out.mapv(sigmoid),
@@ -97,6 +99,9 @@ fn forward<T: Float + 'static>(
         Activation::Sigmoid => h1_out.mapv(sigmoid),
         Activation::Tanh => h1_out.mapv(tanh),
     };
+    let current_input = h1_out_s.clone();
+    activations.push(current_input);
+
     let h2_out = h2.dot(&h1_out_s) + bias2;
     let h2_out_s = match function {
         Activation::Identity => h2_out.mapv(identity),
@@ -104,7 +109,10 @@ fn forward<T: Float + 'static>(
         Activation::Sigmoid => h2_out.mapv(sigmoid),
         Activation::Tanh => h2_out.mapv(sigmoid),
     };
-    (h1_out, h1_out_s, h2_out, h2_out_s)
+    let current_input = h2_out_s.clone();
+    activations.push(current_input);
+
+    (h1_out, h2_out, activations)
 }
 
 fn main() {
@@ -171,8 +179,9 @@ fn main() {
             let (x1, x2) = (in_col_v[[0, 0]], in_col_v[[1, 0]]);
             // let (x1, x2) = (rng.random_range(0.0..=1.0), rng.random_range(0.0..=1.0));
             let y_train = ndarray::arr2::<f64, 1>(&[[xor_continuous(x1, x2)]]);
-            let (_h1_out, h1_out_s, _h2_out, h2_out_s) =
-                forward::<f64>(&activation, &in_col_v.view(), &h1, &bias1, &h2, &bias2);
+            let (_h1_out, _h2_out, activations) =
+                forward::<f64>(&activation, &in_col_v.view(), (&h1, &bias1), (&h2, &bias2));
+            let h2_out_s = activations[2].clone();
             let mut h2s_output_column = h2s_outputs.column_mut(i);
             h2s_output_column.assign(&h2_out_s.column(0).view());
 
@@ -187,6 +196,7 @@ fn main() {
             let delta_sum_h2 = &delta_h2_total_work.view() + &delta_h2.column(0).view();
             delta_h2_total_work.assign(&delta_sum_h2.view());
 
+            let h1_out_s = activations[1].clone();
             let delta_h1 = match activation {
                 Activation::Identity => {
                     h2.t().dot(&delta_h2) * h1_out_s.mapv(sigmoid_derivative_from_output)
@@ -201,6 +211,8 @@ fn main() {
                     h2.t().dot(&delta_h2) * h1_out_s.mapv(tanh_derivative_from_output)
                 }
             };
+
+            let in_col_v = &activations[0];
 
             // Calculate gradients in a loop (using cross products)
             grad_h2 += &delta_h2.dot(&h1_out_s.t());
@@ -239,22 +251,28 @@ fn main() {
         elapsed_time.as_secs() as f32,
         (elapsed_time.as_secs() as f32) / (n_samples as f32)
     );
-    println!("== XOR Predictions ==");
+    println!("== Trained ===");
+    println!("h1={h1:.4}");
+    println!("h2={h2:.4}");
+
+    println!("\n== XOR Predictions ==");
     let mut correct_counts = 0;
     for in_view in test_inputs.rows() {
         let in_col_v = in_view.insert_axis(ndarray::Axis(1));
         let (x1, x2) = (in_col_v[[0, 0]], in_col_v[[1, 0]]);
-        let (_h1_out, _h1_out_s, _h2_out, h2_out_s) =
-            forward(&activation, &in_col_v.view(), &h1, &bias1, &h2, &bias2);
+        let (_h1_out, _h2_out, activations) =
+            forward(&activation, &in_col_v.view(), (&h1, &bias1), (&h2, &bias2));
+        let h2_out_s_ref = &activations[2];
+
         let ans11 = ndarray::arr2(&[[xor_continuous(x1, x2)]]);
-        let loss = (&ans11 - &h2_out_s).powf(2.).sum() / 2.;
+        let loss = (&ans11 - h2_out_s_ref).powf(2.).sum() / 2.;
         if loss < 0.05 {
             correct_counts += 1;
         }
         println!(
             "Input: [{:?}] => Predicted: {:.2}, answer: {:.0}, loss: {:.2}",
             [x1, x2],
-            h2_out_s[[0, 0]],
+            h2_out_s_ref[[0, 0]],
             ans11[[0, 0]],
             loss
         );
