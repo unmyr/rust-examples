@@ -100,15 +100,15 @@ fn forward<T: Float + 'static>(
     input: &ndarray::ArrayView2<T>,
     layer1: &(ndarray::Array2<T>, ndarray::Array2<T>, Activation),
     layer2: &(ndarray::Array2<T>, ndarray::Array2<T>, Activation),
-) -> Vec<ndarray::Array2<T>> {
+) -> Vec<(ndarray::Array2<T>, Activation)> {
     let current_input = input.clone().into_owned();
-    let mut activations = vec![current_input];
+    let mut activations = vec![(current_input, Activation::Identity)];
 
     for layer in [layer1, layer2] {
         let weight = &layer.0;
         let bias = &layer.1;
         let act = &layer.2;
-        let w_out = weight.dot(&activations.last().unwrap().view()) + bias;
+        let w_out = weight.dot(&activations.last().unwrap().0.view()) + bias;
         let w_out_s = match act {
             Activation::Identity => w_out.mapv(identity),
             Activation::ReLU => w_out.mapv(relu),
@@ -116,7 +116,7 @@ fn forward<T: Float + 'static>(
             Activation::Tanh => w_out.mapv(tanh),
         };
         let current_input = w_out_s;
-        activations.push(current_input);
+        activations.push((current_input, act.clone()));
     }
 
     activations
@@ -198,10 +198,13 @@ fn main() {
         let mut h2s_outputs = ndarray::Array2::<f64>::zeros((1, mini_batch_size));
 
         // Accumulate the gradient for each sample
-        let mut grad_h2 = ndarray::Array2::zeros(layers[1].0.dim());
-        let mut grad_h1 = ndarray::Array2::zeros(layers[0].0.dim());
-        let mut delta_h1_total = ndarray::Array2::<f64>::zeros((2, 1));
-        let mut delta_h2_total = ndarray::Array2::<f64>::zeros((1, 1));
+        let mut grad_list: Vec<ndarray::Array2<f64>> = Vec::new();
+        let mut delta_total_list: Vec<ndarray::Array2<f64>> = Vec::new();
+        (0..layers.len()).for_each(|i| {
+            grad_list.push(ndarray::Array2::zeros(layers[i].0.dim()));
+            delta_total_list.push(ndarray::Array2::<f64>::zeros((layers[i].0.shape()[0], 1)));
+        });
+
         for (i, in_view) in test_inputs.rows().into_iter().enumerate() {
             let in_col_v = in_view.insert_axis(ndarray::Axis(1));
             let (x1, x2) = (in_col_v[[0, 0]], in_col_v[[1, 0]]);
@@ -210,57 +213,63 @@ fn main() {
             let activations = forward::<f64>(&in_col_v.view(), &layers[0], &layers[1]);
 
             let mut h2s_output_column = h2s_outputs.column_mut(i);
-            h2s_output_column.assign(&activations[2].column(0).view());
+            h2s_output_column.assign(&activations[2].0.column(0).view());
 
-            let output_error = &activations[2] - &y_train;
-            let delta_h2 = match output_activation {
+            let output_error = &activations[2].0 - &y_train;
+            let act = &activations[2].1;
+            let delta_h2 = match act {
                 Activation::Identity => {
-                    &output_error * &activations[2].mapv(identity_derivative_from_output)
+                    &output_error * &activations[2].0.mapv(identity_derivative_from_output)
                 }
-                _ => &output_error * &activations[2].mapv(sigmoid_derivative_from_output),
+                _ => &output_error * &activations[2].0.mapv(sigmoid_derivative_from_output),
             };
             // Calculate gradients in a loop (using cross products)
-            grad_h2 += &delta_h2.dot(&activations[1].t());
+            grad_list[1] += &delta_h2.dot(&activations[1].0.t());
 
-            let mut delta_h2_total_work = delta_h2_total.column_mut(0);
+            let mut delta_h2_total_work = delta_total_list[1].column_mut(0);
             let delta_sum_h2 = &delta_h2_total_work.view() + &delta_h2.column(0).view();
             delta_h2_total_work.assign(&delta_sum_h2.view());
 
-            let delta_h1 = match hidden_activation {
+            let act = &activations[1].1;
+            let delta_h1 = match act {
                 Activation::Identity => {
-                    &layers[1].0.t().dot(&delta_h2) * &activations[1].mapv(sigmoid_derivative_from_output)
+                    &layers[1].0.t().dot(&delta_h2)
+                        * &activations[1].0.mapv(sigmoid_derivative_from_output)
                 }
                 Activation::ReLU => {
-                    &layers[1].0.t().dot(&delta_h2) * &activations[1].mapv(relu_derivative_from_output)
+                    &layers[1].0.t().dot(&delta_h2)
+                        * &activations[1].0.mapv(relu_derivative_from_output)
                 }
                 Activation::Sigmoid => {
-                    &layers[1].0.t().dot(&delta_h2) * &activations[1].mapv(sigmoid_derivative_from_output)
+                    &layers[1].0.t().dot(&delta_h2)
+                        * &activations[1].0.mapv(sigmoid_derivative_from_output)
                 }
                 Activation::Tanh => {
-                    &layers[1].0.t().dot(&delta_h2) * &activations[1].mapv(tanh_derivative_from_output)
+                    &layers[1].0.t().dot(&delta_h2)
+                        * &activations[1].0.mapv(tanh_derivative_from_output)
                 }
             };
-            grad_h1 += &delta_h1.dot(&activations[0].t());
+            grad_list[0] += &delta_h1.dot(&activations[0].0.t());
 
-            let mut delta_h1_total_work = delta_h1_total.column_mut(0);
+            let mut delta_h1_total_work = delta_total_list[0].column_mut(0);
             let delta_sum_h1 = &delta_h1_total_work.view() + &delta_h1.column(0).view();
             delta_h1_total_work.assign(&delta_sum_h1.view());
         }
         // Update weight and bias
-        layers[1].0 = &layers[1].0 - &grad_h2 * learning_rate / (mini_batch_size as f64);
-        layers[1].1 = &layers[1].1 - learning_rate * &delta_h2_total / (mini_batch_size as f64);
-
-        layers[0].0 = &layers[0].0 - &grad_h1 * learning_rate / (mini_batch_size as f64);
-        layers[0].1 = &layers[0].1 - learning_rate * &delta_h1_total / (mini_batch_size as f64);
+        (0..layers.len()).for_each(|i| {
+            layers[i].0 = &layers[i].0 - &grad_list[i] * learning_rate / (mini_batch_size as f64);
+            layers[i].1 =
+                &layers[i].1 - learning_rate * &delta_total_list[i] / (mini_batch_size as f64);
+        });
 
         let loss = (&h2s_outputs - &test_answers).powf(2.).sum() / (mini_batch_size as f64);
         if n == 0 || n % 1000 == 999 {
             println!(
-                "[{:05}]: loss={:.4} delta_h1_total^T={:.4}, delta_h2_total={:.4}",
+                "[{:05}]: loss={:.4} delta_h1_total^T={:.4}, delta_h2_total^T={:.4}",
                 n + 1,
                 loss,
-                delta_h1_total.t(),
-                delta_h2_total
+                &delta_total_list[0].t(),
+                &delta_total_list[1].t()
             );
         }
     }
@@ -289,14 +298,14 @@ fn main() {
         let activations = forward(&in_col_v.view(), &layers[0], &layers[1]);
 
         let ans11 = ndarray::arr2(&[[xor_continuous(x1, x2)]]);
-        let loss = (&ans11 - &activations[2]).powf(2.).sum() / 2.;
+        let loss = (&ans11 - &activations[2].0).powf(2.).sum() / 2.;
         if loss < 0.05 {
             correct_counts += 1;
         }
         println!(
             "Input: [{:?}] => Predicted: {:.2}, answer: {:.0}, loss: {:.2}",
             [x1, x2],
-            &activations[2][[0, 0]],
+            &activations[2].0[[0, 0]],
             ans11[[0, 0]],
             loss
         );
