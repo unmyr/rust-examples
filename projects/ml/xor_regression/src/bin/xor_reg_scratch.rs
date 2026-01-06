@@ -5,14 +5,21 @@ use std::time::Instant;
 
 #[derive(clap::Parser)]
 struct Args {
-    /// Activation function to use (identity, relu, sigmoid, tanh)
+    /// Activation function for hidden layers (identity, relu, sigmoid, tanh)
     #[clap(
-        long = "activation",
-        short = 'a',
+        long = "hidden-activation",
         default_value = "sigmoid",
-        help = "Sets the activation function (identity, relu, sigmoid, tanh)"
+        help = "Sets the activation function for hidden layers (identity, relu, sigmoid, tanh)"
     )]
-    activation: String,
+    hidden_activation: String,
+
+    /// Activation function for output layer (identity, relu, sigmoid, tanh)
+    #[clap(
+        long = "output-activation",
+        default_value = "sigmoid",
+        help = "Sets the activation function for output layer (identity, relu, sigmoid, tanh)"
+    )]
+    output_activation: String,
 }
 
 #[allow(unused)]
@@ -90,23 +97,22 @@ fn xor_continuous<T: Float>(x1: T, x2: T) -> T {
 }
 
 fn forward<T: Float + 'static>(
-    function: &Activation,
     input: &ndarray::ArrayView2<T>,
-    layer1: (&ndarray::Array2<T>, &ndarray::Array2<T>),
-    layer2: (&ndarray::Array2<T>, &ndarray::Array2<T>),
+    layer1: (&ndarray::Array2<T>, &ndarray::Array2<T>, &Activation),
+    layer2: (&ndarray::Array2<T>, &ndarray::Array2<T>, &Activation),
 ) -> (
     ndarray::Array2<T>,
     ndarray::Array2<T>,
     Vec<ndarray::Array2<T>>,
 ) {
-    let (h1, bias1) = layer1;
-    let (h2, bias2) = layer2;
+    let (h1, bias1, act1) = layer1;
+    let (h2, bias2, act2) = layer2;
 
     let current_input = input.clone().into_owned();
     let mut activations = vec![current_input];
     let h1_out = h1.dot(input) + bias1;
-    let h1_out_s = match function {
-        Activation::Identity => h1_out.mapv(sigmoid),
+    let h1_out_s = match act1 {
+        Activation::Identity => h1_out.mapv(identity),
         Activation::ReLU => h1_out.mapv(relu),
         Activation::Sigmoid => h1_out.mapv(sigmoid),
         Activation::Tanh => h1_out.mapv(tanh),
@@ -115,11 +121,11 @@ fn forward<T: Float + 'static>(
     activations.push(current_input);
 
     let h2_out = h2.dot(&h1_out_s) + bias2;
-    let h2_out_s = match function {
+    let h2_out_s = match act2 {
         Activation::Identity => h2_out.mapv(identity),
-        Activation::ReLU => h2_out.mapv(sigmoid),
+        Activation::ReLU => h2_out.mapv(relu),
         Activation::Sigmoid => h2_out.mapv(sigmoid),
-        Activation::Tanh => h2_out.mapv(sigmoid),
+        Activation::Tanh => h2_out.mapv(tanh),
     };
     let current_input = h2_out_s.clone();
     activations.push(current_input);
@@ -131,8 +137,8 @@ fn main() {
     // Parse command-line arguments
     let args = Args::parse();
 
-    // Retrieve the value of --activation argument
-    let activation = match String::from(&args.activation).as_str() {
+    // Retrieve the value of --hidden-activation argument
+    let hidden_activation = match String::from(&args.hidden_activation).as_str() {
         "identity" => Activation::Identity,
         "relu" => Activation::ReLU,
         "sigmoid" => Activation::Sigmoid,
@@ -142,11 +148,29 @@ fn main() {
             // Using default activation function instead.
             eprintln!(
                 "WARNING: Unknown activation function specified; using sigmoid function instead: {}",
-                &args.activation
+                &args.hidden_activation
             );
             Activation::Sigmoid
         }
     };
+
+    // Retrieve the value of --output-activation argument
+    let output_activation = match String::from(&args.output_activation).as_str() {
+        "identity" => Activation::Identity,
+        "relu" => Activation::ReLU,
+        "sigmoid" => Activation::Sigmoid,
+        "tanh" => Activation::Tanh,
+        _ => {
+            // Handle unknown activation function
+            // Using default activation function instead.
+            eprintln!(
+                "WARNING: Unknown activation function specified; using sigmoid function instead: {}",
+                &args.output_activation
+            );
+            Activation::Sigmoid
+        }
+    };
+
     let mut rng = rand::rng();
     let init_random_value = true;
 
@@ -174,8 +198,8 @@ fn main() {
     let test_answers = ndarray::arr2(&[[0., 1., 1., 0.]]);
     let mini_batch_size = test_inputs.shape()[0];
     println!(
-        "learning_rate={}, n_samples={}, mini_batch_size={}, activation={:?}",
-        learning_rate, n_samples, mini_batch_size, activation
+        "learning_rate={}, n_samples={}, mini_batch_size={}, hidden_activation={:?} output_activation={:?}",
+        learning_rate, n_samples, mini_batch_size, hidden_activation, output_activation
     );
     let t_0 = Instant::now();
     for n in 0..n_samples {
@@ -191,14 +215,17 @@ fn main() {
             let (x1, x2) = (in_col_v[[0, 0]], in_col_v[[1, 0]]);
             // let (x1, x2) = (rng.random_range(0.0..=1.0), rng.random_range(0.0..=1.0));
             let y_train = ndarray::arr2::<f64, 1>(&[[xor_continuous(x1, x2)]]);
-            let (_h1_out, _h2_out, activations) =
-                forward::<f64>(&activation, &in_col_v.view(), (&h1, &bias1), (&h2, &bias2));
+            let (_h1_out, _h2_out, activations) = forward::<f64>(
+                &in_col_v.view(),
+                (&h1, &bias1, &hidden_activation),
+                (&h2, &bias2, &output_activation),
+            );
             let h2_out_s = activations[2].clone();
             let mut h2s_output_column = h2s_outputs.column_mut(i);
             h2s_output_column.assign(&h2_out_s.column(0).view());
 
             let output_error = &h2_out_s - &y_train;
-            let delta_h2 = match activation {
+            let delta_h2 = match output_activation {
                 Activation::Identity => {
                     &output_error * &h2_out_s.mapv(identity_derivative_from_output)
                 }
@@ -209,7 +236,7 @@ fn main() {
             delta_h2_total_work.assign(&delta_sum_h2.view());
 
             let h1_out_s = activations[1].clone();
-            let delta_h1 = match activation {
+            let delta_h1 = match hidden_activation {
                 Activation::Identity => {
                     h2.t().dot(&delta_h2) * h1_out_s.mapv(sigmoid_derivative_from_output)
                 }
@@ -255,11 +282,12 @@ fn main() {
     println!("== Results ==");
     let elapsed_time = t_0.elapsed();
     println!(
-        "learning_rate={}, n_samples={}, mini_batch_size={}, activation={:?}, elapsed time={:.2}[s] {:?}[s/sample]",
+        "learning_rate={}, n_samples={}, mini_batch_size={}, hidden_activation={:?}, output_activation={:?}, elapsed time={:.2}[s] {:?}[s/sample]",
         learning_rate,
         n_samples,
         mini_batch_size,
-        activation,
+        hidden_activation,
+        output_activation,
         elapsed_time.as_secs() as f32,
         (elapsed_time.as_secs() as f32) / (n_samples as f32)
     );
@@ -272,8 +300,11 @@ fn main() {
     for in_view in test_inputs.rows() {
         let in_col_v = in_view.insert_axis(ndarray::Axis(1));
         let (x1, x2) = (in_col_v[[0, 0]], in_col_v[[1, 0]]);
-        let (_h1_out, _h2_out, activations) =
-            forward(&activation, &in_col_v.view(), (&h1, &bias1), (&h2, &bias2));
+        let (_h1_out, _h2_out, activations) = forward(
+            &in_col_v.view(),
+            (&h1, &bias1, &hidden_activation),
+            (&h2, &bias2, &output_activation),
+        );
         let h2_out_s_ref = &activations[2];
 
         let ans11 = ndarray::arr2(&[[xor_continuous(x1, x2)]]);
