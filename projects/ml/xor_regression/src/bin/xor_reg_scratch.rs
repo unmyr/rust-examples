@@ -207,42 +207,39 @@ fn main() {
                 (&h1, &bias1, &hidden_activation),
                 (&h2, &bias2, &output_activation),
             );
-            let h2_out_s = activations[2].clone();
-            let mut h2s_output_column = h2s_outputs.column_mut(i);
-            h2s_output_column.assign(&h2_out_s.column(0).view());
 
-            let output_error = &h2_out_s - &y_train;
+            let mut h2s_output_column = h2s_outputs.column_mut(i);
+            h2s_output_column.assign(&activations[2].column(0).view());
+
+            let output_error = &activations[2] - &y_train;
             let delta_h2 = match output_activation {
                 Activation::Identity => {
-                    &output_error * &h2_out_s.mapv(identity_derivative_from_output)
+                    &output_error * &activations[2].mapv(identity_derivative_from_output)
                 }
-                _ => &output_error * &h2_out_s.mapv(sigmoid_derivative_from_output),
+                _ => &output_error * &activations[2].mapv(sigmoid_derivative_from_output),
             };
+            // Calculate gradients in a loop (using cross products)
+            grad_h2 += &delta_h2.dot(&activations[1].t());
+
             let mut delta_h2_total_work = delta_h2_total.column_mut(0);
             let delta_sum_h2 = &delta_h2_total_work.view() + &delta_h2.column(0).view();
             delta_h2_total_work.assign(&delta_sum_h2.view());
 
-            let h1_out_s = activations[1].clone();
             let delta_h1 = match hidden_activation {
                 Activation::Identity => {
-                    h2.t().dot(&delta_h2) * h1_out_s.mapv(sigmoid_derivative_from_output)
+                    h2.t().dot(&delta_h2) * &activations[1].mapv(sigmoid_derivative_from_output)
                 }
                 Activation::ReLU => {
-                    h2.t().dot(&delta_h2) * h1_out_s.mapv(relu_derivative_from_output)
+                    h2.t().dot(&delta_h2) * &activations[1].mapv(relu_derivative_from_output)
                 }
                 Activation::Sigmoid => {
-                    h2.t().dot(&delta_h2) * h1_out_s.mapv(sigmoid_derivative_from_output)
+                    h2.t().dot(&delta_h2) * &activations[1].mapv(sigmoid_derivative_from_output)
                 }
                 Activation::Tanh => {
-                    h2.t().dot(&delta_h2) * h1_out_s.mapv(tanh_derivative_from_output)
+                    h2.t().dot(&delta_h2) * &activations[1].mapv(tanh_derivative_from_output)
                 }
             };
-
-            let in_col_v = &activations[0];
-
-            // Calculate gradients in a loop (using cross products)
-            grad_h2 += &delta_h2.dot(&h1_out_s.t());
-            grad_h1 += &delta_h1.dot(&in_col_v.t());
+            grad_h1 += &delta_h1.dot(&activations[0].t());
 
             let mut delta_h1_total_work = delta_h1_total.column_mut(0);
             let delta_sum_h1 = &delta_h1_total_work.view() + &delta_h1.column(0).view();
