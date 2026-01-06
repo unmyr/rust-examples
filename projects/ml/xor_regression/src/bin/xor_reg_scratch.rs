@@ -100,37 +100,24 @@ fn forward<T: Float + 'static>(
     input: &ndarray::ArrayView2<T>,
     layer1: (&ndarray::Array2<T>, &ndarray::Array2<T>, &Activation),
     layer2: (&ndarray::Array2<T>, &ndarray::Array2<T>, &Activation),
-) -> (
-    ndarray::Array2<T>,
-    ndarray::Array2<T>,
-    Vec<ndarray::Array2<T>>,
-) {
-    let (h1, bias1, act1) = layer1;
-    let (h2, bias2, act2) = layer2;
-
+) -> Vec<ndarray::Array2<T>> {
     let current_input = input.clone().into_owned();
     let mut activations = vec![current_input];
-    let h1_out = h1.dot(input) + bias1;
-    let h1_out_s = match act1 {
-        Activation::Identity => h1_out.mapv(identity),
-        Activation::ReLU => h1_out.mapv(relu),
-        Activation::Sigmoid => h1_out.mapv(sigmoid),
-        Activation::Tanh => h1_out.mapv(tanh),
-    };
-    let current_input = h1_out_s.clone();
-    activations.push(current_input);
 
-    let h2_out = h2.dot(&h1_out_s) + bias2;
-    let h2_out_s = match act2 {
-        Activation::Identity => h2_out.mapv(identity),
-        Activation::ReLU => h2_out.mapv(relu),
-        Activation::Sigmoid => h2_out.mapv(sigmoid),
-        Activation::Tanh => h2_out.mapv(tanh),
-    };
-    let current_input = h2_out_s.clone();
-    activations.push(current_input);
+    for layer in [layer1, layer2] {
+        let (weight, bias, act) = layer;
+        let w_out = weight.dot(&activations.last().unwrap().view()) + bias;
+        let w_out_s = match act {
+            Activation::Identity => w_out.mapv(identity),
+            Activation::ReLU => w_out.mapv(relu),
+            Activation::Sigmoid => w_out.mapv(sigmoid),
+            Activation::Tanh => w_out.mapv(tanh),
+        };
+        let current_input = w_out_s;
+        activations.push(current_input);
+    }
 
-    (h1_out, h2_out, activations)
+    activations
 }
 
 fn main() {
@@ -215,7 +202,7 @@ fn main() {
             let (x1, x2) = (in_col_v[[0, 0]], in_col_v[[1, 0]]);
             // let (x1, x2) = (rng.random_range(0.0..=1.0), rng.random_range(0.0..=1.0));
             let y_train = ndarray::arr2::<f64, 1>(&[[xor_continuous(x1, x2)]]);
-            let (_h1_out, _h2_out, activations) = forward::<f64>(
+            let activations = forward::<f64>(
                 &in_col_v.view(),
                 (&h1, &bias1, &hidden_activation),
                 (&h2, &bias2, &output_activation),
@@ -300,7 +287,7 @@ fn main() {
     for in_view in test_inputs.rows() {
         let in_col_v = in_view.insert_axis(ndarray::Axis(1));
         let (x1, x2) = (in_col_v[[0, 0]], in_col_v[[1, 0]]);
-        let (_h1_out, _h2_out, activations) = forward(
+        let activations = forward(
             &in_col_v.view(),
             (&h1, &bias1, &hidden_activation),
             (&h2, &bias2, &output_activation),
