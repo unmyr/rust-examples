@@ -209,47 +209,54 @@ fn main() {
             let in_col_v = in_view.insert_axis(ndarray::Axis(1));
             let (x1, x2) = (in_col_v[[0, 0]], in_col_v[[1, 0]]);
             // let (x1, x2) = (rng.random_range(0.0..=1.0), rng.random_range(0.0..=1.0));
-            let y_train = ndarray::arr2::<f64, 1>(&[[xor_continuous(x1, x2)]]);
             let activations = forward::<f64>(&in_col_v.view(), &layers[0], &layers[1]);
 
             let mut h2s_output_column = h2s_outputs.column_mut(i);
             h2s_output_column.assign(&activations[2].0.column(0).view());
 
-            let output_error = &activations[2].0 - &y_train;
-            let act = &activations[2].1;
+            // Output layer 1
+            let layer_no = 2;
+            let y_train = ndarray::arr2::<f64, 1>(&[[xor_continuous(x1, x2)]]);
+            let output_error = &activations[layer_no].0 - &y_train;
+            let act = &activations[layer_no].1;
             let delta_h2 = match act {
                 Activation::Identity => {
-                    &output_error * &activations[2].0.mapv(identity_derivative_from_output)
+                    &output_error
+                        * &activations[layer_no]
+                            .0
+                            .mapv(identity_derivative_from_output)
                 }
-                _ => &output_error * &activations[2].0.mapv(sigmoid_derivative_from_output),
+                _ => &output_error * &activations[layer_no].0.mapv(sigmoid_derivative_from_output),
             };
             // Calculate gradients in a loop (using cross products)
-            grad_list[1] += &delta_h2.dot(&activations[1].0.t());
+            grad_list[layer_no - 1] += &delta_h2.dot(&activations[layer_no - 1].0.t());
 
             let mut delta_h2_total_work = delta_total_list[1].column_mut(0);
             let delta_sum_h2 = &delta_h2_total_work.view() + &delta_h2.column(0).view();
             delta_h2_total_work.assign(&delta_sum_h2.view());
 
-            let act = &activations[1].1;
+            // Hidden layer 1
+            let layer_no = 1;
+            let act = &activations[layer_no].1;
             let delta_h1 = match act {
                 Activation::Identity => {
-                    &layers[1].0.t().dot(&delta_h2)
-                        * &activations[1].0.mapv(sigmoid_derivative_from_output)
+                    &layers[layer_no].0.t().dot(&delta_h2)
+                        * &activations[layer_no].0.mapv(sigmoid_derivative_from_output)
                 }
                 Activation::ReLU => {
-                    &layers[1].0.t().dot(&delta_h2)
-                        * &activations[1].0.mapv(relu_derivative_from_output)
+                    &layers[layer_no].0.t().dot(&delta_h2)
+                        * &activations[layer_no].0.mapv(relu_derivative_from_output)
                 }
                 Activation::Sigmoid => {
-                    &layers[1].0.t().dot(&delta_h2)
-                        * &activations[1].0.mapv(sigmoid_derivative_from_output)
+                    &layers[layer_no].0.t().dot(&delta_h2)
+                        * &activations[layer_no].0.mapv(sigmoid_derivative_from_output)
                 }
                 Activation::Tanh => {
-                    &layers[1].0.t().dot(&delta_h2)
-                        * &activations[1].0.mapv(tanh_derivative_from_output)
+                    &layers[layer_no].0.t().dot(&delta_h2)
+                        * &activations[layer_no].0.mapv(tanh_derivative_from_output)
                 }
             };
-            grad_list[0] += &delta_h1.dot(&activations[0].0.t());
+            grad_list[layer_no - 1] += &delta_h1.dot(&activations[layer_no - 1].0.t());
 
             let mut delta_h1_total_work = delta_total_list[0].column_mut(0);
             let delta_sum_h1 = &delta_h1_total_work.view() + &delta_h1.column(0).view();
