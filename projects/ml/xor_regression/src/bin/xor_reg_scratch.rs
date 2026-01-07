@@ -186,15 +186,28 @@ fn main() {
 
     let learning_rate = 0.5;
 
-    let test_inputs = ndarray::arr2(&[[0., 0.], [0., 1.], [1., 0.], [1., 1.]]);
-    let test_answers = ndarray::arr2(&[[0., 1., 1., 0.]]);
-    let mini_batch_size = test_inputs.shape()[0];
+    let mini_batch_size = 4;
     println!(
         "learning_rate={}, n_samples={}, mini_batch_size={}, hidden_activation={:?} output_activation={:?}",
         learning_rate, n_samples, mini_batch_size, hidden_activation, output_activation
     );
     let t_0 = Instant::now();
     for n in 0..n_samples {
+        let train_inputs: ndarray::Array2<f64>;
+        if mini_batch_size == 4 {
+            train_inputs = ndarray::arr2(&[[0., 0.], [0., 1.], [1., 0.], [1., 1.]]).reversed_axes();
+        } else {
+            train_inputs = ndarray::Array2::<f64>::from_shape_fn((2, mini_batch_size), |_| {
+                rng.random_range(0.5..1.)
+            });
+        }
+        let train_answers = train_inputs
+            .map_axis(ndarray::Axis(0), |column| {
+                xor_continuous(column[0], column[1])
+            })
+            .into_shape_with_order((1, mini_batch_size))
+            .unwrap();
+
         let mut h2s_outputs = ndarray::Array2::<f64>::zeros((1, mini_batch_size));
 
         // Accumulate the gradient for each sample
@@ -205,11 +218,10 @@ fn main() {
             delta_total_list.push(ndarray::Array2::<f64>::zeros((layers[i].0.shape()[0], 1)));
         });
 
-        for (i, in_view) in test_inputs.rows().into_iter().enumerate() {
-            let in_col_v = in_view.insert_axis(ndarray::Axis(1));
-            let (x1, x2) = (in_col_v[[0, 0]], in_col_v[[1, 0]]);
-            // let (x1, x2) = (rng.random_range(0.0..=1.0), rng.random_range(0.0..=1.0));
-            let activations = forward::<f64>(&in_col_v.view(), &layers[0], &layers[1]);
+        for (i, in_1d_vec_view) in train_inputs.columns().into_iter().enumerate() {
+            let (x1, x2) = (in_1d_vec_view[0], in_1d_vec_view[1]);
+            let in_2d_col_vec = in_1d_vec_view.insert_axis(ndarray::Axis(1));
+            let activations = forward::<f64>(&in_2d_col_vec.view(), &layers[0], &layers[1]);
 
             let mut h2s_output_column = h2s_outputs.column_mut(i);
             h2s_output_column.assign(&activations[2].0.column(0).view());
@@ -269,7 +281,7 @@ fn main() {
                 &layers[i].1 - learning_rate * &delta_total_list[i] / (mini_batch_size as f64);
         });
 
-        let loss = (&h2s_outputs - &test_answers).powf(2.).sum() / (mini_batch_size as f64);
+        let loss = (&h2s_outputs - &train_answers).powf(2.).sum() / (mini_batch_size as f64);
         if n == 0 || n % 1000 == 999 {
             println!(
                 "[{:05}]: loss={:.4} delta_h1_total^T={:.4}, delta_h2_total^T={:.4}",
@@ -299,12 +311,20 @@ fn main() {
 
     println!("\n== XOR Predictions ==");
     let mut correct_counts = 0;
-    for in_view in test_inputs.rows() {
-        let in_col_v = in_view.insert_axis(ndarray::Axis(1));
-        let (x1, x2) = (in_col_v[[0, 0]], in_col_v[[1, 0]]);
-        let activations = forward(&in_col_v.view(), &layers[0], &layers[1]);
-
-        let ans11 = ndarray::arr2(&[[xor_continuous(x1, x2)]]);
+    let test_inputs = ndarray::arr2(&[[0., 0.], [0., 1.], [1., 0.], [1., 1.]]).reversed_axes();
+    let test_batch_size = test_inputs.shape()[1];
+    let test_answers = test_inputs
+        .map_axis(ndarray::Axis(0), |column| {
+            xor_continuous(column[0], column[1])
+        })
+        .into_shape_with_order((1, test_batch_size))
+        .unwrap();
+    for (i, in_1d_vec_view) in test_inputs.columns().into_iter().enumerate() {
+        let (x1, x2) = (in_1d_vec_view[0], in_1d_vec_view[1]);
+        let in_2d_col_vec = in_1d_vec_view.insert_axis(ndarray::Axis(1));
+        let activations = forward(&in_2d_col_vec.view(), &layers[0], &layers[1]);
+        let answer = test_answers[[0, i]];
+        let ans11 = ndarray::arr2(&[[answer]]);
         let loss = (&ans11 - &activations[2].0).powf(2.).sum() / 2.;
         if loss < 0.05 {
             correct_counts += 1;
@@ -319,6 +339,6 @@ fn main() {
     }
     println!(
         "Accuracy: {:.2}%",
-        (correct_counts as f64 / (test_inputs.shape()[0]) as f64) * 100.0
+        (correct_counts as f64 / (test_batch_size as f64)) * 100.0
     );
 }
