@@ -147,6 +147,56 @@ fn it_ndarray_2d_fill_specific_rows_with_zeros() {
     assert_eq!(b, arr2(&[[2, 4], [0, 0], [-5, -6], [-7, -8]]));
 }
 
+// Convert the result of the XOR function for four row vectors (4x2) into four scalar arrays (4x1).
+#[test]
+fn it_ndarray_2d_row_to_vector() {
+    let xor_continuous = |x1, x2| x1 + x2 - 2. * x1 * x2;
+
+    let train_inputs: ndarray::Array2<f32> =
+        ndarray::arr2(&[[0., 0.], [0., 1.], [1., 0.], [1., 1.]]);
+    assert_eq!(train_inputs.dim(), (4, 2));
+    assert_eq!(train_inputs.shape(), [4, 2]);
+
+    let train_answers_1d_vec =
+        train_inputs.map_axis(ndarray::Axis(1), |row| xor_continuous(row[0], row[1]));
+    assert_eq!(train_answers_1d_vec.dim(), (4));
+    assert_eq!(train_answers_1d_vec.shape(), [4]);
+    assert_eq!(train_answers_1d_vec, ndarray::arr1(&[0., 1., 1., 0.]));
+
+    // reshape
+    let train_answer_row_vec = train_answers_1d_vec.into_shape_with_order((4, 1)).unwrap();
+    assert_eq!(
+        train_answer_row_vec,
+        ndarray::arr2(&[[0.], [1.], [1.], [0.]])
+    );
+}
+
+// Convert the result of the XOR function for a 2x4, 4-column vector into a 1x4, 4-scalar array.
+#[test]
+fn it_ndarray_2d_column_to_vector() {
+    let xor_continuous = |x1, x2| x1 + x2 - 2. * x1 * x2;
+
+    let train_inputs: ndarray::Array2<f32> =
+        ndarray::arr2(&[[0., 0.], [0., 1.], [1., 0.], [1., 1.]]).reversed_axes();
+    assert_eq!(train_inputs.dim(), (2, 4));
+    assert_eq!(train_inputs.shape(), [2, 4]);
+
+    let train_answers_1d_vec: ndarray::ArrayBase<
+        ndarray::OwnedRepr<f32>,
+        ndarray::Dim<[usize; 1]>,
+        f32,
+    > = train_inputs.map_axis(ndarray::Axis(0), |column| {
+        xor_continuous(column[0], column[1])
+    });
+    assert_eq!(train_answers_1d_vec.dim(), (4));
+    assert_eq!(train_answers_1d_vec.shape(), [4]);
+    assert_eq!(train_answers_1d_vec, ndarray::arr1(&[0., 1., 1., 0.]));
+
+    // reshape
+    let train_answer_column_vec = train_answers_1d_vec.into_shape_with_order((1, 4)).unwrap();
+    assert_eq!(train_answer_column_vec, ndarray::arr2(&[[0., 1., 1., 0.]]));
+}
+
 // Replace all elements in a 3×2 matrix
 #[test]
 fn it_ndarray_2d_replace_all_elements() {
