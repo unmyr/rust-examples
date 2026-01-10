@@ -1,3 +1,4 @@
+pub mod logical_functions;
 pub mod ml_functions;
 
 /// Add two numbers.

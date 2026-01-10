@@ -3,3 +3,6 @@
 .References
 * https://doc.rust-lang.org/std/ops/[std::ops - Rust^]
 * https://docs.rs/num-traits/latest/num_traits/index.html[num_traits - Rust^]
+* https://doc.rust-lang.org/std/cmp/trait.PartialOrd.html[PartialOrd in std::cmp - Rust^]
+* https://doc.rust-lang.org/std/cmp/trait.Ord.html[Ord in std::cmp - Rust^]
+* https://doc.rust-lang.org/nightly/core/ops/trait.Neg.html[Neg in core::ops - Rust^]
