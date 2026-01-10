@@ -124,13 +124,9 @@ fn forward<T: Float + 'static>(
 
 fn train(
     train_inputs: &ndarray::Array2<f64>,
-    train_answers: &ndarray::Array2<f64>,
+    train_answers_ref: &ndarray::Array2<f64>,
     layers: &Vec<(ndarray::Array2<f64>, ndarray::Array2<f64>, Activation)>,
-) -> (
-    Vec<ndarray::Array2<f64>>,
-    Vec<ndarray::Array2<f64>>,
-    ndarray::Array2<f64>,
-) {
+) -> (Vec<ndarray::Array2<f64>>, Vec<ndarray::Array2<f64>>, f64) {
     let mini_batch_size = train_inputs.shape()[1];
     let mut h2s_outputs = ndarray::Array2::<f64>::zeros((1, mini_batch_size));
 
@@ -146,12 +142,12 @@ fn train(
         let in_2d_col_vec = in_1d_vec_view.insert_axis(ndarray::Axis(1));
         let activations = forward::<f64>(&in_2d_col_vec.view(), &layers[0], &layers[1]);
 
+        // Output layer 1
         let mut h2s_output_column = h2s_outputs.column_mut(i);
         h2s_output_column.assign(&activations[2].0.column(0).view());
 
-        // Output layer 1
         let layer_no = 2;
-        let output_error = &activations[layer_no].0 - &train_answers.column(i);
+        let output_error = &activations[layer_no].0 - &train_answers_ref.column(i);
         let act = &activations[layer_no].1;
         let delta_h2 = match act {
             Activation::Identity => {
@@ -165,11 +161,11 @@ fn train(
         // Calculate gradients in a loop (using cross products)
         grad_list[layer_no - 1] += &delta_h2.dot(&activations[layer_no - 1].0.t());
 
+        // Hidden layer 1
         let mut delta_h2_total_work = delta_total_list[1].column_mut(0);
         let delta_sum_h2 = &delta_h2_total_work.view() + &delta_h2.column(0).view();
         delta_h2_total_work.assign(&delta_sum_h2.view());
 
-        // Hidden layer 1
         let layer_no = 1;
         let act = &activations[layer_no].1;
         let delta_h1 = match act {
@@ -196,7 +192,9 @@ fn train(
         let delta_sum_h1 = &delta_h1_total_work.view() + &delta_h1.column(0).view();
         delta_h1_total_work.assign(&delta_sum_h1.view());
     }
-    (grad_list, delta_total_list, h2s_outputs)
+
+    let loss = (&h2s_outputs - train_answers_ref).powf(2.).sum() / (mini_batch_size as f64);
+    (grad_list, delta_total_list, loss)
 }
 
 fn main() {
@@ -285,8 +283,7 @@ fn main() {
             .into_shape_with_order((1, mini_batch_size))
             .unwrap();
 
-        let (grad_list, delta_total_list, h2s_outputs) =
-            train(&train_inputs, &train_answers, &layers);
+        let (grad_list, delta_total_list, loss) = train(&train_inputs, &train_answers, &layers);
 
         // Update weight and bias
         (0..layers.len()).for_each(|i| {
@@ -295,7 +292,6 @@ fn main() {
                 &layers[i].1 - learning_rate * &delta_total_list[i] / (mini_batch_size as f64);
         });
 
-        let loss = (&h2s_outputs - &train_answers).powf(2.).sum() / (mini_batch_size as f64);
         if n == 0 || n % 1000 == 999 {
             println!(
                 "[{:05}]: loss={:.4} delta_h1_total^T={:.4}, delta_h2_total^T={:.4}",
