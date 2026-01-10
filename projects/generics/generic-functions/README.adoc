@@ -1,0 +1,5 @@
+== Generic Function Example
+
+.References
+* https://doc.rust-lang.org/std/ops/[std::ops - Rust^]
+* https://docs.rs/num-traits/latest/num_traits/index.html[num_traits - Rust^]
