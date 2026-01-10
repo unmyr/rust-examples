@@ -122,6 +122,84 @@ fn forward<T: Float + 'static>(
     activations
 }
 
+fn train(
+    layers: &Vec<(ndarray::Array2<f64>, ndarray::Array2<f64>, Activation)>,
+    train_inputs: &ndarray::Array2<f64>,
+) -> (
+    Vec<ndarray::Array2<f64>>,
+    Vec<ndarray::Array2<f64>>,
+    ndarray::Array2<f64>,
+) {
+    let mini_batch_size = train_inputs.shape()[1];
+    let mut h2s_outputs = ndarray::Array2::<f64>::zeros((1, mini_batch_size));
+
+    // Accumulate the gradient for each sample
+    let mut grad_list: Vec<ndarray::Array2<f64>> = Vec::new();
+    let mut delta_total_list: Vec<ndarray::Array2<f64>> = Vec::new();
+    (0..layers.len()).for_each(|i| {
+        grad_list.push(ndarray::Array2::zeros(layers[i].0.dim()));
+        delta_total_list.push(ndarray::Array2::<f64>::zeros((layers[i].0.shape()[0], 1)));
+    });
+
+    for (i, in_1d_vec_view) in train_inputs.columns().into_iter().enumerate() {
+        let (x1, x2) = (in_1d_vec_view[0], in_1d_vec_view[1]);
+        let in_2d_col_vec = in_1d_vec_view.insert_axis(ndarray::Axis(1));
+        let activations = forward::<f64>(&in_2d_col_vec.view(), &layers[0], &layers[1]);
+
+        let mut h2s_output_column = h2s_outputs.column_mut(i);
+        h2s_output_column.assign(&activations[2].0.column(0).view());
+
+        // Output layer 1
+        let layer_no = 2;
+        let y_train = ndarray::arr2::<f64, 1>(&[[xor_continuous(x1, x2)]]);
+        let output_error = &activations[layer_no].0 - &y_train;
+        let act = &activations[layer_no].1;
+        let delta_h2 = match act {
+            Activation::Identity => {
+                &output_error
+                    * &activations[layer_no]
+                        .0
+                        .mapv(identity_derivative_from_output)
+            }
+            _ => &output_error * &activations[layer_no].0.mapv(sigmoid_derivative_from_output),
+        };
+        // Calculate gradients in a loop (using cross products)
+        grad_list[layer_no - 1] += &delta_h2.dot(&activations[layer_no - 1].0.t());
+
+        let mut delta_h2_total_work = delta_total_list[1].column_mut(0);
+        let delta_sum_h2 = &delta_h2_total_work.view() + &delta_h2.column(0).view();
+        delta_h2_total_work.assign(&delta_sum_h2.view());
+
+        // Hidden layer 1
+        let layer_no = 1;
+        let act = &activations[layer_no].1;
+        let delta_h1 = match act {
+            Activation::Identity => {
+                &layers[layer_no].0.t().dot(&delta_h2)
+                    * &activations[layer_no].0.mapv(sigmoid_derivative_from_output)
+            }
+            Activation::ReLU => {
+                &layers[layer_no].0.t().dot(&delta_h2)
+                    * &activations[layer_no].0.mapv(relu_derivative_from_output)
+            }
+            Activation::Sigmoid => {
+                &layers[layer_no].0.t().dot(&delta_h2)
+                    * &activations[layer_no].0.mapv(sigmoid_derivative_from_output)
+            }
+            Activation::Tanh => {
+                &layers[layer_no].0.t().dot(&delta_h2)
+                    * &activations[layer_no].0.mapv(tanh_derivative_from_output)
+            }
+        };
+        grad_list[layer_no - 1] += &delta_h1.dot(&activations[layer_no - 1].0.t());
+
+        let mut delta_h1_total_work = delta_total_list[0].column_mut(0);
+        let delta_sum_h1 = &delta_h1_total_work.view() + &delta_h1.column(0).view();
+        delta_h1_total_work.assign(&delta_sum_h1.view());
+    }
+    (grad_list, delta_total_list, h2s_outputs)
+}
+
 fn main() {
     // Parse command-line arguments
     let args = Args::parse();
@@ -208,72 +286,8 @@ fn main() {
             .into_shape_with_order((1, mini_batch_size))
             .unwrap();
 
-        let mut h2s_outputs = ndarray::Array2::<f64>::zeros((1, mini_batch_size));
+        let (grad_list, delta_total_list, h2s_outputs) = train(&layers, &train_inputs);
 
-        // Accumulate the gradient for each sample
-        let mut grad_list: Vec<ndarray::Array2<f64>> = Vec::new();
-        let mut delta_total_list: Vec<ndarray::Array2<f64>> = Vec::new();
-        (0..layers.len()).for_each(|i| {
-            grad_list.push(ndarray::Array2::zeros(layers[i].0.dim()));
-            delta_total_list.push(ndarray::Array2::<f64>::zeros((layers[i].0.shape()[0], 1)));
-        });
-
-        for (i, in_1d_vec_view) in train_inputs.columns().into_iter().enumerate() {
-            let (x1, x2) = (in_1d_vec_view[0], in_1d_vec_view[1]);
-            let in_2d_col_vec = in_1d_vec_view.insert_axis(ndarray::Axis(1));
-            let activations = forward::<f64>(&in_2d_col_vec.view(), &layers[0], &layers[1]);
-
-            let mut h2s_output_column = h2s_outputs.column_mut(i);
-            h2s_output_column.assign(&activations[2].0.column(0).view());
-
-            // Output layer 1
-            let layer_no = 2;
-            let y_train = ndarray::arr2::<f64, 1>(&[[xor_continuous(x1, x2)]]);
-            let output_error = &activations[layer_no].0 - &y_train;
-            let act = &activations[layer_no].1;
-            let delta_h2 = match act {
-                Activation::Identity => {
-                    &output_error
-                        * &activations[layer_no]
-                            .0
-                            .mapv(identity_derivative_from_output)
-                }
-                _ => &output_error * &activations[layer_no].0.mapv(sigmoid_derivative_from_output),
-            };
-            // Calculate gradients in a loop (using cross products)
-            grad_list[layer_no - 1] += &delta_h2.dot(&activations[layer_no - 1].0.t());
-
-            let mut delta_h2_total_work = delta_total_list[1].column_mut(0);
-            let delta_sum_h2 = &delta_h2_total_work.view() + &delta_h2.column(0).view();
-            delta_h2_total_work.assign(&delta_sum_h2.view());
-
-            // Hidden layer 1
-            let layer_no = 1;
-            let act = &activations[layer_no].1;
-            let delta_h1 = match act {
-                Activation::Identity => {
-                    &layers[layer_no].0.t().dot(&delta_h2)
-                        * &activations[layer_no].0.mapv(sigmoid_derivative_from_output)
-                }
-                Activation::ReLU => {
-                    &layers[layer_no].0.t().dot(&delta_h2)
-                        * &activations[layer_no].0.mapv(relu_derivative_from_output)
-                }
-                Activation::Sigmoid => {
-                    &layers[layer_no].0.t().dot(&delta_h2)
-                        * &activations[layer_no].0.mapv(sigmoid_derivative_from_output)
-                }
-                Activation::Tanh => {
-                    &layers[layer_no].0.t().dot(&delta_h2)
-                        * &activations[layer_no].0.mapv(tanh_derivative_from_output)
-                }
-            };
-            grad_list[layer_no - 1] += &delta_h1.dot(&activations[layer_no - 1].0.t());
-
-            let mut delta_h1_total_work = delta_total_list[0].column_mut(0);
-            let delta_sum_h1 = &delta_h1_total_work.view() + &delta_h1.column(0).view();
-            delta_h1_total_work.assign(&delta_sum_h1.view());
-        }
         // Update weight and bias
         (0..layers.len()).for_each(|i| {
             layers[i].0 = &layers[i].0 - &grad_list[i] * learning_rate / (mini_batch_size as f64);
