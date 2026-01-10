@@ -123,8 +123,9 @@ fn forward<T: Float + 'static>(
 }
 
 fn train(
-    layers: &Vec<(ndarray::Array2<f64>, ndarray::Array2<f64>, Activation)>,
     train_inputs: &ndarray::Array2<f64>,
+    train_answers: &ndarray::Array2<f64>,
+    layers: &Vec<(ndarray::Array2<f64>, ndarray::Array2<f64>, Activation)>,
 ) -> (
     Vec<ndarray::Array2<f64>>,
     Vec<ndarray::Array2<f64>>,
@@ -142,7 +143,6 @@ fn train(
     });
 
     for (i, in_1d_vec_view) in train_inputs.columns().into_iter().enumerate() {
-        let (x1, x2) = (in_1d_vec_view[0], in_1d_vec_view[1]);
         let in_2d_col_vec = in_1d_vec_view.insert_axis(ndarray::Axis(1));
         let activations = forward::<f64>(&in_2d_col_vec.view(), &layers[0], &layers[1]);
 
@@ -151,8 +151,7 @@ fn train(
 
         // Output layer 1
         let layer_no = 2;
-        let y_train = ndarray::arr2::<f64, 1>(&[[xor_continuous(x1, x2)]]);
-        let output_error = &activations[layer_no].0 - &y_train;
+        let output_error = &activations[layer_no].0 - &train_answers.column(i);
         let act = &activations[layer_no].1;
         let delta_h2 = match act {
             Activation::Identity => {
@@ -276,7 +275,7 @@ fn main() {
             train_inputs = ndarray::arr2(&[[0., 0.], [0., 1.], [1., 0.], [1., 1.]]).reversed_axes();
         } else {
             train_inputs = ndarray::Array2::<f64>::from_shape_fn((2, mini_batch_size), |_| {
-                rng.random_range(0.5..1.)
+                rng.random_range((0.)..(1.))
             });
         }
         let train_answers = train_inputs
@@ -286,7 +285,8 @@ fn main() {
             .into_shape_with_order((1, mini_batch_size))
             .unwrap();
 
-        let (grad_list, delta_total_list, h2s_outputs) = train(&layers, &train_inputs);
+        let (grad_list, delta_total_list, h2s_outputs) =
+            train(&train_inputs, &train_answers, &layers);
 
         // Update weight and bias
         (0..layers.len()).for_each(|i| {
