@@ -235,6 +235,7 @@ fn main() {
         let bias = ndarray::arr2::<f64, 1>(&[[0.1], [0.1]]);
         layers.push((h, bias, hidden_activation.clone()));
     }
+
     if init_random_value {
         let h = ndarray::Array2::from_shape_fn((1, 2), |_| rng.random_range(-0.5..0.5));
         let bias = ndarray::Array2::from_shape_fn((1, 1), |_| rng.random_range(-0.5..0.5));
@@ -283,7 +284,7 @@ fn main() {
             print!("[{:05}]: loss={:.4}", n + 1, loss,);
             for layer_no in 0..layers.len() {
                 print!(
-                    ", delta[{layer_no}]^T={:.4},",
+                    ", delta[{layer_no}]^T={:.4}",
                     &batch_weight_gradients[layer_no].t()
                 );
             }
