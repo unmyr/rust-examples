@@ -145,48 +145,44 @@ fn train(
         let in_2d_col_vec = in_1d_vec_view.insert_axis(ndarray::Axis(1));
         let activations = forward::<f64>(&in_2d_col_vec.view(), &layers[0], &layers[1]);
 
+        let mut cur_gradients;
         // Output layer 1
         let layer_no = 2;
-        let output_error = &activations[layer_no].0 - &train_answers_ref.column(i);
-        loss_terms.column_mut(i).assign(&output_error.column(0).powf(2.));
+        cur_gradients = &activations[layer_no].0 - &train_answers_ref.column(i);
+        loss_terms
+            .column_mut(i)
+            .assign(&cur_gradients.column(0).powf(2.));
 
         let act = &activations[layer_no].1;
-        let delta_h2 = match act {
-            Activation::Identity => {
-                &output_error
-                    * &activations[layer_no]
-                        .0
-                        .mapv(identity_derivative_from_output)
-            }
-            _ => &output_error * &activations[layer_no].0.mapv(sigmoid_derivative_from_output),
+        let l_output = &activations[layer_no].0;
+        // N-by-1 matrix representing the gradient
+        let delta = match act {
+            Activation::Identity => &cur_gradients * l_output.mapv(identity_derivative_from_output),
+            _ => &cur_gradients * l_output.mapv(sigmoid_derivative_from_output),
         };
         // Calculate gradients in a loop (using cross products)
-        grad_list[layer_no - 1] += &delta_h2.dot(&activations[layer_no - 1].0.t());
-        batch_weight_gradients[1].column_mut(0).scaled_add(1., &delta_h2.column(0));
+        grad_list[layer_no - 1] += &delta.dot(&activations[layer_no - 1].0.t());
+        batch_weight_gradients[1]
+            .column_mut(0)
+            .scaled_add(1., &delta.column(0));
+        cur_gradients = layers[layer_no - 1].0.t().dot(&delta);
 
         // Hidden layer 1
         let layer_no = 1;
         let act = &activations[layer_no].1;
-        let delta_h1 = match act {
-            Activation::Identity => {
-                &layers[layer_no].0.t().dot(&delta_h2)
-                    * &activations[layer_no].0.mapv(sigmoid_derivative_from_output)
-            }
-            Activation::ReLU => {
-                &layers[layer_no].0.t().dot(&delta_h2)
-                    * &activations[layer_no].0.mapv(relu_derivative_from_output)
-            }
-            Activation::Sigmoid => {
-                &layers[layer_no].0.t().dot(&delta_h2)
-                    * &activations[layer_no].0.mapv(sigmoid_derivative_from_output)
-            }
-            Activation::Tanh => {
-                &layers[layer_no].0.t().dot(&delta_h2)
-                    * &activations[layer_no].0.mapv(tanh_derivative_from_output)
-            }
+        let l_output = &activations[layer_no].0;
+
+        // N-by-1 matrix representing the gradient
+        let delta = match act {
+            Activation::Identity => &cur_gradients * l_output.mapv(sigmoid_derivative_from_output),
+            Activation::ReLU => &cur_gradients * l_output.mapv(relu_derivative_from_output),
+            Activation::Sigmoid => &cur_gradients * l_output.mapv(sigmoid_derivative_from_output),
+            Activation::Tanh => &cur_gradients * l_output.mapv(tanh_derivative_from_output),
         };
-        grad_list[layer_no - 1] += &delta_h1.dot(&activations[layer_no - 1].0.t());
-        batch_weight_gradients[0].column_mut(0).scaled_add(1., &delta_h1.column(0));
+        grad_list[layer_no - 1] += &delta.dot(&activations[layer_no - 1].0.t());
+        batch_weight_gradients[0]
+            .column_mut(0)
+            .scaled_add(1., &delta.column(0));
     }
 
     let loss = loss_terms.sum() / (mini_batch_size as f64);
@@ -279,13 +275,14 @@ fn main() {
             .into_shape_with_order((1, mini_batch_size))
             .unwrap();
 
-        let (grad_list, batch_weight_gradients, loss) = train(&train_inputs, &train_answers, &layers);
+        let (grad_list, batch_weight_gradients, loss) =
+            train(&train_inputs, &train_answers, &layers);
 
         // Update weight and bias
         (0..layers.len()).for_each(|i| {
             layers[i].0 = &layers[i].0 - &grad_list[i] * learning_rate / (mini_batch_size as f64);
-            layers[i].1 =
-                &layers[i].1 - learning_rate * &batch_weight_gradients[i] / (mini_batch_size as f64);
+            layers[i].1 = &layers[i].1
+                - learning_rate * &batch_weight_gradients[i] / (mini_batch_size as f64);
         });
 
         if n == 0 || n % 1000 == 999 {
