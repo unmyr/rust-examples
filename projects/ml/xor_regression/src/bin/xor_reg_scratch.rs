@@ -128,11 +128,14 @@ fn train(
     layers: &Vec<(ndarray::Array2<f64>, ndarray::Array2<f64>, Activation)>,
 ) -> (Vec<ndarray::Array2<f64>>, Vec<ndarray::Array2<f64>>, f64) {
     let mini_batch_size = train_inputs.shape()[1];
-    let mut h2s_outputs = ndarray::Array2::<f64>::zeros((1, mini_batch_size));
+    // Squared errors in the output layer
+    let mut loss_terms =
+        ndarray::Array2::<f64>::zeros((layers.last().unwrap().0.shape()[0], mini_batch_size));
 
-    // Accumulate the gradient for each sample
     let mut grad_list: Vec<ndarray::Array2<f64>> = Vec::new();
     let mut delta_total_list: Vec<ndarray::Array2<f64>> = Vec::new();
+
+    // Accumulate the gradient for each sample
     (0..layers.len()).for_each(|i| {
         grad_list.push(ndarray::Array2::zeros(layers[i].0.dim()));
         delta_total_list.push(ndarray::Array2::<f64>::zeros((layers[i].0.shape()[0], 1)));
@@ -143,11 +146,10 @@ fn train(
         let activations = forward::<f64>(&in_2d_col_vec.view(), &layers[0], &layers[1]);
 
         // Output layer 1
-        let mut h2s_output_column = h2s_outputs.column_mut(i);
-        h2s_output_column.assign(&activations[2].0.column(0).view());
-
         let layer_no = 2;
         let output_error = &activations[layer_no].0 - &train_answers_ref.column(i);
+        loss_terms.column_mut(i).assign(&output_error.column(0).powf(2.));
+
         let act = &activations[layer_no].1;
         let delta_h2 = match act {
             Activation::Identity => {
@@ -193,7 +195,7 @@ fn train(
         delta_h1_total_work.assign(&delta_sum_h1.view());
     }
 
-    let loss = (&h2s_outputs - train_answers_ref).powf(2.).sum() / (mini_batch_size as f64);
+    let loss = loss_terms.sum() / (mini_batch_size as f64);
     (grad_list, delta_total_list, loss)
 }
 
