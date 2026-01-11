@@ -146,43 +146,38 @@ fn train(
         let activations = forward::<f64>(&in_2d_col_vec.view(), &layers[0], &layers[1]);
 
         let mut cur_gradients;
-        // Output layer 1
-        let layer_no = 2;
-        cur_gradients = &activations[layer_no].0 - &train_answers_ref.column(i);
+        cur_gradients = &activations.last().unwrap().0 - &train_answers_ref.column(i);
         loss_terms
             .column_mut(i)
             .assign(&cur_gradients.column(0).powf(2.));
 
-        let act = &activations[layer_no].1;
-        let l_output = &activations[layer_no].0;
-        // N-by-1 matrix representing the gradient
-        let delta = match act {
-            Activation::Identity => &cur_gradients * l_output.mapv(identity_derivative_from_output),
-            _ => &cur_gradients * l_output.mapv(sigmoid_derivative_from_output),
-        };
-        // Calculate gradients in a loop (using cross products)
-        grad_list[layer_no - 1] += &delta.dot(&activations[layer_no - 1].0.t());
-        batch_weight_gradients[1]
-            .column_mut(0)
-            .scaled_add(1., &delta.column(0));
-        cur_gradients = layers[layer_no - 1].0.t().dot(&delta);
+        for layer_no in (0..layers.len()).rev().into_iter() {
+            let a_idx = layer_no + 1;
+            let act = &activations[a_idx].1;
+            let l_input = &activations[a_idx - 1].0;
+            let l_output = &activations[a_idx].0;
 
-        // Hidden layer 1
-        let layer_no = 1;
-        let act = &activations[layer_no].1;
-        let l_output = &activations[layer_no].0;
+            // N-by-1 matrix representing the gradient
+            let delta = match act {
+                Activation::Identity => {
+                    &cur_gradients * l_output.mapv(identity_derivative_from_output)
+                }
+                Activation::ReLU => &cur_gradients * l_output.mapv(relu_derivative_from_output),
+                Activation::Sigmoid => {
+                    &cur_gradients * l_output.mapv(sigmoid_derivative_from_output)
+                }
+                Activation::Tanh => &cur_gradients * l_output.mapv(tanh_derivative_from_output),
+            };
 
-        // N-by-1 matrix representing the gradient
-        let delta = match act {
-            Activation::Identity => &cur_gradients * l_output.mapv(sigmoid_derivative_from_output),
-            Activation::ReLU => &cur_gradients * l_output.mapv(relu_derivative_from_output),
-            Activation::Sigmoid => &cur_gradients * l_output.mapv(sigmoid_derivative_from_output),
-            Activation::Tanh => &cur_gradients * l_output.mapv(tanh_derivative_from_output),
-        };
-        grad_list[layer_no - 1] += &delta.dot(&activations[layer_no - 1].0.t());
-        batch_weight_gradients[0]
-            .column_mut(0)
-            .scaled_add(1., &delta.column(0));
+            // Calculate gradients in a loop (using cross products)
+            grad_list[layer_no] += &delta.dot(&l_input.t());
+            batch_weight_gradients[layer_no]
+                .column_mut(0)
+                .scaled_add(1., &delta.column(0));
+
+            // Next error inputs
+            cur_gradients = layers[layer_no].0.t().dot(&delta);
+        }
     }
 
     let loss = loss_terms.sum() / (mini_batch_size as f64);
