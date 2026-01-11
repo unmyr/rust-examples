@@ -1,4 +1,3 @@
-
 // Convert the result of the XOR function for a 2x4, 4-column vector into a 1x4, 4-scalar array.
 #[test]
 fn it_ndarray_2d_column_to_vector() {
@@ -25,6 +24,44 @@ fn it_ndarray_2d_column_to_vector() {
     assert_eq!(train_answer_column_vec, ndarray::arr2(&[[0., 1., 1., 0.]]));
 }
 
+#[test]
+fn it_ndarray_2d_accumulate_column_using_scale_add() {
+    let mut accumulated_errors: ndarray::Array2<f32> =
+        ndarray::arr2(&[[0., 0.], [0., 0.], [0., 0.], [0., 0.]]).reversed_axes();
+    let loss_terms: ndarray::Array2<f32> =
+        ndarray::arr2(&[[0., 0.], [0., 1.], [1., 2.], [1., 1.]]).reversed_axes();
+
+    assert_eq!(accumulated_errors.dim(), (2, 4));
+    assert_eq!(accumulated_errors.shape(), [2, 4]);
+
+    accumulated_errors
+        .column_mut(2)
+        .scaled_add(1., &loss_terms.column(2));
+    assert_eq!(accumulated_errors.column(2), ndarray::arr1(&[1., 2.]));
+    accumulated_errors
+        .column_mut(2)
+        .scaled_add(1., &loss_terms.column(2));
+    assert_eq!(accumulated_errors.column(2), ndarray::arr1(&[2., 4.]));
+}
+
+#[test]
+fn it_ndarray_2d_accumulate_column_using_dereference() {
+    let mut accumulated_errors: ndarray::Array2<f32> =
+        ndarray::arr2(&[[0., 0.], [0., 0.], [0., 0.], [0., 0.]]).reversed_axes();
+    let loss_terms: ndarray::Array2<f32> =
+        ndarray::arr2(&[[0., 0.], [0., 1.], [1., 2.], [1., 1.]]).reversed_axes();
+
+    assert_eq!(accumulated_errors.dim(), (2, 4));
+    assert_eq!(accumulated_errors.shape(), [2, 4]);
+
+    // Build fail: error[E0067]: invalid left-hand side of assignment
+    // Temporary variables are invalid and cannot be build using `+=`.
+    // accumulated_errors.column_mut(2) += &loss_terms.column(2);
+    *&mut accumulated_errors.column_mut(2) += &loss_terms.column(2);
+    assert_eq!(accumulated_errors.column(2), ndarray::arr1(&[1., 2.]));
+    *&mut accumulated_errors.column_mut(2) += &loss_terms.column(2);
+    assert_eq!(accumulated_errors.column(2), ndarray::arr1(&[2., 4.]));
+}
 
 #[test]
 fn it_ndarray_2d_extend_column_1() {
@@ -71,7 +108,6 @@ fn it_ndarray_2d_extend_column_2() {
     );
     assert_eq!(out_arr3.shape(), &[4, 3]);
 }
-
 
 // create an empty array and append columns
 #[test]
