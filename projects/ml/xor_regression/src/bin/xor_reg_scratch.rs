@@ -133,12 +133,12 @@ fn train(
         ndarray::Array2::<f64>::zeros((layers.last().unwrap().0.shape()[0], mini_batch_size));
 
     let mut grad_list: Vec<ndarray::Array2<f64>> = Vec::new();
-    let mut delta_total_list: Vec<ndarray::Array2<f64>> = Vec::new();
+    let mut batch_weight_gradients: Vec<ndarray::Array2<f64>> = Vec::new();
 
     // Accumulate the gradient for each sample
     (0..layers.len()).for_each(|i| {
         grad_list.push(ndarray::Array2::zeros(layers[i].0.dim()));
-        delta_total_list.push(ndarray::Array2::<f64>::zeros((layers[i].0.shape()[0], 1)));
+        batch_weight_gradients.push(ndarray::Array2::<f64>::zeros((layers[i].0.shape()[0], 1)));
     });
 
     for (i, in_1d_vec_view) in train_inputs.columns().into_iter().enumerate() {
@@ -162,12 +162,9 @@ fn train(
         };
         // Calculate gradients in a loop (using cross products)
         grad_list[layer_no - 1] += &delta_h2.dot(&activations[layer_no - 1].0.t());
+        batch_weight_gradients[1].column_mut(0).scaled_add(1., &delta_h2.column(0));
 
         // Hidden layer 1
-        let mut delta_h2_total_work = delta_total_list[1].column_mut(0);
-        let delta_sum_h2 = &delta_h2_total_work.view() + &delta_h2.column(0).view();
-        delta_h2_total_work.assign(&delta_sum_h2.view());
-
         let layer_no = 1;
         let act = &activations[layer_no].1;
         let delta_h1 = match act {
@@ -189,14 +186,11 @@ fn train(
             }
         };
         grad_list[layer_no - 1] += &delta_h1.dot(&activations[layer_no - 1].0.t());
-
-        let mut delta_h1_total_work = delta_total_list[0].column_mut(0);
-        let delta_sum_h1 = &delta_h1_total_work.view() + &delta_h1.column(0).view();
-        delta_h1_total_work.assign(&delta_sum_h1.view());
+        batch_weight_gradients[0].column_mut(0).scaled_add(1., &delta_h1.column(0));
     }
 
     let loss = loss_terms.sum() / (mini_batch_size as f64);
-    (grad_list, delta_total_list, loss)
+    (grad_list, batch_weight_gradients, loss)
 }
 
 fn main() {
@@ -285,13 +279,13 @@ fn main() {
             .into_shape_with_order((1, mini_batch_size))
             .unwrap();
 
-        let (grad_list, delta_total_list, loss) = train(&train_inputs, &train_answers, &layers);
+        let (grad_list, batch_weight_gradients, loss) = train(&train_inputs, &train_answers, &layers);
 
         // Update weight and bias
         (0..layers.len()).for_each(|i| {
             layers[i].0 = &layers[i].0 - &grad_list[i] * learning_rate / (mini_batch_size as f64);
             layers[i].1 =
-                &layers[i].1 - learning_rate * &delta_total_list[i] / (mini_batch_size as f64);
+                &layers[i].1 - learning_rate * &batch_weight_gradients[i] / (mini_batch_size as f64);
         });
 
         if n == 0 || n % 1000 == 999 {
@@ -299,8 +293,8 @@ fn main() {
                 "[{:05}]: loss={:.4} delta_h1_total^T={:.4}, delta_h2_total^T={:.4}",
                 n + 1,
                 loss,
-                &delta_total_list[0].t(),
-                &delta_total_list[1].t()
+                &batch_weight_gradients[0].t(),
+                &batch_weight_gradients[1].t()
             );
         }
     }
