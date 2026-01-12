@@ -6,10 +6,10 @@
 Learning and inference are performed by extending it to a continuous XOR function.
 Note that by adding cross terms to the input, the model is realized as a single-layer neural network.
 
-[stem,latexmath]
-++++
+[stem,math]
+----
 y = w_0 + w_1*x_1 + w_2*x_2 + w_3(x_1*x_2)
-++++
+----
 
 [source,shell]
 .Run the example 1
