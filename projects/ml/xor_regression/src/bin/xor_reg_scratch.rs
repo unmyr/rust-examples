@@ -226,23 +226,33 @@ fn main() {
     let n_samples = 20000;
 
     let mut layers: Vec<(ndarray::Array2<f64>, ndarray::Array2<f64>, Activation)> = Vec::new();
+    let input_size: usize = 2;
+    let output_size: usize = 2;
     if init_random_value {
-        let h = ndarray::Array2::from_shape_fn((2, 2), |_| rng.random_range(-0.5..0.5));
-        let bias = ndarray::Array2::from_shape_fn((2, 1), |_| rng.random_range(-0.5..0.5));
+        let h = ndarray::Array2::from_shape_fn((output_size, input_size), |_| {
+            rng.random_range(-0.5..0.5)
+        });
+        let bias =
+            ndarray::Array2::from_shape_fn((output_size, 1), |_| rng.random_range(-0.5..0.5));
         layers.push((h, bias, hidden_activation.clone()));
     } else {
-        let h = ndarray::arr2::<f64, 2>(&[[0.1, 0.2], [0.3, 0.4]]);
-        let bias = ndarray::arr2::<f64, 1>(&[[0.1], [0.1]]);
+        let h = ndarray::array![[0.1, 0.2], [0.3, 0.4]];
+        let bias = ndarray::array![[0.1], [0.1]];
         layers.push((h, bias, hidden_activation.clone()));
     }
 
+    let input_size: usize = 2;
+    let output_size: usize = 1;
     if init_random_value {
-        let h = ndarray::Array2::from_shape_fn((1, 2), |_| rng.random_range(-0.5..0.5));
-        let bias = ndarray::Array2::from_shape_fn((1, 1), |_| rng.random_range(-0.5..0.5));
+        let h = ndarray::Array2::from_shape_fn((output_size, input_size), |_| {
+            rng.random_range(-0.5..0.5)
+        });
+        let bias =
+            ndarray::Array2::from_shape_fn((output_size, 1), |_| rng.random_range(-0.5..0.5));
         layers.push((h, bias, output_activation.clone()));
     } else {
-        let h = ndarray::arr2::<f64, 2>(&[[0.5, 0.6]]);
-        let bias = ndarray::arr2::<f64, 1>(&[[0.1]]);
+        let h = ndarray::array![[0.5, 0.6]];
+        let bias = ndarray::array![[0.1]];
         layers.push((h, bias, output_activation.clone()));
     }
 
