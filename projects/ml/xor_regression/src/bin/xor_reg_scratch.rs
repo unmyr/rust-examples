@@ -206,7 +206,7 @@ fn plot_result(layers: &Vec<LayerConfig<f64>>) {
     let xor_continuous_pred = |x: f64, y: f64| {
         let in_2d_col_vec = ndarray::array![[x], [y]];
         let activations = forward(&in_2d_col_vec.view(), layers);
-        let pred = &activations[2].0[[0, 0]];
+        let pred = &activations.last().unwrap().0[[0, 0]];
         return pred.clone();
     };
 
