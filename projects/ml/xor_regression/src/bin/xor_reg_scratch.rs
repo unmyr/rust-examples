@@ -1,7 +1,9 @@
+use std::time::Instant;
+
 use clap::Parser;
 use num_traits::Float;
+use plotters::prelude::*;
 use rand::Rng;
-use std::time::Instant;
 
 #[derive(clap::Parser)]
 struct Args {
@@ -199,6 +201,48 @@ fn train<T: Float + 'static>(
     (grad_list, batch_weight_gradients, loss)
 }
 
+fn plot_result(layers: &Vec<LayerConfig<f64>>) {
+
+    let xor_continuous_pred = |x: f64, y: f64| {
+        let in_2d_col_vec = ndarray::array![[x], [y]];
+        let activations = forward(&in_2d_col_vec.view(), layers);
+        let pred = &activations[2].0[[0, 0]];
+        return pred.clone();
+    };
+
+    let root = BitMapBackend::gif("images/xor_reg_scratch.gif", (600, 400), 100).unwrap().into_drawing_area();
+    for pitch in 0..157 {
+        root.fill(&WHITE).unwrap();
+
+        let mut chart = ChartBuilder::on(&root)
+            .caption("Continuous XOR Approximation", ("sans-serif", 20))
+            .build_cartesian_3d(-0.1..1.0, -0.1..1.0, -0.1..1.0).unwrap();
+        chart.with_projection(|mut p| {
+            p.pitch = 1.57 - (1.57 - pitch as f64 / 50.0).abs();
+            p.scale = 0.7;
+            p.into_matrix() // build the projection matrix
+        });
+
+        chart
+            .configure_axes()
+            .light_grid_style(BLACK.mix(0.15))
+            .max_light_lines(3)
+            .draw().ok();
+
+        #[allow(unused)]
+        chart.draw_series(
+            SurfaceSeries::xoz(
+                (-2..=20).map(|i| i as f64 * 0.05),
+                (-2..=20).map(|i| i as f64 * 0.05),
+                xor_continuous_pred,
+            )
+            .style_func(&|&v| (VulcanoHSL::get_color(v * 1.0)).into()),
+        );
+
+        root.present().ok();
+    }
+}
+
 fn main() {
     // Parse command-line arguments
     let args = Args::parse();
@@ -378,4 +422,6 @@ fn main() {
         "Accuracy: {:.2}%",
         (correct_counts as f64 / (test_batch_size as f64)) * 100.0
     );
+
+    plot_result(&layers);
 }
