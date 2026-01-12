@@ -7,8 +7,17 @@ use rand::Rng;
 
 #[derive(clap::Parser)]
 struct Args {
+    #[arg(
+        short = 'n',
+        long = "n-samples",
+        default_value = "20000",
+        action = clap::ArgAction::Set,
+        help = "Max number of training samples"
+    )]
+    n_samples: usize,
+
     /// Activation function for hidden layers (identity, relu, sigmoid, tanh)
-    #[clap(
+    #[arg(
         long = "hidden-activation",
         default_value = "sigmoid",
         help = "Sets the activation function for hidden layers (identity, relu, sigmoid, tanh)"
@@ -16,7 +25,7 @@ struct Args {
     hidden_activation: String,
 
     /// Activation function for output layer (identity, relu, sigmoid, tanh)
-    #[clap(
+    #[arg(
         long = "output-activation",
         default_value = "sigmoid",
         help = "Sets the activation function for output layer (identity, relu, sigmoid, tanh)"
@@ -282,15 +291,14 @@ fn main() {
     };
 
     let mut rng = rand::rng();
-    let init_random_value = true;
 
     // Test predictions
-    let n_samples = 20000;
+    let n_samples = args.n_samples;
 
     let mut layers: Vec<LayerConfig<f64>> = Vec::new();
     let input_size: usize = 2;
     let output_size: usize = 2;
-    if init_random_value {
+    if n_samples > 1 {
         let h = ndarray::Array2::from_shape_fn((output_size, input_size), |_| {
             rng.random_range(-0.5..0.5)
         });
@@ -307,7 +315,7 @@ fn main() {
 
     let input_size: usize = 2;
     let output_size: usize = 1;
-    if init_random_value {
+    if n_samples > 1 {
         let h = ndarray::Array2::from_shape_fn((output_size, input_size), |_| {
             rng.random_range(-0.5..0.5)
         });
