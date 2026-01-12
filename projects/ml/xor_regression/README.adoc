@@ -26,3 +26,6 @@ Input: [0.0, 1.0, 0.0] => Predicted: 1.000
 Input: [1.0, 0.0, 0.0] => Predicted: 1.000
 Input: [1.0, 1.0, 1.0] => Predicted: -0.000
 ----
+
+.Output png image for example 1
+image::../images/xor_reg1.gif[]
