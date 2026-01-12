@@ -42,6 +42,22 @@ impl std::fmt::Display for Activation {
     }
 }
 
+struct LayerConfig<T: Float> {
+    weight: ndarray::Array2<T>,
+    bias: ndarray::Array2<T>,
+    act: Activation,
+}
+
+impl<T: Float> LayerConfig<T> {
+    pub fn new(
+        weight: ndarray::Array2<T>,
+        bias: ndarray::Array2<T>,
+        act: Activation,
+    ) -> LayerConfig<T> {
+        LayerConfig { weight, bias, act }
+    }
+}
+
 // Identity function (does nothing)
 fn identity<T>(x: T) -> T {
     x
@@ -98,55 +114,57 @@ fn xor_continuous<T: Float>(x1: T, x2: T) -> T {
 
 fn forward<T: Float + 'static>(
     input: &ndarray::ArrayView2<T>,
-    layers: &Vec<(ndarray::Array2<T>, ndarray::Array2<T>, Activation)>,
+    layers: &Vec<LayerConfig<T>>,
 ) -> Vec<(ndarray::Array2<T>, Activation)> {
     let current_input = input.clone().into_owned();
     let mut activations = vec![(current_input, Activation::Identity)];
 
     for layer in layers.iter() {
-        let (weight, bias, act) = layer;
-        let w_out = weight.dot(&activations.last().unwrap().0.view()) + bias;
-        let w_out_s = match act {
+        let w_out = &layer.weight.dot(&activations.last().unwrap().0.view()) + &layer.bias;
+        let w_out_s = match &layer.act {
             Activation::Identity => w_out.mapv(identity),
             Activation::ReLU => w_out.mapv(relu),
             Activation::Sigmoid => w_out.mapv(sigmoid),
             Activation::Tanh => w_out.mapv(tanh),
         };
         let current_input = w_out_s;
-        activations.push((current_input, act.clone()));
+        activations.push((current_input, layer.act.clone()));
     }
 
     activations
 }
 
-fn train(
-    train_inputs: &ndarray::Array2<f64>,
-    train_answers_ref: &ndarray::Array2<f64>,
-    layers: &Vec<(ndarray::Array2<f64>, ndarray::Array2<f64>, Activation)>,
-) -> (Vec<ndarray::Array2<f64>>, Vec<ndarray::Array2<f64>>, f64) {
+fn train<T: Float + 'static>(
+    train_inputs: &ndarray::Array2<T>,
+    train_answers_ref: &ndarray::Array2<T>,
+    layers: &Vec<LayerConfig<T>>,
+) -> (Vec<ndarray::Array2<T>>, Vec<ndarray::Array2<T>>, T) {
     let mini_batch_size = train_inputs.shape()[1];
     // Squared errors in the output layer
     let mut loss_terms =
-        ndarray::Array2::<f64>::zeros((layers.last().unwrap().0.shape()[0], mini_batch_size));
+        ndarray::Array2::<T>::zeros((layers.last().unwrap().weight.shape()[0], mini_batch_size));
 
-    let mut grad_list: Vec<ndarray::Array2<f64>> = Vec::new();
-    let mut batch_weight_gradients: Vec<ndarray::Array2<f64>> = Vec::new();
+    let mut grad_list: Vec<ndarray::Array2<T>> = Vec::new();
+    let mut batch_weight_gradients: Vec<ndarray::Array2<T>> = Vec::new();
 
     // Accumulate the gradient for each sample
     (0..layers.len()).for_each(|i| {
-        grad_list.push(ndarray::Array2::zeros(layers[i].0.dim()));
-        batch_weight_gradients.push(ndarray::Array2::<f64>::zeros((layers[i].0.shape()[0], 1)));
+        grad_list.push(ndarray::Array2::zeros(layers[i].weight.dim()));
+        batch_weight_gradients.push(ndarray::Array2::<T>::zeros((
+            layers[i].weight.shape()[0],
+            1,
+        )));
     });
 
     for (i, in_1d_vec_view) in train_inputs.columns().into_iter().enumerate() {
         let in_2d_col_vec = in_1d_vec_view.insert_axis(ndarray::Axis(1));
-        let activations = forward::<f64>(&in_2d_col_vec.view(), &layers);
+        let activations = forward::<T>(&in_2d_col_vec.view(), layers);
 
         let mut cur_gradients;
         cur_gradients = &activations.last().unwrap().0 - &train_answers_ref.column(i);
         loss_terms
             .column_mut(i)
-            .assign(&cur_gradients.column(0).powf(2.));
+            .assign(&cur_gradients.column(0).powf(T::one() + T::one()));
 
         for layer_no in (0..layers.len()).rev().into_iter() {
             let a_idx = layer_no + 1;
@@ -167,17 +185,17 @@ fn train(
             };
 
             // Calculate gradients in a loop (using cross products)
-            grad_list[layer_no] += &delta.dot(&l_input.t());
+            grad_list[layer_no].scaled_add(T::one(), &delta.dot(&l_input.t()));
             batch_weight_gradients[layer_no]
                 .column_mut(0)
-                .scaled_add(1., &delta.column(0));
+                .scaled_add(T::one(), &delta.column(0));
 
             // Next error inputs
-            cur_gradients = layers[layer_no].0.t().dot(&delta);
+            cur_gradients = layers[layer_no].weight.t().dot(&delta);
         }
     }
 
-    let loss = loss_terms.sum() / (mini_batch_size as f64);
+    let loss = loss_terms.sum() / T::from(mini_batch_size).unwrap();
     (grad_list, batch_weight_gradients, loss)
 }
 
@@ -225,7 +243,7 @@ fn main() {
     // Test predictions
     let n_samples = 20000;
 
-    let mut layers: Vec<(ndarray::Array2<f64>, ndarray::Array2<f64>, Activation)> = Vec::new();
+    let mut layers: Vec<LayerConfig<f64>> = Vec::new();
     let input_size: usize = 2;
     let output_size: usize = 2;
     if init_random_value {
@@ -234,11 +252,13 @@ fn main() {
         });
         let bias =
             ndarray::Array2::from_shape_fn((output_size, 1), |_| rng.random_range(-0.5..0.5));
-        layers.push((h, bias, hidden_activation.clone()));
+        let layer = LayerConfig::<f64>::new(h, bias, hidden_activation.clone());
+        layers.push(layer);
     } else {
         let h = ndarray::array![[0.1, 0.2], [0.3, 0.4]];
         let bias = ndarray::array![[0.1], [0.1]];
-        layers.push((h, bias, hidden_activation.clone()));
+        let layer = LayerConfig::<f64>::new(h, bias, hidden_activation.clone());
+        layers.push(layer);
     }
 
     let input_size: usize = 2;
@@ -249,11 +269,13 @@ fn main() {
         });
         let bias =
             ndarray::Array2::from_shape_fn((output_size, 1), |_| rng.random_range(-0.5..0.5));
-        layers.push((h, bias, output_activation.clone()));
+        let layer = LayerConfig::<f64>::new(h, bias, hidden_activation.clone());
+        layers.push(layer);
     } else {
         let h = ndarray::array![[0.5, 0.6]];
         let bias = ndarray::array![[0.1]];
-        layers.push((h, bias, output_activation.clone()));
+        let layer = LayerConfig::<f64>::new(h, bias, hidden_activation.clone());
+        layers.push(layer);
     }
 
     let learning_rate = 0.5;
@@ -285,9 +307,14 @@ fn main() {
 
         // Update weight and bias
         (0..layers.len()).for_each(|i| {
-            layers[i].0 = &layers[i].0 - &grad_list[i] * learning_rate / (mini_batch_size as f64);
-            layers[i].1 = &layers[i].1
-                - learning_rate * &batch_weight_gradients[i] / (mini_batch_size as f64);
+            layers[i].weight.scaled_add(
+                -1.,
+                &(&grad_list[i] * learning_rate / (mini_batch_size as f64)),
+            );
+            layers[i].bias.scaled_add(
+                -1.,
+                &(learning_rate * &batch_weight_gradients[i] / (mini_batch_size as f64)),
+            );
         });
 
         if n == 0 || n % 1000 == 999 {
@@ -316,7 +343,7 @@ fn main() {
     );
     println!("== Trained ===");
     for (i, layer) in layers.iter().enumerate() {
-        println!("layer[{i}]={:.4}", &layer.0);
+        println!("layer[{i}]={:.4}", &layer.weight);
     }
 
     println!("\n== XOR Predictions ==");
