@@ -53,6 +53,7 @@ impl std::fmt::Display for Activation {
     }
 }
 
+#[derive(Debug)]
 struct LayerConfig<T: Float> {
     weight: ndarray::Array2<T>,
     bias: ndarray::Array2<T>,
@@ -145,11 +146,16 @@ fn forward<T: Float + 'static>(
     activations
 }
 
-fn train<T: Float + 'static>(
+fn train<T: Float + std::fmt::Debug + 'static>(
     train_inputs: &ndarray::Array2<T>,
     train_answers_ref: &ndarray::Array2<T>,
     layers: &Vec<LayerConfig<T>>,
-) -> (Vec<ndarray::Array2<T>>, Vec<ndarray::Array2<T>>, T) {
+) -> (
+    Vec<ndarray::Array2<T>>,
+    Vec<ndarray::Array2<T>>,
+    T,
+    Vec<ndarray::Array2<T>>,
+) {
     let mini_batch_size = train_inputs.shape()[1];
     // Squared errors in the output layer
     let mut loss_terms =
@@ -157,6 +163,7 @@ fn train<T: Float + 'static>(
 
     let mut grad_list: Vec<ndarray::Array2<T>> = Vec::new();
     let mut batch_weight_gradients: Vec<ndarray::Array2<T>> = Vec::new();
+    let mut trace_outputs: Vec<ndarray::Array2<T>> = Vec::new();
 
     // Accumulate the gradient for each sample
     (0..layers.len()).for_each(|i| {
@@ -165,6 +172,7 @@ fn train<T: Float + 'static>(
             layers[i].weight.shape()[0],
             1,
         )));
+        trace_outputs.push(ndarray::Array2::zeros((layers[i].weight.dim().0, 1)));
     });
 
     for (i, in_1d_vec_view) in train_inputs.columns().into_iter().enumerate() {
@@ -201,17 +209,23 @@ fn train<T: Float + 'static>(
                 .column_mut(0)
                 .scaled_add(T::one(), &delta.column(0));
 
+            // Trace outputs
+            trace_outputs[layer_no].scaled_add(T::one(), &l_output.clone());
+
             // Next error inputs
             cur_gradients = layers[layer_no].weight.t().dot(&delta);
         }
     }
 
+    trace_outputs
+        .iter_mut()
+        .for_each(|v| v.mapv_inplace(|u| u / T::from(mini_batch_size).unwrap()));
+
     let loss = loss_terms.sum() / T::from(mini_batch_size).unwrap();
-    (grad_list, batch_weight_gradients, loss)
+    (grad_list, batch_weight_gradients, loss, trace_outputs)
 }
 
 fn plot_result(layers: &Vec<LayerConfig<f64>>) {
-
     let xor_continuous_pred = |x: f64, y: f64| {
         let in_2d_col_vec = ndarray::array![[x], [y]];
         let activations = forward(&in_2d_col_vec.view(), layers);
@@ -219,13 +233,16 @@ fn plot_result(layers: &Vec<LayerConfig<f64>>) {
         return pred.clone();
     };
 
-    let root = BitMapBackend::gif("images/xor_reg_scratch.gif", (600, 400), 100).unwrap().into_drawing_area();
+    let root = BitMapBackend::gif("images/xor_reg_scratch.gif", (600, 400), 100)
+        .unwrap()
+        .into_drawing_area();
     for pitch in 0..157 {
         root.fill(&WHITE).unwrap();
 
         let mut chart = ChartBuilder::on(&root)
             .caption("Continuous XOR Approximation", ("sans-serif", 20))
-            .build_cartesian_3d(-0.1..1.0, -0.1..1.0, -0.1..1.0).unwrap();
+            .build_cartesian_3d(-0.1..1.0, -0.1..1.0, -0.1..1.0)
+            .unwrap();
         chart.with_projection(|mut p| {
             p.pitch = 1.57 - (1.57 - pitch as f64 / 50.0).abs();
             p.scale = 0.7;
@@ -236,7 +253,8 @@ fn plot_result(layers: &Vec<LayerConfig<f64>>) {
             .configure_axes()
             .light_grid_style(BLACK.mix(0.15))
             .max_light_lines(3)
-            .draw().ok();
+            .draw()
+            .ok();
 
         #[allow(unused)]
         chart.draw_series(
@@ -337,6 +355,13 @@ fn main() {
         "learning_rate={}, n_samples={}, mini_batch_size={}, hidden_activation={:?} output_activation={:?}",
         learning_rate, n_samples, mini_batch_size, hidden_activation, output_activation
     );
+
+    let mut trace_all: Vec<Vec<_>> = Vec::new();
+    (0..layers.len()).for_each(|_| {
+        let v: Vec<Vec<f64>> = Vec::new();
+        trace_all.push(v);
+    });
+
     let t_0 = Instant::now();
     for n in 0..n_samples {
         let train_inputs: ndarray::Array2<f64>;
@@ -354,8 +379,12 @@ fn main() {
             .into_shape_with_order((1, mini_batch_size))
             .unwrap();
 
-        let (grad_list, batch_weight_gradients, loss) =
+        let (grad_list, batch_weight_gradients, loss, trace_outputs) =
             train(&train_inputs, &train_answers, &layers);
+        (0..layers.len()).for_each(|layer_idx| {
+            let (v, _offset) = &trace_outputs[layer_idx].clone().into_raw_vec_and_offset();
+            trace_all[layer_idx].push(v.to_vec());
+        });
 
         // Update weight and bias
         (0..layers.len()).for_each(|i| {
@@ -396,6 +425,54 @@ fn main() {
     println!("== Trained ===");
     for (i, layer) in layers.iter().enumerate() {
         println!("layer[{i}]={:.4}", &layer.weight);
+    }
+
+    // Plot traces
+    for (layer_idx, trace_in_layer) in trace_all.iter().enumerate() {
+        let path = format!("images/xor_reg_scratch_{:02}.png", layer_idx);
+        let root_area = BitMapBackend::new(&path, (600, 400)).into_drawing_area();
+        root_area.fill(&WHITE).unwrap();
+
+        // Draw chart for each weight
+        let mut chart = ChartBuilder::on(&root_area)
+            .caption(
+                format!(
+                    "The average output of a mini-batch: (Layer:{:0})",
+                    layer_idx
+                ),
+                ("sans-serif", 20),
+            )
+            .margin(10)
+            .margin_right(30)
+            .x_label_area_size(30)
+            .y_label_area_size(40)
+            .build_cartesian_2d((-5.)..(n_samples as f64 + 10_f64), -0.1..1.0)
+            .unwrap();
+        chart
+            .configure_mesh()
+            .x_label_formatter(&|v| format!("{:.0}", v))
+            .y_label_formatter(&|v| format!("{:.1}", v))
+            .x_desc("n samples")
+            .y_desc("weights")
+            .draw()
+            .ok();
+        let series_len = trace_in_layer[0].len();
+        (0..series_len).for_each(|idx| {
+            let mut i: usize = 0;
+            let color = Palette99::pick(idx).mix(0.9);
+            chart
+                .draw_series(LineSeries::new(
+                    trace_in_layer.iter().map(|v| {
+                        i += 1;
+                        (i as f64, v[idx])
+                    }),
+                    color.stroke_width(2),
+                ))
+                .unwrap()
+                .label(format!("w{:?}", i))
+                .legend(move |(x, y)| Rectangle::new([(x, y), (x + 10, y + 1)], color.filled()));
+        });
+        println!("Saved the figure to: {}", path);
     }
 
     println!("\n== XOR Predictions ==");
