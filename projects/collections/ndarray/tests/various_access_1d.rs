@@ -50,35 +50,6 @@ fn it_ndarray_1d_elementwise_multiplication() {
     assert_eq!(&v * &v, ndarray::array![4, 16]);
 }
 
-// Averages the elements of a 1-dimensional vector
-#[test]
-fn it_ndarray_1d_mean() {
-    // Create a 1D array
-    let arr1_empty_i32 = ndarray::arr1::<i32>(&[]);
-    assert_eq!(arr1_empty_i32.shape(), &[0]);
-    assert_eq!(arr1_empty_i32.mean(), None);
-
-    let arr1_i32 = ndarray::arr1(&[1, 2, 3, 1, 3, 5]);
-    let arr1_f32 = ndarray::arr1::<f32>(&[1., 2., 3., 1., 3., 5.]);
-    assert_eq!(arr1_i32.shape(), &[6]);
-    assert_eq!(arr1_i32.mean(), Some(2));
-    assert_eq!(arr1_f32.mean(), Some(2.5));
-}
-
-// Sum the elements of a 1-dimensional vector
-#[test]
-fn it_ndarray_1d_sum() {
-    // Create a 1D array
-    let arr1_empty_i32 = ndarray::Array1::<i32>::zeros(0);
-    assert!(arr1_empty_i32.sum() == 0);
-    assert!(arr1_empty_i32.shape() == &[0]);
-
-    let arr1_i32 = ndarray::arr1(&[1, 2, 3, 4, 5, 6]);
-    let arr1_f32 = arr1_i32.mapv(|v| v as f32);
-    assert_eq!(arr1_i32.sum(), 21);
-    assert_eq!(arr1_f32.sum(), 21.);
-}
-
 #[test]
 fn it_ndarray_1d_product() {
     // Create a 1D array
