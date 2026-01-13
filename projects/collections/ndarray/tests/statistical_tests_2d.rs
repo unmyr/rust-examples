@@ -54,3 +54,55 @@ fn it_ndarray_2d_mean_and_var_each_rows() {
     assert_eq!(&m2_var_by_row[1], &m2.row(1).var(0.));
     assert_eq!(&m2_var_by_row[2], &m2.row(2).var(0.));
 }
+
+#[test]
+fn it_vec_and_ndarray_2d() {
+    // Calculate the average for each row
+    let mut v_list: Vec<ndarray::Array2<f32>> = Vec::new();
+    v_list.push(ndarray::array![[3., 3., 3.], [2., 3., 4.], [1., 2., 12.]]);
+    v_list.push(ndarray::array![[3., 3., 3.], [2., 3., 4.]]);
+
+    let trace_mean = v_list
+        .iter()
+        .map(|v| v.mean_axis(ndarray::Axis(1)).unwrap())
+        .collect::<Vec<_>>();
+    println!("trace_mean={:?}", trace_mean);
+    let mean_0 = v_list[0]
+        .rows()
+        .into_iter()
+        .map(|column| column.mean().unwrap())
+        .collect::<ndarray::Array1<f32>>();
+    let mean_1 = v_list[1]
+        .rows()
+        .into_iter()
+        .map(|column| column.mean().unwrap())
+        .collect::<ndarray::Array1<f32>>();
+    println!("mean_0={:?}", mean_0);
+    println!("mean_1={:?}", mean_1);
+    assert_eq!(trace_mean[0], ndarray::arr1(&[3.0, 3.0, 5.0]));
+    assert_eq!(trace_mean[0], mean_0);
+    assert_eq!(trace_mean[1], ndarray::arr1(&[3.0, 3.0]));
+    assert_eq!(trace_mean[1], mean_1);
+
+    let trace_var = v_list
+        .iter()
+        .map(|v| v.var_axis(ndarray::Axis(1), 0.))
+        .collect::<Vec<_>>();
+    println!("trace_var={:?}", trace_var);
+    let var_0 = v_list[0]
+        .rows()
+        .into_iter()
+        .map(|column| column.var(0.))
+        .collect::<ndarray::Array1<f32>>();
+    let var_1 = v_list[1]
+        .rows()
+        .into_iter()
+        .map(|column| column.var(0.))
+        .collect::<ndarray::Array1<f32>>();
+    println!("var_0={:?}", var_0);
+    println!("var_1={:?}", var_1);
+    assert_eq!(trace_var[0], ndarray::array![0.0, 0.6666667, 24.666666]);
+    assert_eq!(trace_var[0], var_0);
+    assert_eq!(trace_var[1], ndarray::array![0.0, 0.6666667]);
+    assert_eq!(trace_var[1], var_1);
+}
