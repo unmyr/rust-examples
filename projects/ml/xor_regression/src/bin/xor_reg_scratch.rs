@@ -1,7 +1,7 @@
 use std::time::Instant;
 
 use clap::Parser;
-use num_traits::Float;
+use num_traits::{Float, FromPrimitive};
 use plotters::prelude::*;
 use rand::Rng;
 
@@ -146,7 +146,7 @@ fn forward<T: Float + 'static>(
     activations
 }
 
-fn train<T: Float + std::fmt::Debug + 'static>(
+fn train<T: Float + std::fmt::Debug + FromPrimitive + 'static>(
     train_inputs: &ndarray::Array2<T>,
     train_answers_ref: &ndarray::Array2<T>,
     layers: &Vec<LayerConfig<T>>,
@@ -154,7 +154,8 @@ fn train<T: Float + std::fmt::Debug + 'static>(
     Vec<ndarray::Array2<T>>,
     Vec<ndarray::Array2<T>>,
     T,
-    Vec<ndarray::Array2<T>>,
+    Vec<ndarray::Array1<T>>,
+    Vec<ndarray::Array1<T>>,
 ) {
     let mini_batch_size = train_inputs.shape()[1];
     // Squared errors in the output layer
@@ -172,7 +173,10 @@ fn train<T: Float + std::fmt::Debug + 'static>(
             layers[i].weight.shape()[0],
             1,
         )));
-        trace_outputs.push(ndarray::Array2::zeros((layers[i].weight.dim().0, 1)));
+        trace_outputs.push(ndarray::Array2::zeros((
+            layers[i].weight.dim().0,
+            mini_batch_size,
+        )));
     });
 
     for (i, in_1d_vec_view) in train_inputs.columns().into_iter().enumerate() {
@@ -210,19 +214,32 @@ fn train<T: Float + std::fmt::Debug + 'static>(
                 .scaled_add(T::one(), &delta.column(0));
 
             // Trace outputs
-            trace_outputs[layer_no].scaled_add(T::one(), &l_output.clone());
+            trace_outputs[layer_no]
+                .column_mut(i)
+                .assign(&l_output.clone().remove_axis(ndarray::Axis(1)));
 
             // Next error inputs
             cur_gradients = layers[layer_no].weight.t().dot(&delta);
         }
     }
 
-    trace_outputs
-        .iter_mut()
-        .for_each(|v| v.mapv_inplace(|u| u / T::from(mini_batch_size).unwrap()));
+    let trace_mean = trace_outputs
+        .iter()
+        .map(|v| v.mean_axis(ndarray::Axis(1)).unwrap())
+        .collect::<Vec<_>>();
+    let trace_var = trace_outputs
+        .iter()
+        .map(|v| v.var_axis(ndarray::Axis(1), T::zero()))
+        .collect::<Vec<_>>();
 
     let loss = loss_terms.sum() / T::from(mini_batch_size).unwrap();
-    (grad_list, batch_weight_gradients, loss, trace_outputs)
+    (
+        grad_list,
+        batch_weight_gradients,
+        loss,
+        trace_mean,
+        trace_var,
+    )
 }
 
 fn plot_result(layers: &Vec<LayerConfig<f64>>) {
@@ -356,10 +373,13 @@ fn main() {
         learning_rate, n_samples, mini_batch_size, hidden_activation, output_activation
     );
 
-    let mut trace_all: Vec<Vec<_>> = Vec::new();
+    let mut trace_means_all: Vec<Vec<_>> = Vec::new();
+    let mut trace_vars_all: Vec<Vec<_>> = Vec::new();
     (0..layers.len()).for_each(|_| {
         let v: Vec<Vec<f64>> = Vec::new();
-        trace_all.push(v);
+        trace_means_all.push(v);
+        let v: Vec<Vec<f64>> = Vec::new();
+        trace_vars_all.push(v);
     });
 
     let t_0 = Instant::now();
@@ -379,11 +399,13 @@ fn main() {
             .into_shape_with_order((1, mini_batch_size))
             .unwrap();
 
-        let (grad_list, batch_weight_gradients, loss, trace_outputs) =
+        let (grad_list, batch_weight_gradients, loss, trace_means, trace_vars) =
             train(&train_inputs, &train_answers, &layers);
         (0..layers.len()).for_each(|layer_idx| {
-            let (v, _offset) = &trace_outputs[layer_idx].clone().into_raw_vec_and_offset();
-            trace_all[layer_idx].push(v.to_vec());
+            let (v, _offset) = &trace_means[layer_idx].clone().into_raw_vec_and_offset();
+            trace_means_all[layer_idx].push(v.to_vec());
+            let (v, _offset) = &trace_vars[layer_idx].clone().into_raw_vec_and_offset();
+            trace_vars_all[layer_idx].push(v.to_vec());
         });
 
         // Update weight and bias
@@ -428,8 +450,8 @@ fn main() {
     }
 
     // Plot traces
-    for (layer_idx, trace_in_layer) in trace_all.iter().enumerate() {
-        let path = format!("images/xor_reg_scratch_{:02}.png", layer_idx);
+    for (layer_idx, trace_in_layer) in trace_means_all.iter().enumerate() {
+        let path = format!("images/xor_reg_scratch_{:02}_mean.png", layer_idx);
         let root_area = BitMapBackend::new(&path, (600, 400)).into_drawing_area();
         root_area.fill(&WHITE).unwrap();
 
@@ -437,8 +459,58 @@ fn main() {
         let mut chart = ChartBuilder::on(&root_area)
             .caption(
                 format!(
-                    "The average output of a mini-batch: (Layer:{:0})",
-                    layer_idx
+                    "The average output of a mini-batch: (Layer:{:0}; {:?})",
+                    layer_idx,
+                    trace_in_layer[0].len()
+                ),
+                ("sans-serif", 20),
+            )
+            .margin(10)
+            .margin_right(30)
+            .x_label_area_size(30)
+            .y_label_area_size(40)
+            .build_cartesian_2d((-5.)..(n_samples as f64 + 10_f64), -0.1..1.0)
+            .unwrap();
+        chart
+            .configure_mesh()
+            .x_label_formatter(&|v| format!("{:.0}", v))
+            .y_label_formatter(&|v| format!("{:.1}", v))
+            .x_desc("n samples")
+            .y_desc("weights")
+            .draw()
+            .ok();
+        let series_len = trace_in_layer[0].len();
+        (0..series_len).for_each(|idx| {
+            let mut i: usize = 0;
+            let color = Palette99::pick(idx).mix(0.9);
+            chart
+                .draw_series(LineSeries::new(
+                    trace_in_layer.iter().map(|v| {
+                        i += 1;
+                        (i as f64, v[idx])
+                    }),
+                    color.stroke_width(2),
+                ))
+                .unwrap()
+                .label(format!("w{:?}", i))
+                .legend(move |(x, y)| Rectangle::new([(x, y), (x + 10, y + 1)], color.filled()));
+        });
+        println!("Saved the figure to: {}", path);
+    }
+
+    // Plot traces
+    for (layer_idx, trace_in_layer) in trace_vars_all.iter().enumerate() {
+        let path = format!("images/xor_reg_scratch_{:02}_var.png", layer_idx);
+        let root_area = BitMapBackend::new(&path, (600, 400)).into_drawing_area();
+        root_area.fill(&WHITE).unwrap();
+
+        // Draw chart for each weight
+        let mut chart = ChartBuilder::on(&root_area)
+            .caption(
+                format!(
+                    "The variance output of a mini-batch: (Layer:{:0}; {:?})",
+                    layer_idx,
+                    trace_in_layer[0].len()
                 ),
                 ("sans-serif", 20),
             )
