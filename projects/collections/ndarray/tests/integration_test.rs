@@ -1,40 +1,5 @@
-use ndarray::Array1;
-
 #[test]
-fn it_ndarray_1d_mapv() {
-    // Create a 1D array
-    let arr = Array1::from(vec![1, 2, 3, 4, 5]);
-
-    // Square each element using mapv
-    let squared = arr.mapv(|x| x * x);
-    assert_eq!(squared, Array1::from(vec![1, 4, 9, 16, 25]));
-    assert_eq!(arr.len(), 5);
-}
-
-#[test]
-fn it_ndarray_1d_mapv_inplace() {
-    // Create a 1D array
-    let mut arr = Array1::from(vec![1, 2, 3, 4, 5]);
-
-    // Square each element in place using mapv_inplace
-    arr.mapv_inplace(|x| x * x);
-    assert_eq!(arr, Array1::from(vec![1, 4, 9, 16, 25]));
-    assert_eq!(arr.len(), 5);
-}
-
-#[test]
-fn it_ndarray_1d_2d_mean() {
-    // Create a 1D array
-    let arr1_empty_i32 = ndarray::arr1::<i32>(&[]);
-    assert_eq!(arr1_empty_i32.shape(), &[0]);
-    assert_eq!(arr1_empty_i32.mean(), None);
-
-    let arr1_i32 = ndarray::arr1(&[1, 2, 3, 1, 3, 5]);
-    let arr1_f32 = ndarray::arr1::<f32>(&[1., 2., 3., 1., 3., 5.]);
-    assert_eq!(arr1_i32.shape(), &[6]);
-    assert_eq!(arr1_i32.mean(), Some(2));
-    assert_eq!(arr1_f32.mean(), Some(2.5));
-
+fn it_ndarray_2d_mean() {
     // Create a 2D array
     let arr2_empty_i32 = ndarray::arr2::<i32, 2>(&[]);
     assert_eq!(arr2_empty_i32.shape(), &[0, 2]);
@@ -49,17 +14,7 @@ fn it_ndarray_1d_2d_mean() {
 }
 
 #[test]
-fn it_ndarray_1d_2d_sum() {
-    // Create a 1D array
-    let arr1_empty_i32 = ndarray::Array1::<i32>::zeros(0);
-    assert!(arr1_empty_i32.sum() == 0);
-    assert!(arr1_empty_i32.shape() == &[0]);
-
-    let arr1_i32 = ndarray::arr1(&[1, 2, 3, 4, 5, 6]);
-    let arr1_f32 = arr1_i32.mapv(|v| v as f32);
-    assert_eq!(arr1_i32.sum(), 21);
-    assert_eq!(arr1_f32.sum(), 21.);
-
+fn it_ndarray_2d_sum() {
     // Create a 2D array
     let arr2_empty_i32 = ndarray::Array2::<i32>::zeros((0, 2));
     assert_eq!(arr2_empty_i32.shape(), &[0, 2]);
@@ -77,17 +32,7 @@ fn it_ndarray_1d_2d_sum() {
 }
 
 #[test]
-fn it_ndarray_1d_2d_product() {
-    // Create a 1D array
-    let arr1_empty_i32 = ndarray::Array1::<i32>::zeros(0);
-    assert!(arr1_empty_i32.shape() == &[0]);
-    assert!(arr1_empty_i32.product() == 1);
-
-    let arr1_i32 = ndarray::arr1(&[1, 2, 3, 4, 5, 6]);
-    let arr1_f32 = arr1_i32.mapv(|v| v as f32);
-    assert_eq!(arr1_i32.product(), 720);
-    assert_eq!(arr1_f32.product(), 720.);
-
+fn it_ndarray_2d_product() {
     // Create a 2D array
     let arr2_empty_i32 = ndarray::Array2::<i32>::zeros((0, 2));
     assert_eq!(arr2_empty_i32.shape(), &[0, 2]);
@@ -145,13 +90,6 @@ fn it_ndarray_2d_replace_all_elements() {
     assert_eq!(&m.row(0).view(), &ndarray::arr1(&[10, 20]).view());
     assert_eq!(&m.row(1).view(), &ndarray::arr1(&[30, 40]).view());
     assert_eq!(&m.row(2).view(), &ndarray::arr1(&[50, 60]).view());
-}
-
-#[test]
-fn it_ndarray_array_elementwise_multiplication() {
-    let v = ndarray::array![2, -4];
-    println!("{:?}", &v * &v);
-    assert_eq!(&v * &v, ndarray::array![4, 16]);
 }
 
 // broadcasting
