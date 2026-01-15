@@ -4,5 +4,6 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+ndarray = "0.17"
 pathfinder_simd = { version = "0.5", features = ["pf-no-simd"] }
 plotters = "0.3"

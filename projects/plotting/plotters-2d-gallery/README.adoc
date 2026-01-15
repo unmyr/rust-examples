@@ -22,3 +22,13 @@ cargo run --bin plotters_plot_labeled_points --release
 
 .Output image for example 2
 image::../images/plotters_plot_labeled_points.png[]
+
+=== Example 3: ML activation functions
+
+[source,shell]
+----
+cargo run --bin plotters_ml_activation --release
+----
+
+.ML activation functions
+image::../images/plotters_ml_activation.svg[]
