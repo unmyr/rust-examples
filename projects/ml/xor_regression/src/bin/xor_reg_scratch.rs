@@ -147,6 +147,7 @@ fn forward<T: Float + 'static>(
 }
 
 fn train<T: Float + std::fmt::Debug + FromPrimitive + 'static>(
+    iteration: &mut usize,
     train_inputs: &ndarray::Array2<T>,
     train_answers_ref: &ndarray::Array2<T>,
     layers: &Vec<LayerConfig<T>>,
@@ -180,6 +181,7 @@ fn train<T: Float + std::fmt::Debug + FromPrimitive + 'static>(
     });
 
     for (i, in_1d_vec_view) in train_inputs.columns().into_iter().enumerate() {
+        *iteration += 1;
         let in_2d_col_vec = in_1d_vec_view.insert_axis(ndarray::Axis(1));
         let activations = forward::<T>(&in_2d_col_vec.view(), layers);
 
@@ -283,6 +285,14 @@ fn plot_result(layers: &Vec<LayerConfig<f64>>) {
             .style_func(&|&v| (VulcanoHSL::get_color(v * 1.0)).into()),
         );
 
+        // Draw legend
+        chart
+            .configure_series_labels()
+            .border_style(BLACK)
+            .label_font(("Calibri", 20))
+            .draw()
+            .ok();
+
         root.present().ok();
     }
 }
@@ -382,6 +392,7 @@ fn main() {
         trace_vars_all.push(v);
     });
 
+    let mut iteration: usize = 0;
     let t_0 = Instant::now();
     for n in 0..n_samples {
         let train_inputs: ndarray::Array2<f64>;
@@ -400,12 +411,17 @@ fn main() {
             .unwrap();
 
         let (grad_list, batch_weight_gradients, loss, trace_means, trace_vars) =
-            train(&train_inputs, &train_answers, &layers);
+            train(&mut iteration, &train_inputs, &train_answers, &layers);
         (0..layers.len()).for_each(|layer_idx| {
             let (v, _offset) = &trace_means[layer_idx].clone().into_raw_vec_and_offset();
-            trace_means_all[layer_idx].push(v.to_vec());
+            let mut i_and_vec: Vec<f64> = vec![iteration as f64];
+            i_and_vec.append(&mut v.to_vec());
+            trace_means_all[layer_idx].push(i_and_vec);
+
             let (v, _offset) = &trace_vars[layer_idx].clone().into_raw_vec_and_offset();
-            trace_vars_all[layer_idx].push(v.to_vec());
+            let mut i_and_vec: Vec<f64> = vec![iteration as f64];
+            i_and_vec.append(&mut v.to_vec());
+            trace_vars_all[layer_idx].push(i_and_vec);
         });
 
         // Update weight and bias
@@ -421,7 +437,7 @@ fn main() {
         });
 
         if n == 0 || n % 1000 == 999 {
-            print!("[{:05}]: loss={:.4}", n + 1, loss,);
+            print!("[{:09}][{:05}]: loss={:.4}", iteration, n + 1, loss,);
             for layer_no in 0..layers.len() {
                 print!(
                     ", delta[{layer_no}]^T={:.4}",
@@ -429,13 +445,21 @@ fn main() {
                 );
             }
             println!("");
+            if loss < 0.002 {
+                println!(
+                    "INFO: Early stopping at iteration={} due to small loss={:.4}",
+                    iteration, loss
+                );
+                break;
+            }
         }
     }
 
-    println!("== Results ==");
+    println!("=== Results");
     let elapsed_time = t_0.elapsed();
     println!(
-        "learning_rate={}, n_samples={}, mini_batch_size={}, hidden_activation={:?}, output_activation={:?}, elapsed time={:.2}[s] {:?}[s/sample]",
+        "iteration={}, learning_rate={}, n_samples={}, mini_batch_size={}, hidden_activation={:?}, output_activation={:?}, elapsed time={:.2}[s] {:?}[s/sample]",
+        iteration,
         learning_rate,
         n_samples,
         mini_batch_size,
@@ -444,7 +468,8 @@ fn main() {
         elapsed_time.as_secs() as f32,
         (elapsed_time.as_secs() as f32) / (n_samples as f32)
     );
-    println!("== Trained ===");
+
+    println!("=== Trained");
     for (i, layer) in layers.iter().enumerate() {
         println!("layer[{i}]={:.4}", &layer.weight);
     }
@@ -456,12 +481,13 @@ fn main() {
         root_area.fill(&WHITE).unwrap();
 
         // Draw chart for each weight
+        // Number of weights
+        let n_weights = trace_in_layer[0].len() - 1;
         let mut chart = ChartBuilder::on(&root_area)
             .caption(
                 format!(
                     "The average output of a mini-batch: (Layer:{:0}; {:?})",
-                    layer_idx,
-                    trace_in_layer[0].len()
+                    layer_idx, n_weights
                 ),
                 ("sans-serif", 20),
             )
@@ -469,7 +495,7 @@ fn main() {
             .margin_right(30)
             .x_label_area_size(30)
             .y_label_area_size(40)
-            .build_cartesian_2d((-5.)..(n_samples as f64 + 10_f64), -0.1..1.0)
+            .build_cartesian_2d((1.)..(iteration as f64), -0.1..1.0)
             .unwrap();
         chart
             .configure_mesh()
@@ -480,21 +506,26 @@ fn main() {
             .draw()
             .ok();
         let series_len = trace_in_layer[0].len();
-        (0..series_len).for_each(|idx| {
-            let mut i: usize = 0;
-            let color = Palette99::pick(idx).mix(0.9);
+        (1..series_len).for_each(|w_idx| {
+            let color = Palette99::pick(w_idx).mix(0.9);
             chart
                 .draw_series(LineSeries::new(
-                    trace_in_layer.iter().map(|v| {
-                        i += 1;
-                        (i as f64, v[idx])
-                    }),
+                    trace_in_layer.iter().map(|v| (v[0] as f64, v[w_idx])),
                     color.stroke_width(2),
                 ))
                 .unwrap()
-                .label(format!("w{:?}", i))
+                .label(format!("w{:?}", w_idx))
                 .legend(move |(x, y)| Rectangle::new([(x, y), (x + 10, y + 1)], color.filled()));
         });
+
+        // Draw legend
+        chart
+            .configure_series_labels()
+            .border_style(BLACK)
+            .label_font(("Calibri", 20))
+            .draw()
+            .ok();
+
         println!("Saved the figure to: {}", path);
     }
 
@@ -505,12 +536,12 @@ fn main() {
         root_area.fill(&WHITE).unwrap();
 
         // Draw chart for each weight
+        let n_weights = trace_in_layer[0].len() - 1;
         let mut chart = ChartBuilder::on(&root_area)
             .caption(
                 format!(
                     "The variance output of a mini-batch: (Layer:{:0}; {:?})",
-                    layer_idx,
-                    trace_in_layer[0].len()
+                    layer_idx, n_weights
                 ),
                 ("sans-serif", 20),
             )
@@ -518,7 +549,7 @@ fn main() {
             .margin_right(30)
             .x_label_area_size(30)
             .y_label_area_size(40)
-            .build_cartesian_2d((-5.)..(n_samples as f64 + 10_f64), -0.1..1.0)
+            .build_cartesian_2d((1.)..(iteration as f64 + 10_f64), -0.1..1.0)
             .unwrap();
         chart
             .configure_mesh()
@@ -529,21 +560,26 @@ fn main() {
             .draw()
             .ok();
         let series_len = trace_in_layer[0].len();
-        (0..series_len).for_each(|idx| {
-            let mut i: usize = 0;
-            let color = Palette99::pick(idx).mix(0.9);
+        (1..series_len).for_each(|w_idx| {
+            let color = Palette99::pick(w_idx).mix(0.9);
             chart
                 .draw_series(LineSeries::new(
-                    trace_in_layer.iter().map(|v| {
-                        i += 1;
-                        (i as f64, v[idx])
-                    }),
+                    trace_in_layer.iter().map(|v| (v[0] as f64, v[w_idx])),
                     color.stroke_width(2),
                 ))
                 .unwrap()
-                .label(format!("w{:?}", i))
+                .label(format!("w{:?}", w_idx))
                 .legend(move |(x, y)| Rectangle::new([(x, y), (x + 10, y + 1)], color.filled()));
         });
+
+        // Draw legend
+        chart
+            .configure_series_labels()
+            .border_style(BLACK)
+            .label_font(("Calibri", 20))
+            .draw()
+            .ok();
+
         println!("Saved the figure to: {}", path);
     }
 
