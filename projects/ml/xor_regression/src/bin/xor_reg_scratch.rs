@@ -393,6 +393,7 @@ fn main() {
     });
 
     let mut iteration: usize = 0;
+    let mut total_trials: usize = 0;
     let t_0 = Instant::now();
     for n in 0..n_samples {
         let train_inputs: ndarray::Array2<f64>;
@@ -445,28 +446,30 @@ fn main() {
                 );
             }
             println!("");
-            if loss < 0.002 {
-                println!(
-                    "INFO: Early stopping at iteration={} due to small loss={:.4}",
-                    iteration, loss
-                );
-                break;
-            }
+        }
+
+        total_trials = n;
+        if loss < 0.002 {
+            println!(
+                "INFO: Early stopping at iteration={} due to small loss={:.4}",
+                iteration, loss
+            );
+            break;
         }
     }
 
     println!("=== Results");
     let elapsed_time = t_0.elapsed();
     println!(
-        "iteration={}, learning_rate={}, n_samples={}, mini_batch_size={}, hidden_activation={:?}, output_activation={:?}, elapsed time={:.2}[s] {:?}[s/sample]",
+        "iteration={}, mini_batch_size={}, total_trials={}, learning_rate={}, hidden_activation={:?}, output_activation={:?}, elapsed time={:.2}[s] {:?}[s/mini_batch]",
         iteration,
-        learning_rate,
-        n_samples,
         mini_batch_size,
+        total_trials,
+        learning_rate,
         hidden_activation,
         output_activation,
         elapsed_time.as_secs() as f32,
-        (elapsed_time.as_secs() as f32) / (n_samples as f32)
+        (elapsed_time.as_secs() as f32) / (total_trials as f32)
     );
 
     println!("=== Trained");
