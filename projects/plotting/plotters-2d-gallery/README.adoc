@@ -32,3 +32,15 @@ cargo run --bin plotters_ml_activation --release
 
 .ML activation functions
 image::../images/plotters_ml_activation.svg[]
+
+=== Example 4: Normal distribution
+
+[source,shell]
+----
+cargo run --bin plotters_normal_dist_prob
+cargo run --bin plotters_normal_dist_counts
+----
+
+image::../images/plotters_normal_dist_counts.png[]
+
+image::../images/plotters_normal_dist_prob.png[]
