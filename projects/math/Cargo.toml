@@ -10,6 +10,7 @@ members = [
     "monte-carlo",
     "nalgebra-example-mutmal",
     "necklace-permutations",
+    "normal-distribution",
     "permutation",
     "primes",
     "tsp-basic",
