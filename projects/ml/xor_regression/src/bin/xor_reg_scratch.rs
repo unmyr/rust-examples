@@ -359,6 +359,13 @@ fn main() {
         let h = ndarray::Array2::from_shape_fn((output_size, input_size), |_| {
             rng.random_range(-0.5..0.5)
         });
+        println!(
+            "L{}: Cosine similarity={:.4?}",
+            layers.len(),
+            (&h.row(0) * &h.row(1)).sum()
+                / (&h.row(0).mapv(|v| v * v).sum().powf(0.5)
+                    * &h.row(1).mapv(|v| v * v).sum().powf(0.5))
+        );
         let bias =
             ndarray::Array2::from_shape_fn((output_size, 1), |_| rng.random_range(-0.5..0.5));
         let layer = LayerConfig::<f64>::new(h, bias, hidden_activation.clone());
@@ -391,8 +398,13 @@ fn main() {
 
     let mini_batch_size = 4;
     println!(
-        "learning_rate={}, n_samples={}, mini_batch_size={}, hidden_activation={:?} output_activation={:?}",
-        learning_rate, n_samples, mini_batch_size, hidden_activation, output_activation
+        "layers={} learning_rate={}, n_samples={}, mini_batch_size={}, hidden_activation={:?} output_activation={:?}",
+        layers.len(),
+        learning_rate,
+        n_samples,
+        mini_batch_size,
+        hidden_activation,
+        output_activation
     );
 
     let mut trace_means_all: Vec<Vec<_>> = Vec::new();
@@ -456,6 +468,17 @@ fn main() {
                 iteration, total_trials, loss,
             );
             for layer_no in 0..layers.len() {
+                let w_str = &layers[layer_no]
+                    .weight
+                    .rows()
+                    .into_iter()
+                    .map(|row| format!("{:.3?}", row.to_vec()))
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                print!(
+                    ", h[{layer_no}].weight^T=[{w_str}], bias[{layer_no}]^T={:.3}",
+                    &layers[layer_no].bias.t()
+                );
                 print!(
                     ", delta[{layer_no}]^T={:.4}",
                     &batch_weight_gradients[layer_no].t()
@@ -476,7 +499,8 @@ fn main() {
     println!("=== Results");
     let elapsed_time = t_0.elapsed();
     println!(
-        "iteration={}, mini_batch_size={}, total_trials={}, learning_rate={}, hidden_activation={:?}, output_activation={:?}, elapsed time={:.2}[s] {:?}[s/mini_batch]",
+        "layers={} iteration={}, mini_batch_size={}, total_trials={}, learning_rate={}, hidden_activation={:?}, output_activation={:?}, elapsed time={:.2}[s] {:?}[s/mini_batch]",
+        layers.len(),
         iteration,
         mini_batch_size,
         total_trials,
@@ -489,7 +513,15 @@ fn main() {
 
     println!("=== Trained");
     for (i, layer) in layers.iter().enumerate() {
-        println!("layer[{i}]={:.4}", &layer.weight);
+        let w_str = &layer
+            .weight
+            .rows()
+            .into_iter()
+            .map(|row| format!("{:.4?}", row.to_vec()))
+            .collect::<Vec<_>>()
+            .join(", ");
+        println!("layer[{i}].weight=[{}]", w_str);
+        println!("layer[{i}].bias^t={:.4}", &layer.bias.t());
     }
 
     // Plot traces
