@@ -370,7 +370,7 @@ fn main() {
         layers.push(layer);
     }
 
-    let input_size: usize = 2;
+    let input_size: usize = output_size;
     let output_size: usize = 1;
     if n_samples > 1 {
         let h = ndarray::Array2::from_shape_fn((output_size, input_size), |_| {
