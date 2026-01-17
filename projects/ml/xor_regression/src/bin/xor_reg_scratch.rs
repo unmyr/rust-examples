@@ -244,7 +244,7 @@ fn train<T: Float + std::fmt::Debug + FromPrimitive + 'static>(
     )
 }
 
-fn plot_result(layers: &Vec<LayerConfig<f64>>) {
+fn plot_result(layers: &Vec<LayerConfig<f64>>, base_name: String) {
     let xor_continuous_pred = |x: f64, y: f64| {
         let in_2d_col_vec = ndarray::array![[x], [y]];
         let activations = forward(&in_2d_col_vec.view(), layers);
@@ -252,7 +252,7 @@ fn plot_result(layers: &Vec<LayerConfig<f64>>) {
         return pred.clone();
     };
 
-    let root = BitMapBackend::gif("images/xor_reg_scratch.gif", (600, 400), 100)
+    let root = BitMapBackend::gif(format!("images/{base_name}.gif"), (600, 400), 100)
         .unwrap()
         .into_drawing_area();
     for pitch in 0..157 {
@@ -298,6 +298,18 @@ fn plot_result(layers: &Vec<LayerConfig<f64>>) {
 }
 
 fn main() {
+    // Get program name
+    let args: Vec<String> = std::env::args().collect();
+    let program_name = match args.get(0) {
+        Some(arg0) => {
+            let cmd_path = std::path::Path::new(arg0);
+            let program_name = cmd_path.file_name();
+            let program_name = program_name.unwrap().to_str().unwrap();
+            program_name
+        }
+        None => "xor_reg_scratch",
+    };
+
     // Parse command-line arguments
     let args = Args::parse();
 
@@ -437,8 +449,12 @@ fn main() {
             );
         });
 
+        total_trials = n;
         if n == 0 || n % 1000 == 999 {
-            print!("[{:09}][{:05}]: loss={:.4}", iteration, n + 1, loss,);
+            print!(
+                "iteration={:06}, trial={:05}, loss={:.4}",
+                iteration, total_trials, loss,
+            );
             for layer_no in 0..layers.len() {
                 print!(
                     ", delta[{layer_no}]^T={:.4}",
@@ -448,7 +464,6 @@ fn main() {
             println!("");
         }
 
-        total_trials = n;
         if loss < 0.002 {
             println!(
                 "INFO: Early stopping at iteration={} due to small loss={:.4}",
@@ -478,8 +493,13 @@ fn main() {
     }
 
     // Plot traces
+    let image_prefix = format!(
+        "{program_name}_L{:02}_{}",
+        layers.len(),
+        &args.hidden_activation
+    );
     for (layer_idx, trace_in_layer) in trace_means_all.iter().enumerate() {
-        let path = format!("images/xor_reg_scratch_{:02}_mean.png", layer_idx);
+        let path = format!("images/{image_prefix}_{:02}_mean.png", layer_idx);
         let root_area = BitMapBackend::new(&path, (600, 400)).into_drawing_area();
         root_area.fill(&WHITE).unwrap();
 
@@ -534,7 +554,7 @@ fn main() {
 
     // Plot traces
     for (layer_idx, trace_in_layer) in trace_vars_all.iter().enumerate() {
-        let path = format!("images/xor_reg_scratch_{:02}_var.png", layer_idx);
+        let path = format!("images/{image_prefix}_{:02}_var.png", layer_idx);
         let root_area = BitMapBackend::new(&path, (600, 400)).into_drawing_area();
         root_area.fill(&WHITE).unwrap();
 
@@ -619,5 +639,5 @@ fn main() {
         (correct_counts as f64 / (test_batch_size as f64)) * 100.0
     );
 
-    plot_result(&layers);
+    plot_result(&layers, format!("{image_prefix}"));
 }
