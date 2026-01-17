@@ -617,19 +617,19 @@ fn main() {
         .into_shape_with_order((1, test_batch_size))
         .unwrap();
     for (i, in_1d_vec_view) in test_inputs.columns().into_iter().enumerate() {
-        let (x1, x2) = (in_1d_vec_view[0], in_1d_vec_view[1]);
         let in_2d_col_vec = in_1d_vec_view.insert_axis(ndarray::Axis(1));
         let activations = forward(&in_2d_col_vec.view(), &layers);
+        let output = &activations.last().unwrap();
         let answer = test_answers[[0, i]];
         let ans11 = ndarray::arr2(&[[answer]]);
-        let loss = (&ans11 - &activations[2].0).powf(2.).sum() / 2.;
+        let loss = (&ans11 - &output.0).powf(2.).sum() / 2.;
         if loss < 0.05 {
             correct_counts += 1;
         }
         println!(
-            "Input: [{:?}] => Predicted: {:.2}, answer: {:.0}, loss: {:.2}",
-            [x1, x2],
-            &activations[2].0[[0, 0]],
+            "Input: [{:.0}] => Predicted: {:.2}, answer: {:.0}, loss: {:.2}",
+            in_1d_vec_view,
+            &output.0[[0, 0]],
             ans11[[0, 0]],
             loss
         );
