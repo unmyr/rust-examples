@@ -468,20 +468,14 @@ fn main() {
                 iteration, total_trials, loss,
             );
             for layer_no in 0..layers.len() {
-                let w_str = &layers[layer_no]
-                    .weight
-                    .rows()
-                    .into_iter()
-                    .map(|row| format!("{:.3?}", row.to_vec()))
-                    .collect::<Vec<_>>()
-                    .join(", ");
                 print!(
-                    ", h[{layer_no}].weight^T=[{w_str}], bias[{layer_no}]^T={:.3}",
-                    &layers[layer_no].bias.t()
+                    ", h[{layer_no}].weight={}, bias[{layer_no}]={}",
+                    format!("{:.3}", &layers[layer_no].weight).replace("\n", ""),
+                    format!("{:.3}", &layers[layer_no].bias).replace("\n", "")
                 );
                 print!(
-                    ", delta[{layer_no}]^T={:.4}",
-                    &batch_weight_gradients[layer_no].t()
+                    ", delta[{layer_no}]={}",
+                    format!("{:.4}", &batch_weight_gradients[layer_no]).replace("\n", "")
                 );
             }
             println!("");
@@ -513,15 +507,14 @@ fn main() {
 
     println!("=== Trained");
     for (i, layer) in layers.iter().enumerate() {
-        let w_str = &layer
-            .weight
-            .rows()
-            .into_iter()
-            .map(|row| format!("{:.4?}", row.to_vec()))
-            .collect::<Vec<_>>()
-            .join(", ");
-        println!("layer[{i}].weight=[{}]", w_str);
-        println!("layer[{i}].bias^t={:.4}", &layer.bias.t());
+        println!(
+            "layer[{i}].weight={}",
+            format!("{:.4?}", &layer.weight).replace("\n", "")
+        );
+        println!(
+            "layer[{i}].bias={}",
+            format!("{:.4?}", &layer.bias.t()).replace("\n", "")
+        );
     }
 
     // Plot traces
