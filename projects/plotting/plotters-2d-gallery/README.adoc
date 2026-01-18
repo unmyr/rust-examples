@@ -1,6 +1,6 @@
 == Plotters Examples
 
-* https://docs.rs/plotters/latest/plotters/[plotters - Rust]
+* https://docs.rs/plotters/latest/plotters/[plotters - Rust^]
 
 === Example 1: Plot x squared and output in png/svg format
 

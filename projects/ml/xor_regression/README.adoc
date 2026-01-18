@@ -1,6 +1,15 @@
 
 = XOR Regression Example
 
+.References
+* https://docs.rs/rand/latest/rand/[rand - Rust^]
+* https://docs.rs/rand_distr/latest/rand_distr/[rand_distr - Rust^]
+* https://docs.rs/ndarray/latest/ndarray/[ndarray - Rust^]
+* https://docs.rs/linfa/latest/linfa/[linfa - Rust^]
+* https://docs.rs/linfa-linear/latest/linfa_linear/[linfa_linear - Rust^]
+* https://docs.rs/tracing/latest/tracing/index.html[tracing - Rust^]
+
+
 == Running the Example 1
 
 Learning and inference are performed by extending it to a continuous XOR function.

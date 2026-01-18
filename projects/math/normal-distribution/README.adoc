@@ -1,0 +1,5 @@
+== Normal Distribution Examples
+
+.References
+* https://docs.rs/rand/latest/rand/[rand - Rust^]
+* https://docs.rs/rand_distr/latest/rand_distr/[rand_distr - Rust^]
