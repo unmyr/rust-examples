@@ -60,15 +60,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .y_label_formatter(&|x| format!("{:.1}", x))
         .draw()?;
 
-    let x_values = ndarray::range(x_min, x_max, 0.1).collect::<Vec<f32>>();
+    let x_axis = (x_min..x_max).step(0.1);
 
     // ReLU function
     let color_idx = 0;
     chart
         .draw_series(LineSeries::new(
-            x_values
-                .iter()
-                .map(|x| (*x, if *x > 0.0 { *x } else { 0.0 })),
+            x_axis.values().map(|x| (x, if x > 0.0 { x } else { 0.0 })),
             Palette99::pick(color_idx).mix(0.9).stroke_width(2),
         ))
         .unwrap()
@@ -80,7 +78,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let line_color = Palette99::pick(color_idx).mix(0.9);
     chart
         .draw_series(LineSeries::new(
-            x_values.iter().map(|x| (*x, 1.0 / (1.0 + (-*x).exp()))),
+            x_axis.values().map(|x| (x, 1.0 / (1.0 + (-x).exp()))),
             line_color.stroke_width(2),
         ))
         .unwrap()
@@ -92,7 +90,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let line_color = Palette99::pick(color_idx).mix(0.9);
     chart
         .draw_series(LineSeries::new(
-            x_values.iter().map(|x| (*x, x.tanh())),
+            x_axis.values().map(|x| (x, x.tanh())),
             line_color.stroke_width(2),
         ))
         .unwrap()
