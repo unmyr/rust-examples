@@ -4,6 +4,8 @@ use clap::Parser;
 use num_traits::{Float, FromPrimitive};
 use plotters::prelude::*;
 use rand::Rng;
+use tracing::info;
+use tracing_subscriber;
 
 #[derive(clap::Parser)]
 struct Args {
@@ -347,6 +349,11 @@ fn main() {
         }
     };
 
+    // Initialize the JSON logger
+    tracing_subscriber::fmt()
+        .json() // Enable JSON formatting
+        .init();
+
     let mut rng = rand::rng();
 
     // Test predictions
@@ -355,16 +362,19 @@ fn main() {
     let mut layers: Vec<LayerConfig<f64>> = Vec::new();
     let input_size: usize = 2;
     let output_size: usize = 2;
+    let mut cosine_similarities: Vec<f64> = Vec::new();
     if n_samples > 1 {
         let h = ndarray::Array2::from_shape_fn((output_size, input_size), |_| {
             rng.random_range(-0.5..0.5)
         });
-        println!(
-            "L{}: Cosine similarity={:.4?}",
-            layers.len(),
-            (&h.row(0) * &h.row(1)).sum()
-                / (&h.row(0).mapv(|v| v * v).sum().powf(0.5)
-                    * &h.row(1).mapv(|v| v * v).sum().powf(0.5))
+        let cosine_similarity = (&h.row(0) * &h.row(1)).sum()
+            / (&h.row(0).mapv(|v| v * v).sum().powf(0.5)
+                * &h.row(1).mapv(|v| v * v).sum().powf(0.5));
+        cosine_similarities.push(cosine_similarity);
+        info!(
+            event = "Verifying orthogonality of weight matrices for training",
+            layer_no = layers.len(),
+            cosine_similarity = cosine_similarity
         );
         let bias =
             ndarray::Array2::from_shape_fn((output_size, 1), |_| rng.random_range(-0.5..0.5));
@@ -397,14 +407,14 @@ fn main() {
     let learning_rate = 0.5;
 
     let mini_batch_size = 4;
-    println!(
-        "layers={} learning_rate={}, n_samples={}, mini_batch_size={}, hidden_activation={:?} output_activation={:?}",
-        layers.len(),
-        learning_rate,
-        n_samples,
-        mini_batch_size,
-        hidden_activation,
-        output_activation
+    info!(
+        event = "Show layer information",
+        layers = layers.len(),
+        learning_rate = learning_rate,
+        max_iteration = n_samples,
+        mini_batch_size = mini_batch_size,
+        hidden_activation = format!("{:?}", hidden_activation),
+        output_activation = format!("{:?}", output_activation)
     );
 
     let mut trace_means_all: Vec<Vec<_>> = Vec::new();
@@ -463,57 +473,64 @@ fn main() {
 
         total_trials = n;
         if n == 0 || n % 1000 == 999 {
-            print!(
-                "iteration={:06}, trial={:05}, loss={:.4}",
-                iteration, total_trials, loss,
-            );
+            let mut s = String::from("");
             for layer_no in 0..layers.len() {
-                print!(
-                    ", h[{layer_no}].weight={}, bias[{layer_no}]={}",
-                    format!("{:.3}", &layers[layer_no].weight).replace("\n", ""),
-                    format!("{:.3}", &layers[layer_no].bias).replace("\n", "")
+                s.push_str(
+                    format!(
+                        ", h[{layer_no}].weight={}, bias[{layer_no}]={}",
+                        format!("{:.3}", &layers[layer_no].weight).replace("\n", ""),
+                        format!("{:.3}", &layers[layer_no].bias).replace("\n", "")
+                    )
+                    .as_str(),
                 );
-                print!(
-                    ", delta[{layer_no}]={}",
-                    format!("{:.4}", &batch_weight_gradients[layer_no]).replace("\n", "")
+                s.push_str(
+                    format!(
+                        ", delta[{layer_no}]={}",
+                        format!("{:.4}", &batch_weight_gradients[layer_no]).replace("\n", "")
+                    )
+                    .as_str(),
                 );
             }
-            println!("");
+            info!(
+                iteration = iteration,
+                total_trials = total_trials,
+                loss = loss,
+                weight = s
+            );
         }
 
         if loss < 0.002 {
-            println!(
-                "INFO: Early stopping at iteration={} due to small loss={:.4}",
-                iteration, loss
+            info!(
+                event = "Stop the iterations early because the error is below the target value",
+                iteration = iteration,
+                loss = loss,
             );
             break;
         }
     }
 
-    println!("=== Results");
+    // Results
     let elapsed_time = t_0.elapsed();
-    println!(
-        "layers={} iteration={}, mini_batch_size={}, total_trials={}, learning_rate={}, hidden_activation={:?}, output_activation={:?}, elapsed time={:.2}[s] {:?}[s/mini_batch]",
-        layers.len(),
-        iteration,
-        mini_batch_size,
-        total_trials,
-        learning_rate,
-        hidden_activation,
-        output_activation,
-        elapsed_time.as_secs() as f32,
-        (elapsed_time.as_secs() as f32) / (total_trials as f32)
+    info!(
+        event = "Results",
+        layers = layers.len(),
+        iteration = iteration,
+        mini_batch_size = mini_batch_size,
+        total_trials = total_trials,
+        learning_rate = learning_rate,
+        hidden_activation = format!("{:?}", hidden_activation),
+        output_activation = format!("{:?}", output_activation),
+        elapsed_time = elapsed_time.as_secs(),
+        sec_per_mini_batch = (elapsed_time.as_secs() as f32) / (total_trials as f32)
     );
 
-    println!("=== Trained");
+    // Trained
     for (i, layer) in layers.iter().enumerate() {
-        println!(
-            "layer[{i}].weight={}",
-            format!("{:.4?}", &layer.weight).replace("\n", "")
-        );
-        println!(
-            "layer[{i}].bias={}",
-            format!("{:.4?}", &layer.bias.t()).replace("\n", "")
+        info!(
+            event = "Weights and biases after the training process",
+            layer_no = i,
+            weight = format!("{:.4?}", &layer.weight).replace("\n", ""),
+            bias = format!("{:.4?}", &layer.bias).replace("\n", ""),
         );
     }
 
@@ -574,7 +591,7 @@ fn main() {
             .draw()
             .ok();
 
-        println!("Saved the figure to: {}", path);
+        info!("Saved the figure to: {}", path);
     }
 
     // Plot traces
@@ -628,10 +645,10 @@ fn main() {
             .draw()
             .ok();
 
-        println!("Saved the figure to: {}", path);
+        info!("Saved the figure to: {}", path);
     }
 
-    println!("\n== XOR Predictions ==");
+    // XOR Predictions
     let mut correct_counts = 0;
     let test_inputs = ndarray::arr2(&[[0., 0.], [0., 1.], [1., 0.], [1., 1.]]).reversed_axes();
     let test_batch_size = test_inputs.shape()[1];
@@ -651,17 +668,31 @@ fn main() {
         if loss < 0.05 {
             correct_counts += 1;
         }
-        println!(
-            "Input: [{:.0}] => Predicted: {:.2}, answer: {:.0}, loss: {:.2}",
-            in_1d_vec_view,
-            &output.0[[0, 0]],
-            ans11[[0, 0]],
-            loss
+        info!(
+            event = "XOR predictions",
+            inputs = format!("{:.0}", in_1d_vec_view),
+            predicted = format!("{:.2}", &output.0[[0, 0]]),
+            answer = format!("{:.0}", &output.0[[0, 0]]),
+            loss = format!("{:.2}", ans11[[0, 0]]),
         );
     }
-    println!(
-        "Accuracy: {:.2}%",
-        (correct_counts as f64 / (test_batch_size as f64)) * 100.0
+    info!(
+        accuracy = (correct_counts as f64 / (test_batch_size as f64)) * 100.0,
+        layers = layers.len(),
+        learning_rate = learning_rate,
+        iteration = iteration,
+        total_trials = total_trials,
+        mini_batch_size = mini_batch_size,
+        hidden_activation = format!("{:?}", hidden_activation),
+        output_activation = format!("{:?}", output_activation),
+        cosine_similarities = format!(
+            "[{:?}]",
+            cosine_similarities
+                .iter()
+                .map(|v| v.to_string())
+                .collect::<Vec<_>>()
+                .join(", ")
+        )
     );
 
     plot_result(&layers, format!("{image_prefix}"));
