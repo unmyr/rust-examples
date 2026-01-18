@@ -7,6 +7,7 @@ use rand::Rng;
 use tracing::info;
 use tracing_subscriber;
 
+// Command-line arguments structure
 #[derive(clap::Parser)]
 struct Args {
     #[arg(
@@ -35,7 +36,7 @@ struct Args {
     output_activation: String,
 }
 
-#[allow(unused)]
+// Activation functions supported
 #[derive(Debug, Clone, Copy)]
 enum Activation {
     Identity,
@@ -44,6 +45,7 @@ enum Activation {
     Tanh,
 }
 
+// Implement Display trait for Activation enum
 impl std::fmt::Display for Activation {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match *self {
@@ -55,6 +57,7 @@ impl std::fmt::Display for Activation {
     }
 }
 
+// Configuration of a single layer in the neural network
 #[derive(Debug)]
 struct LayerConfig<T: Float> {
     weight: ndarray::Array2<T>,
@@ -62,6 +65,7 @@ struct LayerConfig<T: Float> {
     act: Activation,
 }
 
+// Implement constructor for LayerConfig
 impl<T: Float> LayerConfig<T> {
     pub fn new(
         weight: ndarray::Array2<T>,
@@ -69,6 +73,29 @@ impl<T: Float> LayerConfig<T> {
         act: Activation,
     ) -> LayerConfig<T> {
         LayerConfig { weight, bias, act }
+    }
+}
+
+// Record of trace information during training
+#[derive(Debug)]
+struct TraceRecord<T: Float> {
+    iteration: usize,
+    mean: Vec<ndarray::Array1<T>>,
+    variance: Vec<ndarray::Array1<T>>,
+}
+
+// Implement constructor for TraceRecord
+impl<F: Float> TraceRecord<F> {
+    pub fn new(
+        iteration: usize,
+        mean: Vec<ndarray::Array1<F>>,
+        variance: Vec<ndarray::Array1<F>>,
+    ) -> TraceRecord<F> {
+        TraceRecord {
+            iteration: iteration,
+            mean: mean,
+            variance: variance,
+        }
     }
 }
 
@@ -82,6 +109,7 @@ fn identity_derivative_from_output<T: Float>(_: T) -> T {
     T::one()
 }
 
+// ReLU function
 fn relu<T: Float>(x: T) -> T {
     if x > T::zero() {
         x
@@ -92,6 +120,7 @@ fn relu<T: Float>(x: T) -> T {
     }
 }
 
+// Calculated from the output of the activation function
 fn relu_derivative_from_output<T: Float>(s: T) -> T {
     if s > T::zero() {
         T::one()
@@ -122,10 +151,12 @@ fn tanh_derivative_from_output<T: Float>(t: T) -> T {
     T::one() - t * t
 }
 
+// Continuous XOR function
 fn xor_continuous<T: Float>(x1: T, x2: T) -> T {
     x1 + x2 - T::from(2.0).unwrap() * x1 * x2
 }
 
+// Forward propagation
 fn forward<T: Float + 'static>(
     input: &ndarray::ArrayView2<T>,
     layers: &Vec<LayerConfig<T>>,
@@ -148,6 +179,7 @@ fn forward<T: Float + 'static>(
     activations
 }
 
+// Training function
 fn train<T: Float + std::fmt::Debug + FromPrimitive + 'static>(
     iteration: &mut usize,
     train_inputs: &ndarray::Array2<T>,
@@ -157,8 +189,7 @@ fn train<T: Float + std::fmt::Debug + FromPrimitive + 'static>(
     Vec<ndarray::Array2<T>>,
     Vec<ndarray::Array2<T>>,
     T,
-    Vec<ndarray::Array1<T>>,
-    Vec<ndarray::Array1<T>>,
+    TraceRecord<T>,
 ) {
     let mini_batch_size = train_inputs.shape()[1];
     // Squared errors in the output layer
@@ -236,16 +267,12 @@ fn train<T: Float + std::fmt::Debug + FromPrimitive + 'static>(
         .map(|v| v.var_axis(ndarray::Axis(1), T::zero()))
         .collect::<Vec<_>>();
 
+    let trace = TraceRecord::new(*iteration, trace_mean, trace_var);
     let loss = loss_terms.sum() / T::from(mini_batch_size).unwrap();
-    (
-        grad_list,
-        batch_weight_gradients,
-        loss,
-        trace_mean,
-        trace_var,
-    )
+    (grad_list, batch_weight_gradients, loss, trace)
 }
 
+// Plot the result of the XOR regression
 fn plot_result(layers: &Vec<LayerConfig<f64>>, base_name: String) {
     let xor_continuous_pred = |x: f64, y: f64| {
         let in_2d_col_vec = ndarray::array![[x], [y]];
@@ -299,6 +326,7 @@ fn plot_result(layers: &Vec<LayerConfig<f64>>, base_name: String) {
     }
 }
 
+// Main function
 fn main() {
     // Get program name
     let args: Vec<String> = std::env::args().collect();
@@ -417,14 +445,7 @@ fn main() {
         output_activation = format!("{:?}", output_activation)
     );
 
-    let mut trace_means_all: Vec<Vec<_>> = Vec::new();
-    let mut trace_vars_all: Vec<Vec<_>> = Vec::new();
-    (0..layers.len()).for_each(|_| {
-        let v: Vec<Vec<f64>> = Vec::new();
-        trace_means_all.push(v);
-        let v: Vec<Vec<f64>> = Vec::new();
-        trace_vars_all.push(v);
-    });
+    let mut trace: Vec<TraceRecord<f64>> = Vec::new();
 
     let mut iteration: usize = 0;
     let mut total_trials: usize = 0;
@@ -445,19 +466,9 @@ fn main() {
             .into_shape_with_order((1, mini_batch_size))
             .unwrap();
 
-        let (grad_list, batch_weight_gradients, loss, trace_means, trace_vars) =
+        let (grad_list, batch_weight_gradients, loss, trace_record) =
             train(&mut iteration, &train_inputs, &train_answers, &layers);
-        (0..layers.len()).for_each(|layer_idx| {
-            let (v, _offset) = &trace_means[layer_idx].clone().into_raw_vec_and_offset();
-            let mut i_and_vec: Vec<f64> = vec![iteration as f64];
-            i_and_vec.append(&mut v.to_vec());
-            trace_means_all[layer_idx].push(i_and_vec);
-
-            let (v, _offset) = &trace_vars[layer_idx].clone().into_raw_vec_and_offset();
-            let mut i_and_vec: Vec<f64> = vec![iteration as f64];
-            i_and_vec.append(&mut v.to_vec());
-            trace_vars_all[layer_idx].push(i_and_vec);
-        });
+        trace.push(trace_record);
 
         // Update weight and bias
         (0..layers.len()).for_each(|i| {
@@ -540,15 +551,18 @@ fn main() {
         layers.len(),
         &args.hidden_activation
     );
-    for (layer_idx, trace_in_layer) in trace_means_all.iter().enumerate() {
-        let path = format!("images/{image_prefix}_{:02}_mean.png", layer_idx);
-        let root_area = BitMapBackend::new(&path, (600, 400)).into_drawing_area();
-        root_area.fill(&WHITE).unwrap();
 
-        // Draw chart for each weight
+    for layer_idx in 0..layers.len() {
+        let path = format!("images/{image_prefix}_{:02}.png", layer_idx);
+        let root_area = BitMapBackend::new(&path, (600, 600)).into_drawing_area();
+        root_area.fill(&WHITE).unwrap();
+        let (mean_area, var_area) =
+            root_area.split_vertically(((root_area.dim_in_pixel().1 as f32) / 2_f32) as u32);
+
         // Number of weights
-        let n_weights = trace_in_layer[0].len() - 1;
-        let mut chart = ChartBuilder::on(&root_area)
+        let n_weights = trace[0].mean[layer_idx].len();
+
+        let mut chart = ChartBuilder::on(&mean_area)
             .caption(
                 format!(
                     "The average output of a mini-batch: (Layer:{:0}; {:?})",
@@ -560,22 +574,25 @@ fn main() {
             .margin_right(30)
             .x_label_area_size(30)
             .y_label_area_size(40)
-            .build_cartesian_2d((1.)..(iteration as f64), -0.1..1.0)
+            .build_cartesian_2d(1..iteration, -0.1..1.0)
             .unwrap();
         chart
             .configure_mesh()
-            .x_label_formatter(&|v| format!("{:.0}", v))
+            .x_label_formatter(&|v| format!("{}", v))
             .y_label_formatter(&|v| format!("{:.1}", v))
             .x_desc("n samples")
             .y_desc("weights")
             .draw()
             .ok();
-        let series_len = trace_in_layer[0].len();
-        (1..series_len).for_each(|w_idx| {
+
+        // Draw chart for each weight
+        (0..n_weights).for_each(|w_idx| {
             let color = Palette99::pick(w_idx).mix(0.9);
             chart
                 .draw_series(LineSeries::new(
-                    trace_in_layer.iter().map(|v| (v[0] as f64, v[w_idx])),
+                    trace
+                        .iter()
+                        .map(|v| (v.iteration, v.mean[layer_idx][w_idx])),
                     color.stroke_width(2),
                 ))
                 .unwrap()
@@ -591,18 +608,7 @@ fn main() {
             .draw()
             .ok();
 
-        info!("Saved the figure to: {}", path);
-    }
-
-    // Plot traces
-    for (layer_idx, trace_in_layer) in trace_vars_all.iter().enumerate() {
-        let path = format!("images/{image_prefix}_{:02}_var.png", layer_idx);
-        let root_area = BitMapBackend::new(&path, (600, 400)).into_drawing_area();
-        root_area.fill(&WHITE).unwrap();
-
-        // Draw chart for each weight
-        let n_weights = trace_in_layer[0].len() - 1;
-        let mut chart = ChartBuilder::on(&root_area)
+        let mut chart = ChartBuilder::on(&var_area)
             .caption(
                 format!(
                     "The variance output of a mini-batch: (Layer:{:0}; {:?})",
@@ -614,22 +620,25 @@ fn main() {
             .margin_right(30)
             .x_label_area_size(30)
             .y_label_area_size(40)
-            .build_cartesian_2d((1.)..(iteration as f64 + 10_f64), -0.1..1.0)
+            .build_cartesian_2d(1_usize..iteration, -0.1..1.0)
             .unwrap();
         chart
             .configure_mesh()
-            .x_label_formatter(&|v| format!("{:.0}", v))
+            .x_label_formatter(&|v| format!("{}", v))
             .y_label_formatter(&|v| format!("{:.1}", v))
             .x_desc("n samples")
             .y_desc("weights")
             .draw()
             .ok();
-        let series_len = trace_in_layer[0].len();
-        (1..series_len).for_each(|w_idx| {
+
+        // Draw chart for each weight
+        (0..n_weights).for_each(|w_idx| {
             let color = Palette99::pick(w_idx).mix(0.9);
             chart
                 .draw_series(LineSeries::new(
-                    trace_in_layer.iter().map(|v| (v[0] as f64, v[w_idx])),
+                    trace
+                        .iter()
+                        .map(|v| (v.iteration, v.variance[layer_idx][w_idx])),
                     color.stroke_width(2),
                 ))
                 .unwrap()
