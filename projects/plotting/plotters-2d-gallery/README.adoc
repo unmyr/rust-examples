@@ -1,6 +1,7 @@
 == Plotters Examples
 
 * https://docs.rs/plotters/latest/plotters/[plotters - Rust^]
+** https://docs.rs/plotters/latest/plotters/drawing/struct.DrawingArea.html[DrawingArea in plotters::drawing - Rust^]
 
 === Example 1: Plot x squared and output in png/svg format
 
@@ -49,7 +50,7 @@ image::../images/plotters_normal_dist_counts.png[]
 
 image::../images/plotters_normal_dist_prob.png[]
 
-=== Example 5: Multiple plots
+=== Example 5-1: Multiple plots: split vertically two regions
 
 [source,shell]
 ----
@@ -78,3 +79,17 @@ image::../images/plotters_multiple_plots_sigmoid.png[]
 
 .Graph of the tanh function and its derivative function
 image::../images/plotters_multiple_plots_tanh.png[]
+
+=== Example 5-2: Multiple plots: split vertically or horizontally into three regions
+
+[source,shell]
+----
+cargo run --bin plotters_multiple_plots_v3 --release
+cargo run --bin plotters_multiple_plots_h3 --release
+----
+
+.split vertically into three regions
+image::../images/plotters_multiple_plots_v3.svg[]
+
+.split horizontally into three regions
+image::../images/plotters_multiple_plots_h3.svg[]
