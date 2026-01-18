@@ -1,3 +1,7 @@
+== Plotters Examples
+
+* https://docs.rs/plotters/latest/plotters/[plotters - Rust]
+
 === Example 1: Plot x squared and output in png/svg format
 
 [source,shell]
@@ -37,10 +41,40 @@ image::../images/plotters_ml_activation.svg[]
 
 [source,shell]
 ----
-cargo run --bin plotters_normal_dist_prob
-cargo run --bin plotters_normal_dist_counts
+cargo run --bin plotters_normal_dist_prob --release
+cargo run --bin plotters_normal_dist_counts --release
 ----
 
 image::../images/plotters_normal_dist_counts.png[]
 
 image::../images/plotters_normal_dist_prob.png[]
+
+=== Example 5: Multiple plots
+
+[source,shell]
+----
+cargo run --bin plotters_multiple_plots_sigmoid --release
+cargo run --bin plotters_multiple_plots_tanh --release
+----
+
+[source,math]
+----
+\begin{aligned}
+\sigma(x) &= \frac{1}{1 + e^{-x}} \\
+\sigma'(x) &= \sigma(x)\left(1 - \sigma(x)\right)
+\end{aligned}
+----
+
+.Graph of the sigmoid function and its derivative function
+image::../images/plotters_multiple_plots_sigmoid.png[]
+
+[source,math]
+----
+\begin{aligned}
+\tanh(x) &= \frac{e^x - e^{-x}}{e^x + e^{-x}} \\
+\frac{d}{dx} \tanh(x) &= 1 - \tanh^2(x)
+\end{aligned}
+----
+
+.Graph of the tanh function and its derivative function
+image::../images/plotters_multiple_plots_tanh.png[]
