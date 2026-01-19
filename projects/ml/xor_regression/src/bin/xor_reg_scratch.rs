@@ -58,7 +58,6 @@ impl std::fmt::Display for Activation {
 }
 
 // Configuration of a single layer in the neural network
-#[derive(Debug)]
 struct LayerConfig<F: Float> {
     weight: ndarray::Array2<F>,
     bias: ndarray::Array2<F>,
@@ -73,6 +72,18 @@ impl<F: Float> LayerConfig<F> {
         act: Activation,
     ) -> LayerConfig<F> {
         LayerConfig { weight, bias, act }
+    }
+}
+
+impl<F: std::fmt::Debug + Float> std::fmt::Debug for LayerConfig<F> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{{weight: {}, bias: {}, activation: {:?}}}",
+            format!("{:.4?}", &self.weight.view()).replace("\n", ""),
+            format!("{:.4?}", &self.bias.view()).replace("\n", ""),
+            self.act
+        )
     }
 }
 
@@ -154,6 +165,14 @@ fn tanh_derivative_from_output<F: Float>(t: F) -> F {
 // Continuous XOR function
 fn xor_continuous<F: Float>(x1: F, x2: F) -> F {
     x1 + x2 - F::from(2.0).unwrap() * x1 * x2
+}
+
+// Calculate cosine similarity between two vectors
+fn cosine_similarity<F: Float>(v1: &ndarray::ArrayView1<F>, v2: &ndarray::ArrayView1<F>) -> F {
+    let dot_product = (v1 * v2).sum();
+    let norm_v1 = v1.mapv(|v| v * v).sum().sqrt();
+    let norm_v2 = v2.mapv(|v| v * v).sum().sqrt();
+    dot_product / (norm_v1 * norm_v2)
 }
 
 // Forward propagation
@@ -413,6 +432,21 @@ fn main() {
         let layer = LayerConfig::<f64>::new(h, bias, hidden_activation.clone());
         layers.push(layer);
     }
+    let current_layer_no = layers.len() - 1;
+    info!(
+        event = "Initial layer configuration",
+        layer_no = current_layer_no,
+        weight = &layers[current_layer_no]
+            .weight
+            .to_string()
+            .replace("\n", ""),
+        bias = &layers[current_layer_no].bias.to_string().replace("\n", ""),
+        activation = format!("{:?}", layers[current_layer_no].act),
+        cosine_similarity = cosine_similarity(
+            &layers[current_layer_no].weight.row(0),
+            &layers[current_layer_no].weight.row(1)
+        )
+    );
 
     let input_size: usize = output_size;
     let output_size: usize = 1;
@@ -430,6 +464,17 @@ fn main() {
         let layer = LayerConfig::<f64>::new(h, bias, hidden_activation.clone());
         layers.push(layer);
     }
+    let current_layer_no = layers.len() - 1;
+    info!(
+        event = "Initial layer configuration",
+        layer_no = current_layer_no,
+        weight = &layers[current_layer_no]
+            .weight
+            .to_string()
+            .replace("\n", ""),
+        bias = &layers[current_layer_no].bias.to_string().replace("\n", ""),
+        activation = format!("{:?}", layers[current_layer_no].act)
+    );
 
     let learning_rate = 0.5;
 
@@ -485,14 +530,7 @@ fn main() {
         if n == 0 || n % 1000 == 999 {
             let mut s = String::from("");
             for layer_no in 0..layers.len() {
-                s.push_str(
-                    format!(
-                        ", h[{layer_no}].weight={}, bias[{layer_no}]={}",
-                        format!("{:.3}", &layers[layer_no].weight).replace("\n", ""),
-                        format!("{:.3}", &layers[layer_no].bias).replace("\n", "")
-                    )
-                    .as_str(),
-                );
+                s.push_str(format!(", layer[{layer_no}]={:?}", layers[layer_no]).as_str());
                 s.push_str(
                     format!(
                         ", delta[{layer_no}]={}",
