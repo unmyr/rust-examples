@@ -43,3 +43,26 @@ fn it_vec_1d_iter_sum_using_reduce() {
         None
     );
 }
+
+#[test]
+fn it_vec_1d_max() {
+    let v_i32 = vec![10, 5, 20, 15];
+    let max = v_i32.iter().max().copied().unwrap();
+    println!("max({:?})={}", &v_i32, max);
+    assert_eq!(max, 20);
+
+    let v_f32 = v_i32.iter().map(|v| *v as f32).collect::<Vec<f32>>();
+    let max_idx = v_f32
+        .iter()
+        .enumerate()
+        .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
+        .map(|(idx, _)| idx);
+    match max_idx {
+        Some(max_idx) => {
+            let max = v_f32[max_idx];
+            assert_eq!(max, 20.);
+            println!("max({:?})={}", &v_f32, max);
+        }
+        None => println!("The vector is empty!"),
+    }
+}
