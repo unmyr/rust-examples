@@ -59,6 +59,7 @@
     "adoc",
     "adocbuild",
     "alloc",
+    "argmax",
     "asciidoctor",
     "autowidth",
     "backtrace",

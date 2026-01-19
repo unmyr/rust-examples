@@ -93,6 +93,7 @@ struct TraceRecord<F: Float> {
     iteration: usize,
     mean: Vec<ndarray::Array1<F>>,
     variance: Vec<ndarray::Array1<F>>,
+    cosine_similarity: Vec<F>,
 }
 
 // Implement constructor for TraceRecord
@@ -101,11 +102,13 @@ impl<F: Float> TraceRecord<F> {
         iteration: usize,
         mean: Vec<ndarray::Array1<F>>,
         variance: Vec<ndarray::Array1<F>>,
+        cosine_similarity: Vec<F>,
     ) -> TraceRecord<F> {
         TraceRecord {
             iteration: iteration,
             mean: mean,
             variance: variance,
+            cosine_similarity: cosine_similarity,
         }
     }
 }
@@ -167,12 +170,36 @@ fn xor_continuous<F: Float>(x1: F, x2: F) -> F {
     x1 + x2 - F::from(2.0).unwrap() * x1 * x2
 }
 
-// Calculate cosine similarity between two vectors
-fn cosine_similarity<F: Float>(v1: &ndarray::ArrayView1<F>, v2: &ndarray::ArrayView1<F>) -> F {
-    let dot_product = (v1 * v2).sum();
-    let norm_v1 = v1.mapv(|v| v * v).sum().sqrt();
-    let norm_v2 = v2.mapv(|v| v * v).sum().sqrt();
-    dot_product / (norm_v1 * norm_v2)
+fn argmax<T: PartialOrd>(v: &[T]) -> Option<usize> {
+    v.iter()
+        .enumerate()
+        .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
+        .map(|(idx, _)| idx)
+}
+
+// Calculate cosine similarity between row vector in 2D array
+fn cosine_similarity_vec<F: num_traits::Float>(m: &ndarray::ArrayView2<F>) -> Vec<F> {
+    if m.dim().1 == 1 {
+        return vec![F::one()];
+    }
+    let mut similarities = Vec::new();
+    for i in 0..m.nrows() {
+        for j in (i + 1)..m.nrows() {
+            let row_i = m.row(i);
+            let row_j = m.row(j);
+            let mut vec_squared = ndarray::Array1::<F>::zeros(m.dim().1);
+            // let dot_product = v1.dot(&v2.t());
+            ndarray::Zip::from(&mut vec_squared)
+                .and(row_i)
+                .and(row_j)
+                .for_each(|r, &i_k, &j_k| *r = i_k * j_k);
+            let dot_product = vec_squared.sum();
+            let norm_row_i = row_i.mapv(|v| v * v).sum().sqrt();
+            let norm_row_j = row_j.mapv(|v| v * v).sum().sqrt();
+            similarities.push(dot_product / (norm_row_i * norm_row_j));
+        }
+    }
+    similarities
 }
 
 // Forward propagation
@@ -218,6 +245,7 @@ fn train<F: Float + std::fmt::Debug + FromPrimitive + 'static>(
     let mut grad_list: Vec<ndarray::Array2<F>> = Vec::new();
     let mut batch_weight_gradients: Vec<ndarray::Array2<F>> = Vec::new();
     let mut trace_outputs: Vec<ndarray::Array2<F>> = Vec::new();
+
     // Accumulate the gradient for each sample
     (0..layers.len()).for_each(|i| {
         grad_list.push(ndarray::Array2::zeros(layers[i].weight.dim()));
@@ -276,16 +304,36 @@ fn train<F: Float + std::fmt::Debug + FromPrimitive + 'static>(
         }
     }
 
+    // Calculate trace statistics
+    // Mean and variance
     let trace_mean = trace_outputs
         .iter()
         .map(|v| v.mean_axis(ndarray::Axis(1)).unwrap())
         .collect::<Vec<_>>();
+
     let trace_var = trace_outputs
         .iter()
         .map(|v| v.var_axis(ndarray::Axis(1), F::zero()))
         .collect::<Vec<_>>();
 
-    let trace = TraceRecord::new(*iteration, trace_mean, trace_var);
+    // Calculate cosine similarities
+    let mut trace_sim = Vec::<F>::new();
+    for layer_no in (0..layers.len()).into_iter() {
+        if &layers[layer_no].weight.dim().0 == &1_usize {
+            trace_sim.push(F::zero());
+            continue;
+        }
+        let sim_vec = cosine_similarity_vec(&layers[layer_no].weight.view());
+        let max_idx = sim_vec
+            .iter()
+            .enumerate()
+            .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
+            .map(|(idx, _)| idx)
+            .unwrap();
+        trace_sim.push(sim_vec[max_idx]);
+    }
+
+    let trace = TraceRecord::new(*iteration, trace_mean, trace_var, trace_sim);
     let loss = loss_terms.sum() / F::from(mini_batch_size).unwrap();
     (grad_list, batch_weight_gradients, loss, trace)
 }
@@ -299,7 +347,8 @@ fn plot_result(layers: &Vec<LayerConfig<f64>>, base_name: String) {
         return pred.clone();
     };
 
-    let root = BitMapBackend::gif(format!("images/{base_name}.gif"), (600, 400), 100)
+    let image_path = format!("images/{base_name}.gif");
+    let root = BitMapBackend::gif(&image_path, (600, 400), 100)
         .unwrap()
         .into_drawing_area();
     for pitch in 0..157 {
@@ -342,6 +391,7 @@ fn plot_result(layers: &Vec<LayerConfig<f64>>, base_name: String) {
 
         root.present().ok();
     }
+    info!("Saved the figure to: {}", image_path);
 }
 
 // Main function
@@ -442,10 +492,10 @@ fn main() {
             .replace("\n", ""),
         bias = &layers[current_layer_no].bias.to_string().replace("\n", ""),
         activation = format!("{:?}", layers[current_layer_no].act),
-        cosine_similarity = cosine_similarity(
-            &layers[current_layer_no].weight.row(0),
-            &layers[current_layer_no].weight.row(1)
-        )
+        cosine_similarity = argmax(&cosine_similarity_vec(
+            &layers[current_layer_no].weight.view()
+        ))
+        .unwrap()
     );
 
     let input_size: usize = output_size;
@@ -593,8 +643,10 @@ fn main() {
         let path = format!("images/{image_prefix}_{:02}.png", layer_idx);
         let root_area = BitMapBackend::new(&path, (600, 600)).into_drawing_area();
         root_area.fill(&WHITE).unwrap();
-        let (mean_area, var_area) =
-            root_area.split_vertically(((root_area.dim_in_pixel().1 as f32) / 2_f32) as u32);
+        let drawing_areas = root_area.split_evenly((3, 1));
+        let mean_area = &drawing_areas[0];
+        let var_area = &drawing_areas[1];
+        let sim_area = &drawing_areas[2];
 
         // Number of weights
         let n_weights = trace[0].mean[layer_idx].len();
@@ -682,6 +734,50 @@ fn main() {
                 .label(format!("w{:?}", w_idx))
                 .legend(move |(x, y)| Rectangle::new([(x, y), (x + 10, y + 1)], color.filled()));
         });
+
+        // Draw legend
+        chart
+            .configure_series_labels()
+            .border_style(BLACK)
+            .label_font(("Calibri", 20))
+            .draw()
+            .ok();
+
+        let mut chart = ChartBuilder::on(&sim_area)
+            .caption(
+                format!(
+                    "Maximum cosine similarity of row vectors: (Layer:{:0}; {:?})",
+                    layer_idx, n_weights
+                ),
+                ("sans-serif", 20),
+            )
+            .margin(10)
+            .margin_right(30)
+            .x_label_area_size(30)
+            .y_label_area_size(40)
+            .build_cartesian_2d(1_usize..iteration, -0.1..1.0)
+            .unwrap();
+        chart
+            .configure_mesh()
+            .x_label_formatter(&|v| format!("{}", v))
+            .y_label_formatter(&|v| format!("{:.1}", v))
+            .x_desc("n samples")
+            .y_desc("weights")
+            .draw()
+            .ok();
+
+        // Draw chart for each weight
+        let color = Palette99::pick(0).mix(0.9);
+        chart
+            .draw_series(LineSeries::new(
+                trace
+                    .iter()
+                    .map(|v| (v.iteration, v.cosine_similarity[layer_idx])),
+                color.stroke_width(2),
+            ))
+            .unwrap()
+            .label(format!("max",))
+            .legend(move |(x, y)| Rectangle::new([(x, y), (x + 10, y + 1)], color.filled()));
 
         // Draw legend
         chart
