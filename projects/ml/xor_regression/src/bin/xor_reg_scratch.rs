@@ -59,29 +59,29 @@ impl std::fmt::Display for Activation {
 
 // Configuration of a single layer in the neural network
 #[derive(Debug)]
-struct LayerConfig<T: Float> {
-    weight: ndarray::Array2<T>,
-    bias: ndarray::Array2<T>,
+struct LayerConfig<F: Float> {
+    weight: ndarray::Array2<F>,
+    bias: ndarray::Array2<F>,
     act: Activation,
 }
 
 // Implement constructor for LayerConfig
-impl<T: Float> LayerConfig<T> {
+impl<F: Float> LayerConfig<F> {
     pub fn new(
-        weight: ndarray::Array2<T>,
-        bias: ndarray::Array2<T>,
+        weight: ndarray::Array2<F>,
+        bias: ndarray::Array2<F>,
         act: Activation,
-    ) -> LayerConfig<T> {
+    ) -> LayerConfig<F> {
         LayerConfig { weight, bias, act }
     }
 }
 
 // Record of trace information during training
 #[derive(Debug)]
-struct TraceRecord<T: Float> {
+struct TraceRecord<F: Float> {
     iteration: usize,
-    mean: Vec<ndarray::Array1<T>>,
-    variance: Vec<ndarray::Array1<T>>,
+    mean: Vec<ndarray::Array1<F>>,
+    variance: Vec<ndarray::Array1<F>>,
 }
 
 // Implement constructor for TraceRecord
@@ -100,67 +100,67 @@ impl<F: Float> TraceRecord<F> {
 }
 
 // Identity function (does nothing)
-fn identity<T>(x: T) -> T {
+fn identity<F>(x: F) -> F {
     x
 }
 
 // The derivative of the identity function is always 1
-fn identity_derivative_from_output<T: Float>(_: T) -> T {
-    T::one()
+fn identity_derivative_from_output<F: Float>(_: F) -> F {
+    F::one()
 }
 
 // ReLU function
-fn relu<T: Float>(x: T) -> T {
-    if x > T::zero() {
+fn relu<F: Float>(x: F) -> F {
+    if x > F::zero() {
         x
     } else {
-        // T::zero()
+        // F::zero()
         // Leaky ReLU
-        T::from(0.01).unwrap() * x
+        F::from(0.01).unwrap() * x
     }
 }
 
 // Calculated from the output of the activation function
-fn relu_derivative_from_output<T: Float>(s: T) -> T {
-    if s > T::zero() {
-        T::one()
+fn relu_derivative_from_output<F: Float>(s: F) -> F {
+    if s > F::zero() {
+        F::one()
     } else {
-        // T::zero()
+        // F::zero()
         // Leaky ReLU
-        T::from(0.01).unwrap()
+        F::from(0.01).unwrap()
     }
 }
 
 // The domain is [0, 1]
-fn sigmoid<T: Float>(x: T) -> T {
-    T::one() / (T::one() + (-x).exp())
+fn sigmoid<F: Float>(x: F) -> F {
+    F::one() / (F::one() + (-x).exp())
 }
 
 // Calculated from the output of the activation function
-fn sigmoid_derivative_from_output<T: Float>(s: T) -> T {
-    s * (T::one() - s)
+fn sigmoid_derivative_from_output<F: Float>(s: F) -> F {
+    s * (F::one() - s)
 }
 
 // The domain is [-1,1]
-fn tanh<T: Float>(x: T) -> T {
+fn tanh<F: Float>(x: F) -> F {
     x.tanh()
 }
 
 // Calculated from the output of the activation function
-fn tanh_derivative_from_output<T: Float>(t: T) -> T {
-    T::one() - t * t
+fn tanh_derivative_from_output<F: Float>(t: F) -> F {
+    F::one() - t * t
 }
 
 // Continuous XOR function
-fn xor_continuous<T: Float>(x1: T, x2: T) -> T {
-    x1 + x2 - T::from(2.0).unwrap() * x1 * x2
+fn xor_continuous<F: Float>(x1: F, x2: F) -> F {
+    x1 + x2 - F::from(2.0).unwrap() * x1 * x2
 }
 
 // Forward propagation
-fn forward<T: Float + 'static>(
-    input: &ndarray::ArrayView2<T>,
-    layers: &Vec<LayerConfig<T>>,
-) -> Vec<(ndarray::Array2<T>, Activation)> {
+fn forward<F: Float + 'static>(
+    input: &ndarray::ArrayView2<F>,
+    layers: &Vec<LayerConfig<F>>,
+) -> Vec<(ndarray::Array2<F>, Activation)> {
     let current_input = input.clone().into_owned();
     let mut activations = vec![(current_input, Activation::Identity)];
 
@@ -180,30 +180,29 @@ fn forward<T: Float + 'static>(
 }
 
 // Training function
-fn train<T: Float + std::fmt::Debug + FromPrimitive + 'static>(
+fn train<F: Float + std::fmt::Debug + FromPrimitive + 'static>(
     iteration: &mut usize,
-    train_inputs: &ndarray::Array2<T>,
-    train_answers_ref: &ndarray::Array2<T>,
-    layers: &Vec<LayerConfig<T>>,
+    train_inputs: &ndarray::Array2<F>,
+    train_answers_ref: &ndarray::Array2<F>,
+    layers: &Vec<LayerConfig<F>>,
 ) -> (
-    Vec<ndarray::Array2<T>>,
-    Vec<ndarray::Array2<T>>,
-    T,
-    TraceRecord<T>,
+    Vec<ndarray::Array2<F>>,
+    Vec<ndarray::Array2<F>>,
+    F,
+    TraceRecord<F>,
 ) {
     let mini_batch_size = train_inputs.shape()[1];
     // Squared errors in the output layer
     let mut loss_terms =
-        ndarray::Array2::<T>::zeros((layers.last().unwrap().weight.shape()[0], mini_batch_size));
+        ndarray::Array2::<F>::zeros((layers.last().unwrap().weight.shape()[0], mini_batch_size));
 
-    let mut grad_list: Vec<ndarray::Array2<T>> = Vec::new();
-    let mut batch_weight_gradients: Vec<ndarray::Array2<T>> = Vec::new();
-    let mut trace_outputs: Vec<ndarray::Array2<T>> = Vec::new();
-
+    let mut grad_list: Vec<ndarray::Array2<F>> = Vec::new();
+    let mut batch_weight_gradients: Vec<ndarray::Array2<F>> = Vec::new();
+    let mut trace_outputs: Vec<ndarray::Array2<F>> = Vec::new();
     // Accumulate the gradient for each sample
     (0..layers.len()).for_each(|i| {
         grad_list.push(ndarray::Array2::zeros(layers[i].weight.dim()));
-        batch_weight_gradients.push(ndarray::Array2::<T>::zeros((
+        batch_weight_gradients.push(ndarray::Array2::<F>::zeros((
             layers[i].weight.shape()[0],
             1,
         )));
@@ -216,13 +215,13 @@ fn train<T: Float + std::fmt::Debug + FromPrimitive + 'static>(
     for (i, in_1d_vec_view) in train_inputs.columns().into_iter().enumerate() {
         *iteration += 1;
         let in_2d_col_vec = in_1d_vec_view.insert_axis(ndarray::Axis(1));
-        let activations = forward::<T>(&in_2d_col_vec.view(), layers);
+        let activations = forward::<F>(&in_2d_col_vec.view(), layers);
 
         let mut cur_gradients;
         cur_gradients = &activations.last().unwrap().0 - &train_answers_ref.column(i);
         loss_terms
             .column_mut(i)
-            .assign(&cur_gradients.column(0).powf(T::one() + T::one()));
+            .assign(&cur_gradients.column(0).powf(F::one() + F::one()));
 
         for layer_no in (0..layers.len()).rev().into_iter() {
             let a_idx = layer_no + 1;
@@ -243,10 +242,10 @@ fn train<T: Float + std::fmt::Debug + FromPrimitive + 'static>(
             };
 
             // Calculate gradients in a loop (using cross products)
-            grad_list[layer_no].scaled_add(T::one(), &delta.dot(&l_input.t()));
+            grad_list[layer_no].scaled_add(F::one(), &delta.dot(&l_input.t()));
             batch_weight_gradients[layer_no]
                 .column_mut(0)
-                .scaled_add(T::one(), &delta.column(0));
+                .scaled_add(F::one(), &delta.column(0));
 
             // Trace outputs
             trace_outputs[layer_no]
@@ -264,11 +263,11 @@ fn train<T: Float + std::fmt::Debug + FromPrimitive + 'static>(
         .collect::<Vec<_>>();
     let trace_var = trace_outputs
         .iter()
-        .map(|v| v.var_axis(ndarray::Axis(1), T::zero()))
+        .map(|v| v.var_axis(ndarray::Axis(1), F::zero()))
         .collect::<Vec<_>>();
 
     let trace = TraceRecord::new(*iteration, trace_mean, trace_var);
-    let loss = loss_terms.sum() / T::from(mini_batch_size).unwrap();
+    let loss = loss_terms.sum() / F::from(mini_batch_size).unwrap();
     (grad_list, batch_weight_gradients, loss, trace)
 }
 

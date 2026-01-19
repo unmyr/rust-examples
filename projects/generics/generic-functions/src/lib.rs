@@ -43,7 +43,7 @@ where
 /// use generic_functions::l2_norm;
 /// assert!((l2_norm(3.0_f32, 4.0_f32) - 5.0).abs() < 1e-6);
 /// ```
-pub fn l2_norm<T: num_traits::Float>(x: T, y: T) -> T {
+pub fn l2_norm<F: num_traits::Float>(x: F, y: F) -> F {
     (x * x + y * y).sqrt()
 }
 
