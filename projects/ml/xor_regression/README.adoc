@@ -92,15 +92,15 @@ Input: [[1.0, 1.0]] => Predicted: 0.06, answer: 0, loss: 0.00
 Accuracy: 100.00%
 ----
 
-image::images/xor_reg_scratch_sigmoid_ok1.gif[]
+image::images/xor_reg_scratch_L02_sigmoid_PASS01.gif[]
 
-image::images/xor_reg_scratch_sigmoid_ok1_00_mean.png[]
+image::images/xor_reg_scratch_L02_sigmoid_PASS01_00_mean.png[]
 
-image::images/xor_reg_scratch_sigmoid_ng1_00_var.png[]
+image::images/xor_reg_scratch_L02_sigmoid_PASS01_00_var.png[]
 
-image::images/xor_reg_scratch_sigmoid_ok1_01_mean.png[]
+image::images/xor_reg_scratch_L02_sigmoid_PASS01_01_mean.png[]
 
-image::images/xor_reg_scratch_sigmoid_ng1_01_var.png[]
+image::images/xor_reg_scratch_L02_sigmoid_PASS01_01_var.png[]
 
 
 === Sigmoid: NG 1: 50%
@@ -149,15 +149,15 @@ Input: [[1.0, 1.0]] => Predicted: 0.50, answer: 0, loss: 0.13
 Accuracy: 50.00%
 ----
 
-image::images/xor_reg_scratch_sigmoid_ng1.gif[]
+image::images/xor_reg_scratch_L02_sigmoid_FAIL01.gif[]
 
-image::images/xor_reg_scratch_sigmoid_ng1_00_mean.png[]
+image::images/xor_reg_scratch_L02_sigmoid_FAIL01_00_mean.png[]
 
-image::images/xor_reg_scratch_sigmoid_ng1_00_var.png[]
+image::images/xor_reg_scratch_L02_sigmoid_FAIL01_00_var.png[]
 
-image::images/xor_reg_scratch_sigmoid_ng1_01_mean.png[]
+image::images/xor_reg_scratch_L02_sigmoid_FAIL01_01_mean.png[]
 
-image::images/xor_reg_scratch_sigmoid_ng1_01_var.png[]
+image::images/xor_reg_scratch_L02_sigmoid_FAIL01_01_var.png[]
 
 
 === Sigmoid: 2 layers : NG 2: Accuracy 0%
@@ -266,12 +266,12 @@ Input: [[1.0, 1.0]] => Predicted: 0.00, answer: 0, loss: 0.00
 Accuracy: 100.00%
 ----
 
-image::images/xor_reg_scratch_relu_ok1.gif[]
+image::images/xor_reg_scratch_L02_relu_PASS01.gif[]
 
-image::images/xor_reg_scratch_relu_ok1_00_mean.png[]
+image::images/xor_reg_scratch_L02_relu_PASS01_00_mean.png[]
 
-image::images/xor_reg_scratch_relu_ok1_00_var.png[]
+image::images/xor_reg_scratch_L02_relu_PASS01_00_var.png[]
 
-image::images/xor_reg_scratch_relu_ok1_01_mean.png[]
+image::images/xor_reg_scratch_L02_relu_PASS01_01_mean.png[]
 
-image::images/xor_reg_scratch_relu_ok1_01_var.png[]
+image::images/xor_reg_scratch_L02_relu_PASS01_01_var.png[]
