@@ -646,27 +646,30 @@ fn main() {
         })
         .into_shape_with_order((1, test_batch_size))
         .unwrap();
+    let mut mse_term = 0.;
     for (i, in_1d_vec_view) in test_inputs.columns().into_iter().enumerate() {
         let in_2d_col_vec = in_1d_vec_view.insert_axis(ndarray::Axis(1));
         let activations = forward(&in_2d_col_vec.view(), &layers);
         let output = &activations.last().unwrap();
         let answer = test_answers[[0, i]];
         let ans11 = ndarray::arr2(&[[answer]]);
-        let loss = (&ans11 - &output.0).powf(2.).sum() / 2.;
-        if loss < 0.05 {
+        let error = (&ans11 - &output.0).powf(2.).sum() / (in_2d_col_vec.dim().0 as f64);
+        mse_term += error;
+        if error < 0.05 {
             correct_counts += 1;
         }
         info!(
             event = "XOR predictions",
             inputs = format!("{:.0}", in_1d_vec_view),
-            predicted = format!("{:.2}", &output.0[[0, 0]]),
+            predicted = format!("{:.4}", &output.0[[0, 0]]),
             answer = format!("{:.0}", &output.0[[0, 0]]),
-            loss = format!("{:.2}", ans11[[0, 0]]),
+            error = format!("{:.4}", ans11[[0, 0]]),
         );
     }
     let accuracy = correct_counts as f64 / (test_batch_size as f64);
     info!(
         accuracy = accuracy * 100.0,
+        rmse = (mse_term / (test_batch_size as f64)).sqrt(),
         layers = layers.len(),
         learning_rate = learning_rate,
         last_epoch = last_epoch,
