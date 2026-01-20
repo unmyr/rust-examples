@@ -547,7 +547,7 @@ fn main() {
         .map_axis(ndarray::Axis(0), |column| {
             xor_continuous(column[0], column[1])
         })
-        .into_shape_with_order((1, mini_batch_size))
+        .into_shape_with_order((1, train_inputs.dim().1))
         .unwrap();
 
     info!(
@@ -599,11 +599,7 @@ fn main() {
                     .as_str(),
                 );
             }
-            info!(
-                epoch = epoch,
-                loss = loss,
-                weight = s
-            );
+            info!(epoch = epoch, loss = loss, weight = s);
         }
 
         if loss < 0.002 {
@@ -640,15 +636,69 @@ fn main() {
         );
     }
 
+    // XOR Predictions
+    let mut correct_counts = 0;
+    let test_inputs = ndarray::arr2(&[[0., 0.], [0., 1.], [1., 0.], [1., 1.]]).reversed_axes();
+    let test_batch_size = test_inputs.shape()[1];
+    let test_answers = test_inputs
+        .map_axis(ndarray::Axis(0), |column| {
+            xor_continuous(column[0], column[1])
+        })
+        .into_shape_with_order((1, test_batch_size))
+        .unwrap();
+    for (i, in_1d_vec_view) in test_inputs.columns().into_iter().enumerate() {
+        let in_2d_col_vec = in_1d_vec_view.insert_axis(ndarray::Axis(1));
+        let activations = forward(&in_2d_col_vec.view(), &layers);
+        let output = &activations.last().unwrap();
+        let answer = test_answers[[0, i]];
+        let ans11 = ndarray::arr2(&[[answer]]);
+        let loss = (&ans11 - &output.0).powf(2.).sum() / 2.;
+        if loss < 0.05 {
+            correct_counts += 1;
+        }
+        info!(
+            event = "XOR predictions",
+            inputs = format!("{:.0}", in_1d_vec_view),
+            predicted = format!("{:.2}", &output.0[[0, 0]]),
+            answer = format!("{:.0}", &output.0[[0, 0]]),
+            loss = format!("{:.2}", ans11[[0, 0]]),
+        );
+    }
+    let accuracy = correct_counts as f64 / (test_batch_size as f64);
+    info!(
+        accuracy = accuracy * 100.0,
+        layers = layers.len(),
+        learning_rate = learning_rate,
+        last_epoch = last_epoch,
+        mini_batch_size = mini_batch_size,
+        hidden_activation = format!("{:?}", hidden_activation),
+        output_activation = format!("{:?}", output_activation),
+        cosine_similarities = format!(
+            "[{:?}]",
+            cosine_similarities
+                .iter()
+                .map(|v| v.to_string())
+                .collect::<Vec<_>>()
+                .join(", ")
+        )
+    );
+
     // Plot traces
+    let result;
+    if accuracy > 0.95 {
+        result = "ok";
+    } else {
+        result = "ng";
+    }
+    let date_time = chrono::Local::now().format("%Y%m%d_%H%M%S").to_string();
     let image_prefix = format!(
-        "{program_name}_L{:02}_{}",
+        "{program_name}_{date_time}_{result}_L{:02}_{}",
         layers.len(),
         &args.hidden_activation
     );
 
     for layer_idx in 0..layers.len() {
-        let path = format!("images/{image_prefix}_{:02}.png", layer_idx);
+        let path = format!("images/{image_prefix}_{layer_idx:02}.png");
         let root_area = BitMapBackend::new(&path, (600, 600)).into_drawing_area();
         root_area.fill(&WHITE).unwrap();
         let drawing_areas = root_area.split_evenly((3, 1));
@@ -797,52 +847,6 @@ fn main() {
 
         info!("Saved the figure to: {}", path);
     }
-
-    // XOR Predictions
-    let mut correct_counts = 0;
-    let test_inputs = ndarray::arr2(&[[0., 0.], [0., 1.], [1., 0.], [1., 1.]]).reversed_axes();
-    let test_batch_size = test_inputs.shape()[1];
-    let test_answers = test_inputs
-        .map_axis(ndarray::Axis(0), |column| {
-            xor_continuous(column[0], column[1])
-        })
-        .into_shape_with_order((1, test_batch_size))
-        .unwrap();
-    for (i, in_1d_vec_view) in test_inputs.columns().into_iter().enumerate() {
-        let in_2d_col_vec = in_1d_vec_view.insert_axis(ndarray::Axis(1));
-        let activations = forward(&in_2d_col_vec.view(), &layers);
-        let output = &activations.last().unwrap();
-        let answer = test_answers[[0, i]];
-        let ans11 = ndarray::arr2(&[[answer]]);
-        let loss = (&ans11 - &output.0).powf(2.).sum() / 2.;
-        if loss < 0.05 {
-            correct_counts += 1;
-        }
-        info!(
-            event = "XOR predictions",
-            inputs = format!("{:.0}", in_1d_vec_view),
-            predicted = format!("{:.2}", &output.0[[0, 0]]),
-            answer = format!("{:.0}", &output.0[[0, 0]]),
-            loss = format!("{:.2}", ans11[[0, 0]]),
-        );
-    }
-    info!(
-        accuracy = (correct_counts as f64 / (test_batch_size as f64)) * 100.0,
-        layers = layers.len(),
-        learning_rate = learning_rate,
-        last_epoch = last_epoch,
-        mini_batch_size = mini_batch_size,
-        hidden_activation = format!("{:?}", hidden_activation),
-        output_activation = format!("{:?}", output_activation),
-        cosine_similarities = format!(
-            "[{:?}]",
-            cosine_similarities
-                .iter()
-                .map(|v| v.to_string())
-                .collect::<Vec<_>>()
-                .join(", ")
-        )
-    );
 
     plot_result(&layers, format!("{image_prefix}"));
 }
