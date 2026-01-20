@@ -1,6 +1,5 @@
 use std::time::Instant;
 
-use num_traits::ToPrimitive;
 use rand_distr::Distribution;
 #[derive(Debug)]
 struct LayerConfig<F>
@@ -52,7 +51,7 @@ fn forward<F: num_traits::Float + 'static>(
 }
 
 fn train<F: num_traits::Float + std::fmt::Display + 'static>(
-    iteration: &mut usize,
+    epoch: usize,
     train_inputs: &ndarray::Array2<F>,
     train_answers_ref: &ndarray::Array2<F>,
     layers: &mut Vec<LayerConfig<F>>,
@@ -75,7 +74,6 @@ fn train<F: num_traits::Float + std::fmt::Display + 'static>(
     });
 
     for (i, in_1d_vec_view) in train_inputs.columns().into_iter().enumerate() {
-        *iteration += 1;
         let in_2d_col_vec = in_1d_vec_view.insert_axis(ndarray::Axis(1));
         let activations = forward::<F>(&in_2d_col_vec.view(), layers);
 
@@ -118,13 +116,10 @@ fn train<F: num_traits::Float + std::fmt::Display + 'static>(
         );
     });
 
-    if *iteration % 4000 == 3999 {
-        let num_traits = ((*iteration as f32) / mini_batch_size.to_f32().unwrap())
-            .to_usize()
-            .unwrap();
+    if epoch % 4000 == 0 {
         print!(
-            "iteration={:06}, trial={:05}, loss={:.4}",
-            iteration, num_traits, loss
+            "epoch={:06}, mini_batch_size={}, loss={:.4}",
+            epoch, mini_batch_size, loss
         );
         for layer_no in 0..layers.len() {
             print!(
@@ -155,8 +150,7 @@ fn main() {
     layers.push(layer);
 
     let learning_rate = 0.5;
-    let num_trials: usize = 20000;
-    let mut iteration = 0;
+    let max_epoch: usize = 20000;
     let train_inputs: ndarray::Array2<f64> =
         ndarray::arr2(&[[0., 0.], [0., 1.], [1., 0.], [1., 1.]]).reversed_axes();
     let mini_batch_size = train_inputs.dim().1;
@@ -169,21 +163,20 @@ fn main() {
         .unwrap();
 
     let t_0 = Instant::now();
-    let mut total_trials: usize = 0;
-    for n in 0..num_trials {
+    let last_epoch = 0_usize;
+    for epoch in 1..(max_epoch + 1) {
         let loss = train(
-            &mut iteration,
+            epoch,
             &train_inputs,
             &train_answers,
             &mut layers,
             &learning_rate,
         );
-        total_trials = n;
 
         if loss < 0.002 {
             println!(
-                "INFO: Early stopping at iteration={} due to small loss={:.4}",
-                iteration, loss
+                "INFO: Early stopping at epoch={} due to small loss={:.4}",
+                epoch, loss
             );
             break;
         }
@@ -192,13 +185,10 @@ fn main() {
     println!("=== Results");
     let elapsed_time = t_0.elapsed();
     println!(
-        "iteration={}, mini_batch_size={}, total_trials={}, learning_rate={}, elapsed time={:.2}[s] {:.6}[s/mini_batch]",
-        iteration,
-        mini_batch_size,
-        total_trials,
+        "last_epoch={last_epoch}, mini_batch_size={mini_batch_size}, learning_rate={}, elapsed time={:.2}[s] {:.6}[s/epoch]",
         learning_rate,
         elapsed_time.as_secs() as f32,
-        (elapsed_time.as_secs() as f32) / (total_trials as f32)
+        (elapsed_time.as_secs() as f32) / (last_epoch as f32)
     );
 
     println!("\n== XOR Predictions ==");

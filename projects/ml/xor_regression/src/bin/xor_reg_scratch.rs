@@ -11,13 +11,21 @@ use tracing_subscriber;
 #[derive(clap::Parser)]
 struct Args {
     #[arg(
+        long = "batch-size",
+        default_value = "4",
+        action = clap::ArgAction::Set,
+        help = "Number of epochs to train"
+    )]
+    batch_size: usize,
+
+    #[arg(
         short = 'n',
-        long = "n-samples",
+        long = "max-epoch",
         default_value = "20000",
         action = clap::ArgAction::Set,
         help = "Max number of training samples"
     )]
-    n_samples: usize,
+    max_epoch: usize,
 
     /// Activation function for hidden layers (identity, relu, sigmoid, tanh)
     #[arg(
@@ -227,7 +235,7 @@ fn forward<F: Float + 'static>(
 
 // Training function
 fn train<F: Float + std::fmt::Debug + FromPrimitive + 'static>(
-    iteration: &mut usize,
+    epoch: usize,
     train_inputs: &ndarray::Array2<F>,
     train_answers_ref: &ndarray::Array2<F>,
     layers: &Vec<LayerConfig<F>>,
@@ -260,7 +268,6 @@ fn train<F: Float + std::fmt::Debug + FromPrimitive + 'static>(
     });
 
     for (i, in_1d_vec_view) in train_inputs.columns().into_iter().enumerate() {
-        *iteration += 1;
         let in_2d_col_vec = in_1d_vec_view.insert_axis(ndarray::Axis(1));
         let activations = forward::<F>(&in_2d_col_vec.view(), layers);
 
@@ -333,7 +340,7 @@ fn train<F: Float + std::fmt::Debug + FromPrimitive + 'static>(
         trace_sim.push(sim_vec[max_idx]);
     }
 
-    let trace = TraceRecord::new(*iteration, trace_mean, trace_var, trace_sim);
+    let trace = TraceRecord::new(epoch, trace_mean, trace_var, trace_sim);
     let loss = loss_terms.sum() / F::from(mini_batch_size).unwrap();
     (grad_list, batch_weight_gradients, loss, trace)
 }
@@ -452,14 +459,14 @@ fn main() {
 
     let mut rng = rand::rng();
 
-    // Test predictions
-    let n_samples = args.n_samples;
+    let mini_batch_size = args.batch_size;
+    let max_epoch = args.max_epoch;
 
     let mut layers: Vec<LayerConfig<f64>> = Vec::new();
     let input_size: usize = 2;
     let output_size: usize = 2;
     let mut cosine_similarities: Vec<f64> = Vec::new();
-    if n_samples > 1 {
+    if max_epoch > 1 {
         let h = ndarray::Array2::from_shape_fn((output_size, input_size), |_| {
             rng.random_range(-0.5..0.5)
         });
@@ -500,7 +507,7 @@ fn main() {
 
     let input_size: usize = output_size;
     let output_size: usize = 1;
-    if n_samples > 1 {
+    if max_epoch > 1 {
         let h = ndarray::Array2::from_shape_fn((output_size, input_size), |_| {
             rng.random_range(-0.5..0.5)
         });
@@ -528,40 +535,44 @@ fn main() {
 
     let learning_rate = 0.5;
 
-    let mini_batch_size = 4;
+    let train_inputs: ndarray::Array2<f64>;
+    if mini_batch_size == 4 {
+        train_inputs = ndarray::arr2(&[[0., 0.], [0., 1.], [1., 0.], [1., 1.]]).reversed_axes();
+    } else {
+        train_inputs = ndarray::Array2::<f64>::from_shape_fn((2, mini_batch_size), |_| {
+            rng.random_range((0.)..(1.))
+        });
+    }
+    let train_answers = train_inputs
+        .map_axis(ndarray::Axis(0), |column| {
+            xor_continuous(column[0], column[1])
+        })
+        .into_shape_with_order((1, mini_batch_size))
+        .unwrap();
+
+    info!(
+        event = "Training configuration",
+        max_epoch = max_epoch,
+        mini_batch_size = mini_batch_size,
+        max_iteration = max_epoch,
+        learning_rate = learning_rate,
+    );
+
     info!(
         event = "Show layer information",
         layers = layers.len(),
-        learning_rate = learning_rate,
-        max_iteration = n_samples,
-        mini_batch_size = mini_batch_size,
         hidden_activation = format!("{:?}", hidden_activation),
         output_activation = format!("{:?}", output_activation)
     );
 
     let mut trace: Vec<TraceRecord<f64>> = Vec::new();
 
-    let mut iteration: usize = 0;
-    let mut total_trials: usize = 0;
     let t_0 = Instant::now();
-    for n in 0..n_samples {
-        let train_inputs: ndarray::Array2<f64>;
-        if mini_batch_size == 4 {
-            train_inputs = ndarray::arr2(&[[0., 0.], [0., 1.], [1., 0.], [1., 1.]]).reversed_axes();
-        } else {
-            train_inputs = ndarray::Array2::<f64>::from_shape_fn((2, mini_batch_size), |_| {
-                rng.random_range((0.)..(1.))
-            });
-        }
-        let train_answers = train_inputs
-            .map_axis(ndarray::Axis(0), |column| {
-                xor_continuous(column[0], column[1])
-            })
-            .into_shape_with_order((1, mini_batch_size))
-            .unwrap();
-
+    let mut last_epoch = 1_usize;
+    for epoch in 1..(max_epoch + 1) {
+        last_epoch = epoch;
         let (grad_list, batch_weight_gradients, loss, trace_record) =
-            train(&mut iteration, &train_inputs, &train_answers, &layers);
+            train(epoch, &train_inputs, &train_answers, &layers);
         trace.push(trace_record);
 
         // Update weight and bias
@@ -576,8 +587,7 @@ fn main() {
             );
         });
 
-        total_trials = n;
-        if n == 0 || n % 1000 == 999 {
+        if epoch == 1 || epoch % 1000 == 0 {
             let mut s = String::from("");
             for layer_no in 0..layers.len() {
                 s.push_str(format!(", layer[{layer_no}]={:?}", layers[layer_no]).as_str());
@@ -590,8 +600,7 @@ fn main() {
                 );
             }
             info!(
-                iteration = iteration,
-                total_trials = total_trials,
+                epoch = epoch,
                 loss = loss,
                 weight = s
             );
@@ -600,7 +609,7 @@ fn main() {
         if loss < 0.002 {
             info!(
                 event = "Stop the iterations early because the error is below the target value",
-                iteration = iteration,
+                epoch = epoch,
                 loss = loss,
             );
             break;
@@ -612,14 +621,13 @@ fn main() {
     info!(
         event = "Results",
         layers = layers.len(),
-        iteration = iteration,
         mini_batch_size = mini_batch_size,
-        total_trials = total_trials,
+        last_epoch = last_epoch,
         learning_rate = learning_rate,
         hidden_activation = format!("{:?}", hidden_activation),
         output_activation = format!("{:?}", output_activation),
         elapsed_time = elapsed_time.as_secs(),
-        sec_per_mini_batch = (elapsed_time.as_secs() as f32) / (total_trials as f32)
+        sec_per_epoch = (elapsed_time.as_secs() as f32) / (last_epoch as f32)
     );
 
     // Trained
@@ -663,13 +671,13 @@ fn main() {
             .margin_right(30)
             .x_label_area_size(30)
             .y_label_area_size(40)
-            .build_cartesian_2d(1..iteration, -0.1..1.0)
+            .build_cartesian_2d(1..last_epoch, -0.1..1.0)
             .unwrap();
         chart
             .configure_mesh()
             .x_label_formatter(&|v| format!("{}", v))
             .y_label_formatter(&|v| format!("{:.1}", v))
-            .x_desc("n samples")
+            .x_desc("epoch")
             .y_desc("weights")
             .draw()
             .ok();
@@ -709,13 +717,13 @@ fn main() {
             .margin_right(30)
             .x_label_area_size(30)
             .y_label_area_size(40)
-            .build_cartesian_2d(1_usize..iteration, -0.1..1.0)
+            .build_cartesian_2d(1_usize..last_epoch, -0.1..1.0)
             .unwrap();
         chart
             .configure_mesh()
             .x_label_formatter(&|v| format!("{}", v))
             .y_label_formatter(&|v| format!("{:.1}", v))
-            .x_desc("n samples")
+            .x_desc("epoch")
             .y_desc("weights")
             .draw()
             .ok();
@@ -755,14 +763,14 @@ fn main() {
             .margin_right(30)
             .x_label_area_size(30)
             .y_label_area_size(40)
-            .build_cartesian_2d(1_usize..iteration, -0.1..1.0)
+            .build_cartesian_2d(1_usize..last_epoch, -0.1..1.0)
             .unwrap();
         chart
             .configure_mesh()
             .x_label_formatter(&|v| format!("{}", v))
             .y_label_formatter(&|v| format!("{:.1}", v))
-            .x_desc("n samples")
-            .y_desc("weights")
+            .x_desc("epoch")
+            .y_desc("max similarity")
             .draw()
             .ok();
 
@@ -822,8 +830,7 @@ fn main() {
         accuracy = (correct_counts as f64 / (test_batch_size as f64)) * 100.0,
         layers = layers.len(),
         learning_rate = learning_rate,
-        iteration = iteration,
-        total_trials = total_trials,
+        last_epoch = last_epoch,
         mini_batch_size = mini_batch_size,
         hidden_activation = format!("{:?}", hidden_activation),
         output_activation = format!("{:?}", output_activation),
