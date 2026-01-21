@@ -1,7 +1,22 @@
-== Example1: 3D Surface example
+== Example 1: 3D Surface example
 
 [source,shell]
 .Run the example 1
 ----
 cargo run --bin xor_3d_surface --release
 ----
+
+== Example 2: Three-quarter view
+
+[source,shell]
+----
+cargo run --bin three_quarter_view --release
+----
+
+.Three-quarter view
+image::images/three_quarter_view.svg[]
+
+
+=== References
+
+* https://docs.rs/ndarray/latest/ndarray/[ndarray - Rust^]
