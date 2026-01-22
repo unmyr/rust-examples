@@ -101,7 +101,8 @@ struct TraceRecord<F: Float> {
     iteration: usize,
     mean: Vec<ndarray::Array1<F>>,
     variance: Vec<ndarray::Array1<F>>,
-    cosine_similarity: Vec<F>,
+    cosine_similarity_row: Vec<F>,
+    cosine_similarity_col: Vec<F>,
 }
 
 // Implement constructor for TraceRecord
@@ -110,13 +111,15 @@ impl<F: Float> TraceRecord<F> {
         iteration: usize,
         mean: Vec<ndarray::Array1<F>>,
         variance: Vec<ndarray::Array1<F>>,
-        cosine_similarity: Vec<F>,
-    ) -> TraceRecord<F> {
+        cosine_similarity_row: Vec<F>,
+        cosine_similarity_col: Vec<F>,
+   ) -> TraceRecord<F> {
         TraceRecord {
             iteration: iteration,
             mean: mean,
             variance: variance,
-            cosine_similarity: cosine_similarity,
+            cosine_similarity_row: cosine_similarity_row,
+            cosine_similarity_col: cosine_similarity_col,
         }
     }
 }
@@ -324,23 +327,35 @@ fn train<F: Float + std::fmt::Debug + FromPrimitive + 'static>(
         .collect::<Vec<_>>();
 
     // Calculate cosine similarities
-    let mut trace_sim = Vec::<F>::new();
+    let mut trace_row_sim = Vec::<F>::new();
+    let mut trace_col_sim = Vec::<F>::new();
     for layer_no in (0..layers.len()).into_iter() {
         if &layers[layer_no].weight.dim().0 == &1_usize {
-            trace_sim.push(F::zero());
+            trace_row_sim.push(F::zero());
+            trace_col_sim.push(F::zero());
             continue;
         }
-        let sim_vec = cosine_similarity_vec(&layers[layer_no].weight.view());
-        let max_idx = sim_vec
+
+        let sim_row_vec = cosine_similarity_vec(&layers[layer_no].weight.view());
+        let max_row_idx = sim_row_vec
             .iter()
             .enumerate()
             .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
             .map(|(idx, _)| idx)
             .unwrap();
-        trace_sim.push(sim_vec[max_idx]);
+        trace_row_sim.push(sim_row_vec[max_row_idx]);
+
+        let sim_col_vec = cosine_similarity_vec(&layers[layer_no].weight.t());
+        let max_col_idx = sim_col_vec
+            .iter()
+            .enumerate()
+            .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
+            .map(|(idx, _)| idx)
+            .unwrap();
+        trace_col_sim.push(sim_col_vec[max_col_idx]);
     }
 
-    let trace = TraceRecord::new(epoch, trace_mean, trace_var, trace_sim);
+    let trace = TraceRecord::new(epoch, trace_mean, trace_var, trace_row_sim, trace_col_sim);
     let loss = loss_terms.sum() / F::from(mini_batch_size).unwrap();
     (grad_list, batch_weight_gradients, loss, trace)
 }
@@ -480,7 +495,7 @@ fn main() {
             cosine_similarity = cosine_similarity
         );
         let bias =
-            ndarray::Array2::from_shape_fn((output_size, 1), |_| rng.random_range(-0.5..0.5));
+            ndarray::Array2::from_shape_fn((output_size, 1), |_| 0.5);
         let layer = LayerConfig::<f64>::new(h, bias, hidden_activation.clone());
         layers.push(layer);
     } else {
@@ -833,11 +848,23 @@ fn main() {
             .draw_series(LineSeries::new(
                 trace
                     .iter()
-                    .map(|v| (v.iteration, v.cosine_similarity[layer_idx])),
+                    .map(|v| (v.iteration, v.cosine_similarity_row[layer_idx])),
                 color.stroke_width(2),
             ))
             .unwrap()
-            .label(format!("max",))
+            .label(format!("max row vec",))
+            .legend(move |(x, y)| Rectangle::new([(x, y), (x + 10, y + 1)], color.filled()));
+
+        let color = Palette99::pick(1).mix(0.9);
+        chart
+            .draw_series(LineSeries::new(
+                trace
+                    .iter()
+                    .map(|v| (v.iteration, v.cosine_similarity_col[layer_idx])),
+                color.stroke_width(2),
+            ))
+            .unwrap()
+            .label(format!("max col vec",))
             .legend(move |(x, y)| Rectangle::new([(x, y), (x + 10, y + 1)], color.filled()));
 
         // Draw legend
