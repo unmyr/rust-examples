@@ -113,25 +113,24 @@ fn it_ndarray_2d_extend_row_using_concatenate() {
 // create an empty array and append columns
 #[test]
 fn it_ndarray_2d_add_columns() {
-    let h_1 = ndarray::arr2(&[[1., 2.], [3., 4.]]);
-    let test_inputs = ndarray::arr2(&[[0., 0.], [0., 1.], [1., 0.], [1., 1.]]);
-    let b_1 = ndarray::array![0.1, 0.1];
+    let h1_nxk = ndarray::arr2(&[[1., 2.], [3., 4.]]);
+    let test_inputs_kxn = ndarray::arr2(&[[0., 0.], [0., 1.], [1., 0.], [1., 1.]]).reversed_axes();
+    let b1_k = ndarray::array![0.1, 0.1];
 
-    let mut h1_out_results_nd = ndarray::Array2::zeros((2, 0));
-    for in_view in test_inputs.rows() {
-        let h1_out = (&h_1.dot(&in_view) + &b_1)
-            .into_owned()
-            .insert_axis(ndarray::Axis(0));
-        let _ = h1_out_results_nd.push_column(h1_out.row(0));
-        println!("h1_out={:?}", &h1_out);
+    let mut h1_out_results_kxn = ndarray::Array2::zeros((2, 0));
+    for test_input_k in test_inputs_kxn.columns() {
+        let test_input_kx1 = &test_input_k.insert_axis(ndarray::Axis(0)).reversed_axes();
+        let h1_out_kx1 = &h1_nxk.dot(test_input_kx1) + &b1_k;
+        println!("h1_out_kx1={:?}", &h1_out_kx1);
+        let _ = h1_out_results_kxn.push_column(h1_out_kx1.column(0));
     }
-    println!("h1_out_results_nd={:?}", h1_out_results_nd);
-    assert_eq!(h1_out_results_nd.column(0), ndarray::array![0.1, 0.1]);
-    assert_eq!(h1_out_results_nd.column(1), ndarray::array![2.1, 4.1]);
-    assert_eq!(h1_out_results_nd.column(2), ndarray::array![1.1, 3.1]);
-    assert_eq!(h1_out_results_nd.column(3), ndarray::array![3.1, 7.1]);
+    println!("h1_out_results_kxn={:?}", h1_out_results_kxn);
+    assert_eq!(h1_out_results_kxn.column(0), ndarray::array![0.1, 0.1]);
+    assert_eq!(h1_out_results_kxn.column(1), ndarray::array![2.1, 4.1]);
+    assert_eq!(h1_out_results_kxn.column(2), ndarray::array![1.1, 3.1]);
+    assert_eq!(h1_out_results_kxn.column(3), ndarray::array![3.1, 7.1]);
     assert_eq!(
-        h1_out_results_nd,
+        h1_out_results_kxn,
         ndarray::arr2(&[[0.1, 2.1, 1.1, 3.1], [0.1, 4.1, 3.1, 7.1]])
     );
 }
