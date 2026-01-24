@@ -69,6 +69,55 @@ fn it_ndarray_2d_broadcast_multiply_each_row() {
     assert!(c == &a * &b);
 }
 
+#[test]
+fn it_ndarray_2d_extend_column_using_iter() {
+    use ndarray::Array2;
+
+    // Create a 2D array
+    let train_inputs_nxk = ndarray::array![[0, 0], [0, 1], [1, 0], [1, 1]];
+    // Extend the array by adding a new column which is the product of the first two columns
+    let mut train_inputs_with_interaction_nxk = Array2::<i32>::zeros((train_inputs_nxk.nrows(), 3));
+    for (i, row) in train_inputs_nxk.rows().into_iter().enumerate() {
+        let mut v = row.to_vec();
+        v.push(v[0] * v[1]); // interaction term
+        train_inputs_with_interaction_nxk
+            .row_mut(i)
+            .assign(&ndarray::Array1::from(v));
+    }
+    assert_eq!(
+        train_inputs_with_interaction_nxk,
+        ndarray::arr2(&[[0, 0, 0], [0, 1, 0], [1, 0, 0], [1, 1, 1]])
+    );
+}
+
+#[test]
+fn it_ndarray_2d_extend_column_using_concatenate() {
+    use ndarray::Array2;
+
+    // Create a 2D array
+    let train_inputs_nxk = ndarray::array![[0, 0], [0, 1], [1, 0], [1, 1]];
+    assert!(train_inputs_nxk.shape() == &[4, 2]);
+
+    // Calculate the interaction term, and then concatenate it as a new column
+    let interaction_col_n = &train_inputs_nxk.column(0) * &train_inputs_nxk.column(1);
+    assert!(interaction_col_n == ndarray::Array1::from(vec![0, 0, 0, 1]));
+    assert!(interaction_col_n.shape() == &[4]);
+
+    // Convert interaction to a 2D column array
+    let intersection_col_nxk = interaction_col_n.insert_axis(ndarray::Axis(1));
+    assert!(intersection_col_nxk.shape() == &[4, 1]);
+
+    // Concatenate the new column to the original array
+    let train_inputs_with_interaction_nxk =
+        ndarray::concatenate![ndarray::Axis(1), train_inputs_nxk, intersection_col_nxk];
+
+    assert_eq!(
+        train_inputs_with_interaction_nxk,
+        Array2::from_shape_vec((4, 3), vec![0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1]).unwrap()
+    );
+    assert_eq!(train_inputs_with_interaction_nxk.shape(), &[4, 3]);
+}
+
 // create an empty array and append rows
 #[test]
 fn it_ndarray_2d_add_rows() {

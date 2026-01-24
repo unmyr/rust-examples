@@ -64,49 +64,50 @@ fn it_ndarray_2d_accumulate_column_using_dereference() {
 }
 
 #[test]
-fn it_ndarray_2d_extend_column_1() {
+fn it_ndarray_2d_extend_row_using_iter() {
     use ndarray::Array2;
 
     // Create a 2D array
-    let test_inputs = ndarray::array![[0, 0], [0, 1], [1, 0], [1, 1]];
+    let train_inputs_kxn = ndarray::array![[0, 0], [0, 1], [1, 0], [1, 1]].reversed_axes();
     // Extend the array by adding a new column which is the product of the first two columns
-    let mut out_arr3 = Array2::<i32>::zeros((test_inputs.nrows(), 3));
-    for (i, row) in test_inputs.rows().into_iter().enumerate() {
-        let mut v = row.to_vec();
+    let mut train_inputs_with_interaction_kxn = Array2::<i32>::zeros((3, train_inputs_kxn.ncols()));
+    for (i, column) in train_inputs_kxn.columns().into_iter().enumerate() {
+        let mut v = column.to_vec();
         v.push(v[0] * v[1]); // interaction term
-        out_arr3.row_mut(i).assign(&ndarray::Array1::from(v));
+        train_inputs_with_interaction_kxn
+            .column_mut(i)
+            .assign(&ndarray::Array1::from(v));
     }
     assert_eq!(
-        out_arr3,
-        Array2::from_shape_vec((4, 3), vec![0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1]).unwrap()
+        train_inputs_with_interaction_kxn,
+        ndarray::arr2(&[[0, 0, 0], [0, 1, 0], [1, 0, 0], [1, 1, 1]]).reversed_axes()
     );
 }
 
 #[test]
-fn it_ndarray_2d_extend_column_2() {
-    use ndarray::Array2;
-
+fn it_ndarray_2d_extend_row_using_concatenate() {
     // Create a 2D array
-    let test_inputs = ndarray::array![[0, 0], [0, 1], [1, 0], [1, 1]];
-    assert!(test_inputs.shape() == &[4, 2]);
+    let train_inputs_kxn = ndarray::array![[0, 0], [0, 1], [1, 0], [1, 1]].reversed_axes();
+    assert!(train_inputs_kxn.shape() == &[2, 4]);
 
     // Calculate the interaction term, and then concatenate it as a new column
-    let interaction = &test_inputs.column(0) * &test_inputs.column(1);
-    assert!(interaction == ndarray::Array1::from(vec![0, 0, 0, 1]));
-    assert!(interaction.shape() == &[4]);
+    let interaction_col_n = &train_inputs_kxn.row(0) * &train_inputs_kxn.row(1);
+    assert!(interaction_col_n == ndarray::Array1::from(vec![0, 0, 0, 1]));
+    assert!(interaction_col_n.shape() == &[4]);
 
     // Convert interaction to a 2D column array
-    let intersection_col = interaction.insert_axis(ndarray::Axis(1));
-    assert!(intersection_col.shape() == &[4, 1]);
+    let intersection_col_kxn = interaction_col_n.insert_axis(ndarray::Axis(0));
+    assert!(intersection_col_kxn.shape() == &[1, 4]);
 
     // Concatenate the new column to the original array
-    let out_arr3 = ndarray::concatenate![ndarray::Axis(1), test_inputs, intersection_col];
+    let train_inputs_with_interaction_kxn =
+        ndarray::concatenate![ndarray::Axis(0), train_inputs_kxn, intersection_col_kxn];
 
     assert_eq!(
-        out_arr3,
-        Array2::from_shape_vec((4, 3), vec![0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1]).unwrap()
+        train_inputs_with_interaction_kxn,
+        ndarray::array![[0, 0, 0], [0, 1, 0], [1, 0, 0], [1, 1, 1]].reversed_axes()
     );
-    assert_eq!(out_arr3.shape(), &[4, 3]);
+    assert_eq!(train_inputs_with_interaction_kxn.shape(), &[3, 4]);
 }
 
 // create an empty array and append columns
