@@ -521,9 +521,26 @@ fn main() {
     let input_size: usize = 2;
     let output_size: usize = 2;
     if max_epoch > 1 {
-        let h = ndarray::Array2::from_shape_fn((output_size, input_size), |_| {
-            rng.random_range(-0.5..0.5)
-        });
+        let h = if input_size == output_size {
+            // If the weight matrix is ​​a square matrix, initialize it with random values ​​that maintain orthogonality.
+            let mut rot = ndarray::Array2::<f64>::eye(input_size);
+            for i in 0..input_size {
+                for j in (i + 1)..input_size {
+                    let theta = rng.random_range(-std::f64::consts::PI..std::f64::consts::PI);
+                    let (cos_t, sin_t) = (theta.cos(), theta.sin());
+                    let mut rot_work = ndarray::Array2::<f64>::eye(input_size);
+                    (rot_work[[i, i]], rot_work[[i, j]]) = (cos_t, -sin_t);
+                    (rot_work[[j, i]], rot_work[[j, j]]) = (sin_t, cos_t);
+                    rot = rot_work.dot(&rot);
+                }
+            }
+            rot
+        } else {
+            ndarray::Array2::from_shape_fn((output_size, input_size), |_| {
+                rng.random_range(-0.5..0.5)
+            })
+        };
+
         let cosine_similarity = (&h.row(0) * &h.row(1)).sum()
             / (&h.row(0).mapv(|v| v * v).sum().powf(0.5)
                 * &h.row(1).mapv(|v| v * v).sum().powf(0.5));
