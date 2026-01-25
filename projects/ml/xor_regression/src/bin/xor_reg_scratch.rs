@@ -895,6 +895,17 @@ fn main() {
             .draw()
             .ok();
 
+        let (y_min, y_max) = trace
+            .iter()
+            .flat_map(|v| {
+                vec![
+                    v.cosine_similarity_row[layer_idx],
+                    v.cosine_similarity_col[layer_idx],
+                ]
+            })
+            .fold((-0.1, 1.0), |(y_min, y_max), v| {
+                (y_min.min(v), y_max.max(v))
+            });
         let mut chart = ChartBuilder::on(&sim_area)
             .caption(
                 format!(
@@ -907,7 +918,7 @@ fn main() {
             .margin_right(30)
             .x_label_area_size(30)
             .y_label_area_size(40)
-            .build_cartesian_2d(1_usize..last_epoch, -0.1..1.0)
+            .build_cartesian_2d(1_usize..last_epoch, y_min..y_max)
             .unwrap();
         chart
             .configure_mesh()
