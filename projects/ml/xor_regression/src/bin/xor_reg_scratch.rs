@@ -113,7 +113,7 @@ impl<F: Float> TraceRecord<F> {
         variance: Vec<ndarray::Array1<F>>,
         cosine_similarity_row: Vec<F>,
         cosine_similarity_col: Vec<F>,
-   ) -> TraceRecord<F> {
+    ) -> TraceRecord<F> {
         TraceRecord {
             iteration: iteration,
             mean: mean,
@@ -518,6 +518,7 @@ fn main() {
     let input_size: usize = 2;
     let output_size: usize = 2;
     let mut cosine_similarities: Vec<f64> = Vec::new();
+    let mut trace_biases: Vec<Vec<(usize, Vec<f64>)>> = Vec::new();
     if max_epoch > 1 {
         let h = ndarray::Array2::from_shape_fn((output_size, input_size), |_| {
             rng.random_range(-0.5..0.5)
@@ -531,8 +532,7 @@ fn main() {
             layer_no = layers.len(),
             cosine_similarity = cosine_similarity
         );
-        let bias =
-            ndarray::Array2::from_shape_fn((output_size, 1), |_| 0.5);
+        let bias = ndarray::Array2::from_shape_fn((output_size, 1), |_| 0.5);
         let layer = LayerConfig::<f64>::new(h, bias, hidden_activation.clone());
         layers.push(layer);
     } else {
@@ -585,6 +585,10 @@ fn main() {
         activation = format!("{:?}", layers[current_layer_no].act)
     );
 
+    (0..layers.len()).for_each(|_| {
+        trace_biases.push(Vec::new());
+    });
+
     let learning_rate = 0.5;
 
     let train_inputs: ndarray::Array2<f64>;
@@ -621,6 +625,7 @@ fn main() {
 
     let t_0 = Instant::now();
     let mut last_epoch = 1_usize;
+
     for epoch in 1..(max_epoch + 1) {
         last_epoch = epoch;
         let (grad_list, batch_weight_gradients, loss, trace_record) =
@@ -639,7 +644,8 @@ fn main() {
             );
         });
 
-        if epoch == 1 || epoch % 1000 == 0 {
+        let early_stop_loss = 0.002;
+        if epoch == 1 || epoch % 1000 == 0 || loss < early_stop_loss {
             let mut s = String::from("");
             for layer_no in 0..layers.len() {
                 s.push_str(format!(", layer[{layer_no}]={:?}", layers[layer_no]).as_str());
@@ -652,9 +658,14 @@ fn main() {
                 );
             }
             info!(epoch = epoch, loss = loss, weight = s);
+
+            // trace biases
+            (0..layers.len()).for_each(|i| {
+                trace_biases[i].push((epoch, layers[i].bias.flatten().to_vec()));
+            })
         }
 
-        if loss < 0.002 {
+        if loss < early_stop_loss {
             info!(
                 event = "Stop the iterations early because the error is below the target value",
                 epoch = epoch,
@@ -780,12 +791,13 @@ fn main() {
 
     for layer_idx in 0..layers.len() {
         let path = format!("images/{image_prefix}_{layer_idx:02}.png");
-        let root_area = BitMapBackend::new(&path, (600, 600)).into_drawing_area();
+        let root_area = BitMapBackend::new(&path, (600, 900)).into_drawing_area();
         root_area.fill(&WHITE).unwrap();
-        let drawing_areas = root_area.split_evenly((3, 1));
+        let drawing_areas = root_area.split_evenly((4, 1));
         let mean_area = &drawing_areas[0];
         let var_area = &drawing_areas[1];
         let sim_area = &drawing_areas[2];
+        let bias_area = &drawing_areas[3];
 
         // Number of weights
         let n_weights = trace[0].mean[layer_idx].len();
@@ -929,6 +941,55 @@ fn main() {
             .unwrap()
             .label(format!("max col vec",))
             .legend(move |(x, y)| Rectangle::new([(x, y), (x + 10, y + 1)], color.filled()));
+
+        // Draw legend
+        chart
+            .configure_series_labels()
+            .border_style(BLACK)
+            .label_font(("Calibri", 20))
+            .draw()
+            .ok();
+
+        let num_weights = trace_biases[layer_idx][0].1.len();
+
+        let (y_min, y_max) = trace_biases[layer_idx]
+            .iter()
+            .flat_map(|(_, b_vec)| b_vec.iter())
+            .fold((-0.1, 1.0), |(y_min, y_max), &b| {
+                (y_min.min(b), y_max.max(b))
+            });
+        let mut chart = ChartBuilder::on(&bias_area)
+            .caption(
+                format!("bias (Layer:{:0}; {:?})", layer_idx, num_weights),
+                ("sans-serif", 20),
+            )
+            .margin(10)
+            .margin_right(30)
+            .x_label_area_size(30)
+            .y_label_area_size(40)
+            .build_cartesian_2d(1..last_epoch, y_min..y_max)
+            .unwrap();
+        chart
+            .configure_mesh()
+            .x_label_formatter(&|v| format!("{}", v))
+            .y_label_formatter(&|v| format!("{:.1}", v))
+            .x_desc("epoch")
+            .y_desc("bias")
+            .draw()
+            .ok();
+
+        // Draw chart for each weight
+        (0..num_weights).for_each(|b_idx| {
+            let color = Palette99::pick(b_idx).mix(0.9);
+            chart
+                .draw_series(LineSeries::new(
+                    trace_biases[layer_idx].iter().map(|v| (v.0, v.1[b_idx])),
+                    color.stroke_width(2),
+                ))
+                .unwrap()
+                .label(format!("b{:?}", b_idx))
+                .legend(move |(x, y)| Rectangle::new([(x, y), (x + 10, y + 1)], color.filled()));
+        });
 
         // Draw legend
         chart
