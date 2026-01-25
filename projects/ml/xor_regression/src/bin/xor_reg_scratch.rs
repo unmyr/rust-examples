@@ -5,7 +5,7 @@ use num_traits::{Float, FromPrimitive};
 use plotters::prelude::*;
 use rand::Rng;
 use tracing::info;
-use tracing_subscriber;
+use tracing_subscriber::{self};
 
 // Command-line arguments structure
 #[derive(clap::Parser)]
@@ -120,6 +120,43 @@ impl<F: Float> TraceRecord<F> {
             variance: variance,
             cosine_similarity_row: cosine_similarity_row,
             cosine_similarity_col: cosine_similarity_col,
+        }
+    }
+}
+
+// Structure to hold training results for serialization
+#[derive(serde::Serialize, serde::Deserialize)]
+struct TrainResults<F: Float> {
+    accuracy: F,
+    rmse: F,
+    layers: usize,
+    learning_rate: F,
+    mini_batch_size: usize,
+    last_epoch: usize,
+    hidden_activation: String,
+    output_activation: String,
+}
+
+impl<F: Float> TrainResults<F> {
+    pub fn new(
+        accuracy: F,
+        rmse: F,
+        layers: usize,
+        learning_rate: F,
+        mini_batch_size: usize,
+        last_epoch: usize,
+        hidden_activation: &String,
+        output_activation: &String,
+    ) -> TrainResults<F> {
+        TrainResults {
+            accuracy,
+            rmse,
+            layers,
+            learning_rate,
+            mini_batch_size,
+            last_epoch,
+            hidden_activation: hidden_activation.clone(),
+            output_activation: output_activation.clone(),
         }
     }
 }
@@ -699,6 +736,32 @@ fn main() {
                 .collect::<Vec<_>>()
                 .join(", ")
         )
+    );
+    let train_results = TrainResults::new(
+        accuracy,
+        (mse_term / (test_batch_size as f64)).sqrt(),
+        layers.len(),
+        learning_rate,
+        mini_batch_size,
+        last_epoch,
+        &args.hidden_activation,
+        &args.output_activation,
+    );
+
+    // Append training results to a JSONL file
+    let results_json = serde_json::to_string(&train_results).unwrap();
+    let results_path = "results/xor_regression_results.jsonl";
+    std::fs::create_dir_all("results").ok();
+    let mut file = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(results_path)
+        .unwrap();
+    use std::io::Write;
+    writeln!(file, "{}", results_json).unwrap();
+    info!(
+        event = "Appended training results to a JSON file",
+        path = results_path
     );
 
     // Plot traces
