@@ -515,10 +515,11 @@ fn main() {
     let max_epoch = args.max_epoch;
 
     let mut layers: Vec<LayerConfig<f64>> = Vec::new();
+    let mut trace_biases: Vec<Vec<(usize, Vec<f64>)>> = Vec::new();
+    let mut cosine_similarities: Vec<f64> = Vec::new();
+
     let input_size: usize = 2;
     let output_size: usize = 2;
-    let mut cosine_similarities: Vec<f64> = Vec::new();
-    let mut trace_biases: Vec<Vec<(usize, Vec<f64>)>> = Vec::new();
     if max_epoch > 1 {
         let h = ndarray::Array2::from_shape_fn((output_size, input_size), |_| {
             rng.random_range(-0.5..0.5)
