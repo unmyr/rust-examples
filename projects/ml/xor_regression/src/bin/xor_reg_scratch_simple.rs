@@ -1,6 +1,7 @@
 use std::time::Instant;
 
 use rand_distr::Distribution;
+
 #[derive(Debug)]
 struct LayerConfig<F>
 where
@@ -123,8 +124,10 @@ fn train<F: num_traits::Float + std::fmt::Display + 'static>(
         );
         for layer_no in 0..layers.len() {
             print!(
-                ", delta[{layer_no}]^T={:.4}",
-                &batch_weight_gradients[layer_no].t()
+                ", delta[{layer_no}]^T={:+.4}, w[{layer_no}]={}, b[{layer_no}]={}",
+                &batch_weight_gradients[layer_no].t(),
+                format!("{:+.4}", &layers[layer_no].weight).replace("\n", ""),
+                format!("{:+.4}", &layers[layer_no].bias).replace("\n", "")
             );
         }
         println!("");
