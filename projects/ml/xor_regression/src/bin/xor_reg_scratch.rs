@@ -286,7 +286,8 @@ fn train<F: Float + std::fmt::Debug + FromPrimitive + 'static>(
     epoch: usize,
     train_inputs: &ndarray::Array2<F>,
     train_answers_ref: &ndarray::Array2<F>,
-    layers: &Vec<LayerConfig<F>>,
+    layers: &mut Vec<LayerConfig<F>>,
+    learning_rate: &F,
 ) -> (
     Vec<ndarray::Array2<F>>,
     Vec<ndarray::Array2<F>>,
@@ -365,6 +366,18 @@ fn train<F: Float + std::fmt::Debug + FromPrimitive + 'static>(
             cur_gradients = layers[layer_no].weight.t().dot(&delta);
         }
     }
+
+    // Update weight and bias
+    (0..layers.len()).for_each(|i| {
+        layers[i].weight.scaled_add(
+            -F::one() * *learning_rate / F::from(mini_batch_size).unwrap(),
+            &grad_list[i],
+        );
+        layers[i].bias.scaled_add(
+            -F::one() * *learning_rate / F::from(mini_batch_size).unwrap(),
+            &batch_weight_gradients[i],
+        );
+    });
 
     // Calculate trace statistics
     // Mean and variance
@@ -508,8 +521,6 @@ fn main() {
             Activation::Sigmoid
         }
     };
-
-    // Default trace interval between epochs based on hidden activation function
     let default_trace_epoch: usize = match hidden_activation {
         Activation::Identity => 200,
         Activation::ReLU => 50,
@@ -520,7 +531,7 @@ fn main() {
     // Default learning rate based on hidden activation function
     let learning_rate = match hidden_activation {
         Activation::Identity => 0.5,
-        Activation::ReLU => 0.5,
+        Activation::ReLU => 0.01,
         Activation::Sigmoid => 0.2,
         Activation::Tanh => 0.2,
     };
@@ -681,21 +692,14 @@ fn main() {
 
     for epoch in 1..(max_epoch + 1) {
         last_epoch = epoch;
-        let (grad_list, batch_weight_gradients, loss, trace_record) =
-            train(epoch, &train_inputs, &train_answers, &layers);
+        let (_grad_list, batch_weight_gradients, loss, trace_record) = train(
+            epoch,
+            &train_inputs,
+            &train_answers,
+            &mut layers,
+            &learning_rate,
+        );
         trace.push(trace_record);
-
-        // Update weight and bias
-        (0..layers.len()).for_each(|i| {
-            layers[i].weight.scaled_add(
-                -1.,
-                &(&grad_list[i] * learning_rate / (mini_batch_size as f64)),
-            );
-            layers[i].bias.scaled_add(
-                -1.,
-                &(learning_rate * &batch_weight_gradients[i] / (mini_batch_size as f64)),
-            );
-        });
 
         let early_stop_loss = 0.002;
         if epoch == 1 || epoch % default_trace_epoch == 0 || loss < early_stop_loss {
