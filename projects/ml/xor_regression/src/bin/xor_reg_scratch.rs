@@ -509,6 +509,22 @@ fn main() {
         }
     };
 
+    // Default trace interval between epochs based on hidden activation function
+    let default_trace_epoch: usize = match hidden_activation {
+        Activation::Identity => 200,
+        Activation::ReLU => 50,
+        Activation::Sigmoid => 200,
+        Activation::Tanh => 200,
+    };
+
+    // Default learning rate based on hidden activation function
+    let learning_rate = match hidden_activation {
+        Activation::Identity => 0.5,
+        Activation::ReLU => 0.5,
+        Activation::Sigmoid => 0.2,
+        Activation::Tanh => 0.2,
+    };
+
     // Retrieve the value of --output-activation argument
     let output_activation = match String::from(&args.output_activation).as_str() {
         "identity" => Activation::Identity,
@@ -628,8 +644,6 @@ fn main() {
         trace_biases.push(Vec::new());
     });
 
-    let learning_rate = 0.01;
-
     let train_inputs: ndarray::Array2<f64>;
     if mini_batch_size == 4 {
         train_inputs = ndarray::arr2(&[[0., 0.], [0., 1.], [1., 0.], [1., 1.]]).reversed_axes();
@@ -684,7 +698,7 @@ fn main() {
         });
 
         let early_stop_loss = 0.002;
-        if epoch == 1 || epoch % 1000 == 0 || loss < early_stop_loss {
+        if epoch == 1 || epoch % default_trace_epoch == 0 || loss < early_stop_loss {
             let mut s = String::from("");
             for layer_no in 0..layers.len() {
                 s.push_str(format!(", layer[{layer_no}]={:?}", layers[layer_no]).as_str());
