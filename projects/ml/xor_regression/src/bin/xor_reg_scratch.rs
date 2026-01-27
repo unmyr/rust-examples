@@ -1056,8 +1056,8 @@ fn main() {
         (0..num_weights).for_each(|_| {
             series.push(Vec::new());
         });
-        let mut y_min = std::f64::INFINITY;
-        let mut y_max = std::f64::NEG_INFINITY;
+        let mut y_min = 0.0_f64;
+        let mut y_max = 1.0_f64;
         for record in trace.iter() {
             let pre_act_output = &record.pre_activation_outputs[layer_idx];
             for w_idx in 0..num_weights {
@@ -1088,9 +1088,9 @@ fn main() {
         chart
             .configure_mesh()
             .x_label_formatter(&|v| format!("{:.1}", v))
-            .y_label_formatter(&|v| format!("{}", v))
+            .y_label_formatter(&|v| format!("{:.2}", v))
             .x_desc("pre-activation output")
-            .y_desc("counts")
+            .y_desc("output value")
             .draw()
             .ok();
         // Draw Error bars with min, max, and mean each mini-batch
