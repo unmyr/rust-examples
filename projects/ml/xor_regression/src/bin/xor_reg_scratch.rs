@@ -103,6 +103,7 @@ struct TraceRecord<F: Float> {
     variance: Vec<ndarray::Array1<F>>,
     cosine_similarity_row: Vec<F>,
     cosine_similarity_col: Vec<F>,
+    pre_activation_outputs: Vec<ndarray::Array2<F>>,
 }
 
 // Implement constructor for TraceRecord
@@ -113,6 +114,7 @@ impl<F: Float> TraceRecord<F> {
         variance: Vec<ndarray::Array1<F>>,
         cosine_similarity_row: Vec<F>,
         cosine_similarity_col: Vec<F>,
+        pre_activation_outputs: Vec<ndarray::Array2<F>>,
     ) -> TraceRecord<F> {
         TraceRecord {
             iteration: iteration,
@@ -120,6 +122,7 @@ impl<F: Float> TraceRecord<F> {
             variance: variance,
             cosine_similarity_row: cosine_similarity_row,
             cosine_similarity_col: cosine_similarity_col,
+            pre_activation_outputs: pre_activation_outputs,
         }
     }
 }
@@ -254,12 +257,17 @@ fn cosine_similarity_vec<F: num_traits::Float>(m: &ndarray::ArrayView2<F>) -> Ve
 fn forward<F: Float + 'static>(
     input: &ndarray::ArrayView2<F>,
     layers: &Vec<LayerConfig<F>>,
-) -> Vec<(ndarray::Array2<F>, Activation)> {
+) -> Vec<(ndarray::Array2<F>, Activation, ndarray::Array2<F>)> {
     let current_input = input.clone().into_owned();
-    let mut activations = vec![(current_input, Activation::Identity)];
+    let mut activations = vec![(
+        current_input.clone(),
+        Activation::Identity,
+        current_input.clone(),
+    )];
 
     for layer in layers.iter() {
         let w_out = &layer.weight.dot(&activations.last().unwrap().0.view()) + &layer.bias;
+        let pre_activation = w_out.clone();
         let w_out_s = match &layer.act {
             Activation::Identity => w_out.mapv(identity),
             Activation::ReLU => w_out.mapv(relu),
@@ -267,7 +275,7 @@ fn forward<F: Float + 'static>(
             Activation::Tanh => w_out.mapv(tanh),
         };
         let current_input = w_out_s;
-        activations.push((current_input, layer.act.clone()));
+        activations.push((current_input, layer.act.clone(), pre_activation));
     }
 
     activations
@@ -293,23 +301,30 @@ fn train<F: Float + std::fmt::Debug + FromPrimitive + 'static>(
     let mut grad_list: Vec<ndarray::Array2<F>> = Vec::new();
     let mut batch_weight_gradients: Vec<ndarray::Array2<F>> = Vec::new();
     let mut trace_outputs: Vec<ndarray::Array2<F>> = Vec::new();
+    let mut pre_activation_outputs: Vec<ndarray::Array2<F>> = Vec::new();
 
     // Accumulate the gradient for each sample
     (0..layers.len()).for_each(|i| {
         grad_list.push(ndarray::Array2::zeros(layers[i].weight.dim()));
-        batch_weight_gradients.push(ndarray::Array2::<F>::zeros((
-            layers[i].weight.shape()[0],
-            1,
-        )));
-        trace_outputs.push(ndarray::Array2::zeros((
-            layers[i].weight.dim().0,
-            mini_batch_size,
-        )));
+        let output_size = layers[i].weight.dim().0;
+        batch_weight_gradients.push(ndarray::Array2::<F>::zeros((output_size, 1)));
+        trace_outputs.push(ndarray::Array2::zeros((output_size, mini_batch_size)));
+        pre_activation_outputs.push(ndarray::Array2::zeros((output_size, mini_batch_size)));
     });
 
     for (i, in_1d_vec_view) in train_inputs.columns().into_iter().enumerate() {
         let in_2d_col_vec = in_1d_vec_view.insert_axis(ndarray::Axis(1));
         let activations = forward::<F>(&in_2d_col_vec.view(), layers);
+        pre_activation_outputs
+            .iter_mut()
+            .enumerate()
+            .for_each(|(layer_no, pre_act_out)| {
+                let a_idx = layer_no + 1;
+                let pre_act = &activations[a_idx].2;
+                pre_act_out
+                    .column_mut(i)
+                    .assign(&pre_act.clone().remove_axis(ndarray::Axis(1)));
+            });
 
         let mut cur_gradients;
         cur_gradients = &activations.last().unwrap().0 - &train_answers_ref.column(i);
@@ -392,7 +407,14 @@ fn train<F: Float + std::fmt::Debug + FromPrimitive + 'static>(
         trace_col_sim.push(sim_col_vec[max_col_idx]);
     }
 
-    let trace = TraceRecord::new(epoch, trace_mean, trace_var, trace_row_sim, trace_col_sim);
+    let trace = TraceRecord::new(
+        epoch,
+        trace_mean,
+        trace_var,
+        trace_row_sim,
+        trace_col_sim,
+        pre_activation_outputs,
+    );
     let loss = loss_terms.sum() / F::from(mini_batch_size).unwrap();
     (grad_list, batch_weight_gradients, loss, trace)
 }
@@ -550,7 +572,7 @@ fn main() {
             layer_no = layers.len(),
             cosine_similarity = cosine_similarity
         );
-        let bias = ndarray::Array2::from_shape_fn((output_size, 1), |_| 0.5);
+        let bias = ndarray::Array2::from_shape_fn((output_size, 1), |_| -0.1);
         let layer = LayerConfig::<f64>::new(h, bias, hidden_activation.clone());
         layers.push(layer);
     } else {
@@ -581,8 +603,7 @@ fn main() {
         let h = ndarray::Array2::from_shape_fn((output_size, input_size), |_| {
             rng.random_range(-0.5..0.5)
         });
-        let bias =
-            ndarray::Array2::from_shape_fn((output_size, 1), |_| rng.random_range(-0.5..0.5));
+        let bias = ndarray::Array2::from_shape_fn((output_size, 1), |_| 0.0);
         let layer = LayerConfig::<f64>::new(h, bias, hidden_activation.clone());
         layers.push(layer);
     } else {
@@ -607,7 +628,7 @@ fn main() {
         trace_biases.push(Vec::new());
     });
 
-    let learning_rate = 0.5;
+    let learning_rate = 0.01;
 
     let train_inputs: ndarray::Array2<f64>;
     if mini_batch_size == 4 {
@@ -809,13 +830,14 @@ fn main() {
 
     for layer_idx in 0..layers.len() {
         let path = format!("images/{image_prefix}_{layer_idx:02}.png");
-        let root_area = BitMapBackend::new(&path, (600, 900)).into_drawing_area();
+        let root_area = BitMapBackend::new(&path, (600, 1100)).into_drawing_area();
         root_area.fill(&WHITE).unwrap();
-        let drawing_areas = root_area.split_evenly((4, 1));
+        let drawing_areas = root_area.split_evenly((5, 1));
         let mean_area = &drawing_areas[0];
         let var_area = &drawing_areas[1];
         let sim_area = &drawing_areas[2];
         let bias_area = &drawing_areas[3];
+        let pre_act_area = &drawing_areas[4];
 
         // Number of weights
         let n_weights = trace[0].mean[layer_idx].len();
@@ -1028,6 +1050,75 @@ fn main() {
             .draw()
             .ok();
 
+        // Draw pre activation output error bars
+        let num_weights = trace[0].pre_activation_outputs[layer_idx].shape()[0];
+        let mut series = Vec::new();
+        (0..num_weights).for_each(|_| {
+            series.push(Vec::new());
+        });
+        let mut y_min = std::f64::INFINITY;
+        let mut y_max = std::f64::NEG_INFINITY;
+        for record in trace.iter() {
+            let pre_act_output = &record.pre_activation_outputs[layer_idx];
+            for w_idx in 0..num_weights {
+                let weight_outputs = pre_act_output.row(w_idx);
+                let min = weight_outputs.fold(std::f64::INFINITY, |a, &b| a.min(b));
+                let max = weight_outputs.fold(std::f64::NEG_INFINITY, |a, &b| a.max(b));
+                let avg = weight_outputs.sum() / (weight_outputs.len() as f64);
+                series[w_idx].push((record.iteration, min, avg, max));
+                y_min = y_min.min(min);
+                y_max = y_max.max(max);
+            }
+        }
+
+        let mut chart = ChartBuilder::on(&pre_act_area)
+            .caption(
+                format!(
+                    "Pre-activation output error bars: (Layer:{:0}; {:?})",
+                    layer_idx, num_weights
+                ),
+                ("sans-serif", 20),
+            )
+            .margin(10)
+            .margin_right(30)
+            .x_label_area_size(30)
+            .y_label_area_size(40)
+            .build_cartesian_2d(0..last_epoch, y_min..y_max)
+            .unwrap();
+        chart
+            .configure_mesh()
+            .x_label_formatter(&|v| format!("{:.1}", v))
+            .y_label_formatter(&|v| format!("{}", v))
+            .x_desc("pre-activation output")
+            .y_desc("counts")
+            .draw()
+            .ok();
+        // Draw Error bars with min, max, and mean each mini-batch
+        series.iter().enumerate().for_each(|(w_idx, data)| {
+            let color = Palette99::pick(w_idx).mix(0.9);
+            let original_style = ShapeStyle {
+                color: color,
+                filled: false,
+                stroke_width: 2,
+            };
+            chart
+                .draw_series(data.iter().filter(|&v| v.0 % 1000 == 0).map(
+                    |&(epoch, min, avg, max)| {
+                        ErrorBar::new_vertical(epoch, min, avg, max, original_style.clone(), 5)
+                    },
+                ))
+                .unwrap()
+                .label(format!("w{:?}", w_idx))
+                .legend(move |(x, y)| Rectangle::new([(x, y), (x + 10, y + 1)], color.filled()));
+        });
+        chart
+            .configure_series_labels()
+            .border_style(BLACK)
+            .label_font(("Calibri", 20))
+            .draw()
+            .ok();
+
+        // Notify saved path
         info!("Saved the figure to: {}", path);
     }
 
