@@ -88,6 +88,13 @@ fn it_ndarray_2d_broadcast_add() {
     assert!(c == &a + &b);
 }
 
+#[test]
+fn it_ndarray_2d_dot_product_1x2_2x1() {
+    let arr_1x2_i32 = ndarray::arr2(&[[1, 2]]);
+    let arr_2x1_i32 = ndarray::arr2(&[[1], [3]]);
+    assert_eq!(&arr_1x2_i32.dot(&arr_2x1_i32), &ndarray::arr2(&[[7]]));
+}
+
 // Multiplies two matrices.
 #[test]
 fn it_ndarray_2d_matrix_multiplication_m22_m21() {
