@@ -1,4 +1,4 @@
-use std::time::Instant;
+use std::{io::Write, time::Instant};
 
 use clap::Parser;
 use num_traits::{Float, FromPrimitive};
@@ -42,10 +42,26 @@ struct Args {
         help = "Sets the activation function for output layer (identity, relu, sigmoid, tanh)"
     )]
     output_activation: String,
+
+    /// Path to load configuration file
+    #[arg(
+        long = "config-path",
+        default_value = "",
+        help = "Path to load configuration file"
+    )]
+    config_path: String,
+
+    /// Path to load model checkpoint
+    #[arg(
+        long = "checkpoint-path",
+        default_value = "",
+        help = "Path to load model checkpoint"
+    )]
+    checkpoint_path: String,
 }
 
 // Activation functions supported
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
 enum Activation {
     Identity,
     ReLU,
@@ -66,6 +82,7 @@ impl std::fmt::Display for Activation {
 }
 
 // Layer structure
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
 struct LayerConfig {
     input_dim: usize,
     output_dim: usize,
@@ -103,9 +120,26 @@ struct ModelState<F: Float> {
 }
 
 // Implement constructor for ModelState
-impl<F: Float> ModelState<F> {
+impl<F: Float + serde::Serialize + for<'a> serde::Deserialize<'a>> ModelState<F> {
     pub fn from_params(params: Vec<LayerParams<F>>) -> ModelState<F> {
         ModelState { layers: params }
+    }
+
+    pub fn from_nn(nn: &NeuralNetwork<F>) -> ModelState<F> {
+        let layers = nn.layers.iter().map(|l| l.params.clone()).collect();
+        ModelState { layers }
+    }
+
+    pub fn save(&self, path: &std::path::Path) {
+        let mut file = std::fs::File::create(path).unwrap();
+        let serialized_str = serde_json::to_string(self).unwrap();
+        file.write_all(serialized_str.as_bytes()).unwrap();
+    }
+
+    pub fn load(path: &std::path::Path) -> ModelState<F> {
+        let file_content = std::fs::read_to_string(path).unwrap();
+        let model_state: ModelState<F> = serde_json::from_str(&file_content).unwrap();
+        model_state
     }
 }
 
@@ -154,6 +188,22 @@ impl<F: Float> NeuralNetwork<F> {
             layers,
             learning_rate,
         }
+    }
+}
+
+// Load and save hyperparameters and model parameters
+impl<F: num_traits::Float> NeuralNetwork<F> {
+    pub fn save_config(&self, path: &std::path::Path) {
+        let mut file = std::fs::File::create(path).unwrap();
+        let config: Vec<LayerConfig> = self.layers.iter().map(|l| l.config.clone()).collect();
+        let serialized_str = serde_json::to_string(&config).unwrap();
+        file.write_all(serialized_str.as_bytes()).unwrap();
+    }
+
+    pub fn load_config(path: &str) -> Vec<LayerConfig> {
+        let file_content = std::fs::read_to_string(path).unwrap();
+        let layer_configs: Vec<LayerConfig> = serde_json::from_str(&file_content).unwrap();
+        layer_configs
     }
 }
 
@@ -475,12 +525,12 @@ fn xor_continuous<F: Float>(x1: F, x2: F) -> F {
     x1 + x2 - F::from(2.0).unwrap() * x1 * x2
 }
 
-fn argmax<T: PartialOrd>(v: &[T]) -> Option<usize> {
-    v.iter()
-        .enumerate()
-        .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
-        .map(|(idx, _)| idx)
-}
+// fn argmax<T: PartialOrd>(v: &[T]) -> Option<usize> {
+//     v.iter()
+//         .enumerate()
+//         .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
+//         .map(|(idx, _)| idx)
+// }
 
 // Calculate cosine similarity between row vector in 2D array
 fn cosine_similarity_vec<F: num_traits::Float>(m: &ndarray::ArrayView2<F>) -> Vec<F> {
@@ -602,6 +652,7 @@ fn main() {
         Activation::Sigmoid => 200,
         Activation::Tanh => 200,
     };
+    let default_checkpoint_interval = 1000_usize;
 
     // Default learning rate based on hidden activation function
     let learning_rate = match hidden_activation {
@@ -638,120 +689,172 @@ fn main() {
     let mini_batch_size = args.batch_size;
     let max_epoch = args.max_epoch;
 
-    let mut layer_config: Vec<LayerConfig> = Vec::new();
-    let input_size: usize = 2;
-    let output_size: usize = 2;
-    layer_config.push(LayerConfig::new(
-        input_size,
-        output_size,
-        hidden_activation.clone(),
-    ));
-    let input_size: usize = output_size;
-    let output_size: usize = 1;
-    layer_config.push(LayerConfig::new(
-        input_size,
-        output_size,
-        hidden_activation.clone(),
-    ));
+    let date_time = chrono::Local::now().format("%Y%m%d_%H%M%S").to_string();
+    let model_dir: &std::path::Path;
+    let mut model_dir_buf: std::path::PathBuf;
 
-    let mut layer_params: Vec<LayerParams<f64>> = Vec::new();
-    let mut trace_biases: Vec<Vec<(usize, Vec<f64>)>> = Vec::new();
+    let mut layer_config: Vec<LayerConfig>;
+    if args.config_path != "" {
+        // Load layer configuration from file
+        let config_path = std::path::Path::new(&args.config_path);
+        model_dir_buf = std::path::PathBuf::from(config_path);
+        model_dir_buf.pop();
+        model_dir = model_dir_buf.as_path();
+        layer_config = NeuralNetwork::<f64>::load_config(&args.config_path);
+    } else {
+        // Create layer configuration from command-line arguments
+        info!(event = "No configuration file specified; using default layer configuration.");
+        layer_config = Vec::new();
+
+        let input_size: usize = 2;
+        let output_size: usize = 2;
+        layer_config.push(LayerConfig::new(
+            input_size,
+            output_size,
+            hidden_activation.clone(),
+        ));
+
+        let input_size: usize = output_size;
+        let output_size: usize = 1;
+        layer_config.push(LayerConfig::new(
+            input_size,
+            output_size,
+            output_activation.clone(),
+        ));
+
+        let mode_dir_name = format!(
+            "{program_name}_{}_L{}",
+            &args.hidden_activation,
+            layer_config.len()
+        );
+        let model_dir_name = String::from(mode_dir_name);
+        model_dir_buf = std::path::PathBuf::from(model_dir_name);
+        model_dir = model_dir_buf.as_path();
+    }
+
+    let model_state;
+    if &args.checkpoint_path != "" {
+        // Load from checkpoint path
+        model_state = ModelState::<f64>::load(std::path::Path::new(&args.checkpoint_path));
+    } else {
+        let mut layer_params: Vec<LayerParams<f64>> = Vec::new();
+
+        let current_layer_no: usize = 0;
+        let input_size = layer_config[current_layer_no].input_dim;
+        let output_size = layer_config[current_layer_no].output_dim;
+        if max_epoch > 1 {
+            let h = if input_size == output_size {
+                // If the weight matrix is ​​a square matrix, initialize it with random values ​​that maintain orthogonality.
+                let mut rot = ndarray::Array2::<f64>::eye(input_size);
+                for i in 0..input_size {
+                    for j in (i + 1)..input_size {
+                        let theta = rng.random_range(-std::f64::consts::PI..std::f64::consts::PI);
+                        let (cos_t, sin_t) = (theta.cos(), theta.sin());
+                        let mut rot_work = ndarray::Array2::<f64>::eye(input_size);
+                        (rot_work[[i, i]], rot_work[[i, j]]) = (cos_t, -sin_t);
+                        (rot_work[[j, i]], rot_work[[j, j]]) = (sin_t, cos_t);
+                        rot = rot_work.dot(&rot);
+                    }
+                }
+                rot
+            } else {
+                ndarray::Array2::from_shape_fn((output_size, input_size), |_| {
+                    rng.random_range(-0.5..0.5)
+                })
+            };
+
+            let bias = ndarray::Array2::from_shape_fn((output_size, 1), |_| -0.1);
+            layer_params.push(LayerParams::<f64>::new(h, bias));
+        } else {
+            let h = ndarray::array![[0.1, 0.2], [0.3, 0.4]];
+            let bias = ndarray::array![[0.1], [0.1]];
+            layer_params.push(LayerParams::<f64>::new(h, bias));
+        }
+
+        let current_layer_no: usize = 1;
+        let input_size = layer_config[current_layer_no].input_dim;
+        let output_size = layer_config[current_layer_no].output_dim;
+        if max_epoch > 1 {
+            let h = ndarray::Array2::from_shape_fn((output_size, input_size), |_| {
+                rng.random_range(-0.5..0.5)
+            });
+            let bias = ndarray::Array2::from_shape_fn((output_size, 1), |_| 0.0);
+            layer_params.push(LayerParams::<f64>::new(h, bias));
+        } else {
+            let h = ndarray::array![[0.5, 0.6]];
+            let bias = ndarray::array![[0.1]];
+            layer_params.push(LayerParams::<f64>::new(h, bias));
+        }
+
+        model_state = ModelState::<f64>::from_params(layer_params);
+    }
+
+    // let current_layer_no = 0_usize;
     let mut cosine_similarities: Vec<f64> = Vec::new();
+
+    // cosine_similarities.push(cosine_similarity);
+    // info!(
+    //     event = "Verifying orthogonality of weight matrices for training",
+    //     layer_no = current_layer_no,
+    //     cosine_similarity = cosine_similarity
+    // );
+
+    let mut nn: NeuralNetwork<_> =
+        NeuralNetwork::from_config_and_state_and_lr(layer_config, model_state, learning_rate);
+    if args.config_path == "" {
+        std::fs::create_dir_all(&model_dir).unwrap();
+        nn.save_config(&model_dir.join("config.json"));
+    }
+
+    let mut trace_biases: Vec<Vec<(usize, Vec<f64>)>> = Vec::new();
     let mut trace_gradients: Vec<Vec<(usize, Vec<f64>)>> = Vec::new();
 
-    let current_layer_no: usize = 0;
-    let input_size = layer_config[current_layer_no].input_dim;
-    let output_size = layer_config[current_layer_no].output_dim;
-    if max_epoch > 1 {
-        let h = if input_size == output_size {
-            // If the weight matrix is ​​a square matrix, initialize it with random values ​​that maintain orthogonality.
-            let mut rot = ndarray::Array2::<f64>::eye(input_size);
-            for i in 0..input_size {
-                for j in (i + 1)..input_size {
-                    let theta = rng.random_range(-std::f64::consts::PI..std::f64::consts::PI);
-                    let (cos_t, sin_t) = (theta.cos(), theta.sin());
-                    let mut rot_work = ndarray::Array2::<f64>::eye(input_size);
-                    (rot_work[[i, i]], rot_work[[i, j]]) = (cos_t, -sin_t);
-                    (rot_work[[j, i]], rot_work[[j, j]]) = (sin_t, cos_t);
-                    rot = rot_work.dot(&rot);
-                }
-            }
-            rot
-        } else {
-            ndarray::Array2::from_shape_fn((output_size, input_size), |_| {
-                rng.random_range(-0.5..0.5)
-            })
-        };
-
-        let cosine_similarity = (&h.row(0) * &h.row(1)).sum()
-            / (&h.row(0).mapv(|v| v * v).sum().powf(0.5)
-                * &h.row(1).mapv(|v| v * v).sum().powf(0.5));
-        cosine_similarities.push(cosine_similarity);
-        info!(
-            event = "Verifying orthogonality of weight matrices for training",
-            layer_no = current_layer_no,
-            cosine_similarity = cosine_similarity
-        );
-        let bias = ndarray::Array2::from_shape_fn((output_size, 1), |_| -0.1);
-        layer_params.push(LayerParams::<f64>::new(h, bias));
-    } else {
-        let h = ndarray::array![[0.1, 0.2], [0.3, 0.4]];
-        let bias = ndarray::array![[0.1], [0.1]];
-        layer_params.push(LayerParams::<f64>::new(h, bias));
-    }
-    info!(
-        event = "Initial layer configuration",
-        layer_no = current_layer_no,
-        weight = &layer_params[current_layer_no]
-            .weight
-            .to_string()
-            .replace("\n", ""),
-        bias = &layer_params[current_layer_no]
-            .bias
-            .to_string()
-            .replace("\n", ""),
-        activation = format!("{:?}", layer_config[current_layer_no].activation),
-        cosine_similarity = argmax(&cosine_similarity_vec(
-            &layer_params[current_layer_no].weight.view()
-        ))
-        .unwrap()
-    );
-
-    let current_layer_no: usize = 1;
-    let input_size = layer_config[current_layer_no].input_dim;
-    let output_size = layer_config[current_layer_no].output_dim;
-    if max_epoch > 1 {
-        let h = ndarray::Array2::from_shape_fn((output_size, input_size), |_| {
-            rng.random_range(-0.5..0.5)
-        });
-        let bias = ndarray::Array2::from_shape_fn((output_size, 1), |_| 0.0);
-        layer_params.push(LayerParams::<f64>::new(h, bias));
-    } else {
-        let h = ndarray::array![[0.5, 0.6]];
-        let bias = ndarray::array![[0.1]];
-        layer_params.push(LayerParams::<f64>::new(h, bias));
-    }
-    info!(
-        event = "Initial layer configuration",
-        layer_no = current_layer_no,
-        weight = &layer_params[current_layer_no]
-            .weight
-            .to_string()
-            .replace("\n", ""),
-        bias = &layer_params[current_layer_no]
-            .bias
-            .to_string()
-            .replace("\n", ""),
-        activation = format!("{:?}", layer_config[current_layer_no].activation)
-    );
-
-    let state = ModelState::<f64>::from_params(layer_params);
-    let mut nn: NeuralNetwork<_> =
-        NeuralNetwork::from_config_and_state_and_lr(layer_config, state, learning_rate);
-    (0..nn.layers.len()).for_each(|_| {
+    (0..nn.layers.len()).for_each(|layer_idx| {
         trace_biases.push(Vec::new());
         // trace_gradients.push(Vec::new());
+        let cosine_similarity = if &nn.layers[layer_idx].params.weight.dim().0 == &1_usize {
+            0.
+        } else {
+            (&nn.layers[layer_idx].params.weight.row(0)
+                * &nn.layers[layer_idx].params.weight.row(1))
+                .sum()
+                / (&nn.layers[layer_idx]
+                    .params
+                    .weight
+                    .row(0)
+                    .mapv(|v| v * v)
+                    .sum()
+                    .powf(0.5)
+                    * &nn.layers[layer_idx]
+                        .params
+                        .weight
+                        .row(1)
+                        .mapv(|v| v * v)
+                        .sum()
+                        .powf(0.5))
+        };
+        cosine_similarities.push(cosine_similarity);
+
+        info!(
+            event = "Initial layer configuration",
+            layer_no = layer_idx,
+            weight = &nn.layers[layer_idx]
+                .params
+                .weight
+                .to_string()
+                .replace("\n", ""),
+            bias = &nn.layers[layer_idx]
+                .params
+                .bias
+                .to_string()
+                .replace("\n", ""),
+            activation = format!("{:?}", &nn.layers[layer_idx].config.activation),
+            cosine_similarity = cosine_similarity
+        );
     });
+
+    let checkpoints_dir_path = &model_dir.join("checkpoints");
+    std::fs::create_dir_all(checkpoints_dir_path).unwrap();
 
     let train_inputs: ndarray::Array2<f64>;
     if mini_batch_size == 4 {
@@ -804,7 +907,7 @@ fn main() {
         });
 
         let early_stop_loss = 0.002;
-        if epoch == 1 || epoch % default_trace_epoch == 0 || loss < early_stop_loss {
+        if epoch == 1 || epoch % default_trace_epoch == 0 || loss < *&early_stop_loss.clone() {
             let mut s = String::from("");
             for layer_no in 0..nn.layers.len() {
                 s.push_str(format!(", layer[{layer_no}]={:?}", nn.layers[layer_no]).as_str());
@@ -822,6 +925,13 @@ fn main() {
             (0..nn.layers.len()).for_each(|i| {
                 trace_biases[i].push((epoch, nn.layers[i].params.bias.flatten().to_vec()));
             })
+        }
+
+        if epoch % default_checkpoint_interval == 0 || loss < *&early_stop_loss.clone() {
+            let state = ModelState::from_nn(&nn);
+            let cur_checkpoint_path =
+                &checkpoints_dir_path.join(format!("{date_time}_{epoch}.json"));
+            state.save(&std::path::Path::new(&cur_checkpoint_path));
         }
 
         if loss < early_stop_loss {
@@ -941,7 +1051,6 @@ fn main() {
     } else {
         result = "ng";
     }
-    let date_time = chrono::Local::now().format("%Y%m%d_%H%M%S").to_string();
     let image_prefix = format!(
         "{program_name}_{date_time}_{result}_L{:02}_{}",
         nn.layers.len(),
