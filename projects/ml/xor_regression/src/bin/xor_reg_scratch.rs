@@ -65,33 +65,287 @@ impl std::fmt::Display for Activation {
     }
 }
 
-// Configuration of a single layer in the neural network
-struct LayerConfig<F: Float> {
-    weight: ndarray::Array2<F>,
-    bias: ndarray::Array2<F>,
-    act: Activation,
+// Layer structure
+struct LayerConfig {
+    input_dim: usize,
+    output_dim: usize,
+    activation: Activation,
 }
 
-// Implement constructor for LayerConfig
-impl<F: Float> LayerConfig<F> {
-    pub fn new(
-        weight: ndarray::Array2<F>,
-        bias: ndarray::Array2<F>,
-        act: Activation,
-    ) -> LayerConfig<F> {
-        LayerConfig { weight, bias, act }
+impl LayerConfig {
+    pub fn new(input_dim: usize, output_dim: usize, activation: Activation) -> LayerConfig {
+        LayerConfig {
+            input_dim,
+            output_dim,
+            activation,
+        }
     }
 }
 
-impl<F: std::fmt::Debug + Float> std::fmt::Debug for LayerConfig<F> {
+// Parameters of individual layers in neural network training
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+struct LayerParams<F: Float> {
+    weight: ndarray::Array2<F>,
+    bias: ndarray::Array2<F>,
+}
+
+// Implement constructor for LayerParams
+impl<F: Float> LayerParams<F> {
+    pub fn new(weight: ndarray::Array2<F>, bias: ndarray::Array2<F>) -> LayerParams<F> {
+        LayerParams { weight, bias }
+    }
+}
+
+// Model learning state (to be saved/restored)
+#[derive(serde::Serialize, serde::Deserialize)]
+struct ModelState<F: Float> {
+    layers: Vec<LayerParams<F>>,
+}
+
+// Implement constructor for ModelState
+impl<F: Float> ModelState<F> {
+    pub fn from_params(params: Vec<LayerParams<F>>) -> ModelState<F> {
+        ModelState { layers: params }
+    }
+}
+
+// Layer structure combining configuration and parameters
+struct Layer<F: Float> {
+    config: LayerConfig,
+    params: LayerParams<F>,
+}
+
+impl<F: Float> Layer<F> {
+    pub fn new(config: LayerConfig, params: LayerParams<F>) -> Layer<F> {
+        Layer { config, params }
+    }
+}
+
+impl<F: std::fmt::Debug + Float> std::fmt::Debug for Layer<F> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
             "{{weight: {}, bias: {}, activation: {:?}}}",
-            format!("{:.4?}", &self.weight.view()).replace("\n", ""),
-            format!("{:.4?}", &self.bias.view()).replace("\n", ""),
-            self.act
+            format!("{:.4?}", self.params.weight.view()).replace("\n", ""),
+            format!("{:.4?}", self.params.bias.view()).replace("\n", ""),
+            self.config.activation
         )
+    }
+}
+
+// Configuration of the neural network model
+struct NeuralNetwork<F: Float> {
+    layers: Vec<Layer<F>>,
+    learning_rate: F,
+}
+
+impl<F: Float> NeuralNetwork<F> {
+    pub fn from_config_and_state_and_lr(
+        config: Vec<LayerConfig>,
+        params: ModelState<F>,
+        learning_rate: F,
+    ) -> NeuralNetwork<F> {
+        let layers: Vec<Layer<F>> = config
+            .into_iter()
+            .zip(params.layers.into_iter())
+            .map(|(c, p)| Layer::new(c, p))
+            .collect();
+        NeuralNetwork {
+            layers,
+            learning_rate,
+        }
+    }
+}
+
+impl<F: num_traits::Float + 'static> NeuralNetwork<F> {
+    // Forward propagation
+    pub fn forward(
+        &self,
+        input: &ndarray::ArrayView2<F>,
+    ) -> Vec<(ndarray::Array2<F>, Activation, ndarray::Array2<F>)> {
+        let current_input = input.clone().into_owned();
+        let mut activations = vec![(
+            current_input.clone(),
+            Activation::Identity,
+            current_input.clone(),
+        )];
+
+        for layer in self.layers.iter() {
+            let w_out = &layer
+                .params
+                .weight
+                .dot(&activations.last().unwrap().0.view())
+                + &layer.params.bias;
+            let pre_activation = w_out.clone();
+            let w_out_s = match &layer.config.activation {
+                Activation::Identity => w_out.mapv(identity),
+                Activation::ReLU => w_out.mapv(relu),
+                Activation::Sigmoid => w_out.mapv(sigmoid),
+                Activation::Tanh => w_out.mapv(tanh),
+            };
+            let current_input = w_out_s;
+            activations.push((
+                current_input,
+                layer.config.activation.clone(),
+                pre_activation,
+            ));
+        }
+
+        activations
+    }
+}
+
+impl<F: num_traits::Float + std::fmt::Debug + FromPrimitive + 'static> NeuralNetwork<F> {
+    // Training function
+    fn train(
+        &mut self,
+        epoch: usize,
+        train_inputs: &ndarray::Array2<F>,
+        train_answers_ref: &ndarray::Array2<F>,
+    ) -> (
+        Vec<ndarray::Array2<F>>,
+        Vec<ndarray::Array2<F>>,
+        F,
+        TraceRecord<F>,
+    ) {
+        let mini_batch_size = train_inputs.shape()[1];
+        // Squared errors in the output layer
+        let mut loss_terms = ndarray::Array2::<F>::zeros((
+            self.layers.last().unwrap().params.weight.shape()[0],
+            mini_batch_size,
+        ));
+
+        let mut grad_list: Vec<ndarray::Array2<F>> = Vec::new();
+        let mut batch_weight_gradients: Vec<ndarray::Array2<F>> = Vec::new();
+        let mut trace_outputs: Vec<ndarray::Array2<F>> = Vec::new();
+        let mut pre_activation_outputs: Vec<ndarray::Array2<F>> = Vec::new();
+
+        // Accumulate the gradient for each sample
+        (0..self.layers.len()).for_each(|i| {
+            grad_list.push(ndarray::Array2::zeros(self.layers[i].params.weight.dim()));
+            let output_size = self.layers[i].params.weight.dim().0;
+            batch_weight_gradients.push(ndarray::Array2::<F>::zeros((output_size, 1)));
+            trace_outputs.push(ndarray::Array2::zeros((output_size, mini_batch_size)));
+            pre_activation_outputs.push(ndarray::Array2::zeros((output_size, mini_batch_size)));
+        });
+
+        for (i, in_1d_vec_view) in train_inputs.columns().into_iter().enumerate() {
+            let in_2d_col_vec = in_1d_vec_view.insert_axis(ndarray::Axis(1));
+            let activations = self.forward(&in_2d_col_vec.view());
+            pre_activation_outputs
+                .iter_mut()
+                .enumerate()
+                .for_each(|(layer_no, pre_act_out)| {
+                    let a_idx = layer_no + 1;
+                    let pre_act = &activations[a_idx].2;
+                    pre_act_out
+                        .column_mut(i)
+                        .assign(&pre_act.clone().remove_axis(ndarray::Axis(1)));
+                });
+
+            let mut cur_gradients;
+            cur_gradients = &activations.last().unwrap().0 - &train_answers_ref.column(i);
+            loss_terms
+                .column_mut(i)
+                .assign(&cur_gradients.column(0).powf(F::one() + F::one()));
+
+            for layer_no in (0..self.layers.len()).rev().into_iter() {
+                let a_idx = layer_no + 1;
+                let activation = &activations[a_idx].1;
+                let l_input = &activations[a_idx - 1].0;
+                let l_output = &activations[a_idx].0;
+
+                // N-by-1 matrix representing the gradient
+                let delta = match activation {
+                    Activation::Identity => {
+                        &cur_gradients * l_output.mapv(identity_derivative_from_output)
+                    }
+                    Activation::ReLU => &cur_gradients * l_output.mapv(relu_derivative_from_output),
+                    Activation::Sigmoid => {
+                        &cur_gradients * l_output.mapv(sigmoid_derivative_from_output)
+                    }
+                    Activation::Tanh => &cur_gradients * l_output.mapv(tanh_derivative_from_output),
+                };
+
+                // Calculate gradients in a loop (using cross products)
+                grad_list[layer_no].scaled_add(F::one(), &delta.dot(&l_input.t()));
+                batch_weight_gradients[layer_no]
+                    .column_mut(0)
+                    .scaled_add(F::one(), &delta.column(0));
+
+                // Trace outputs
+                trace_outputs[layer_no]
+                    .column_mut(i)
+                    .assign(&l_output.clone().remove_axis(ndarray::Axis(1)));
+
+                // Next error inputs
+                cur_gradients = self.layers[layer_no].params.weight.t().dot(&delta);
+            }
+        }
+
+        // Update weight and bias
+        (0..self.layers.len()).for_each(|i| {
+            self.layers[i].params.weight.scaled_add(
+                -F::one() * self.learning_rate / F::from(mini_batch_size).unwrap(),
+                &grad_list[i],
+            );
+            self.layers[i].params.bias.scaled_add(
+                -F::one() * self.learning_rate / F::from(mini_batch_size).unwrap(),
+                &batch_weight_gradients[i],
+            );
+        });
+
+        // Calculate trace statistics
+        // Mean and variance
+        let trace_mean = trace_outputs
+            .iter()
+            .map(|v| v.mean_axis(ndarray::Axis(1)).unwrap())
+            .collect::<Vec<_>>();
+
+        let trace_var = trace_outputs
+            .iter()
+            .map(|v| v.var_axis(ndarray::Axis(1), F::zero()))
+            .collect::<Vec<_>>();
+
+        // Calculate cosine similarities
+        let mut trace_row_sim = Vec::<F>::new();
+        let mut trace_col_sim = Vec::<F>::new();
+        for layer_no in (0..self.layers.len()).into_iter() {
+            if &self.layers[layer_no].params.weight.dim().0 == &1_usize {
+                trace_row_sim.push(F::zero());
+                trace_col_sim.push(F::zero());
+                continue;
+            }
+
+            let sim_row_vec = cosine_similarity_vec(&self.layers[layer_no].params.weight.view());
+            let max_row_idx = sim_row_vec
+                .iter()
+                .enumerate()
+                .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
+                .map(|(idx, _)| idx)
+                .unwrap();
+            trace_row_sim.push(sim_row_vec[max_row_idx]);
+
+            let sim_col_vec = cosine_similarity_vec(&self.layers[layer_no].params.weight.t());
+            let max_col_idx = sim_col_vec
+                .iter()
+                .enumerate()
+                .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
+                .map(|(idx, _)| idx)
+                .unwrap();
+            trace_col_sim.push(sim_col_vec[max_col_idx]);
+        }
+
+        let trace = TraceRecord::new(
+            epoch,
+            trace_mean,
+            trace_var,
+            trace_row_sim,
+            trace_col_sim,
+            pre_activation_outputs,
+        );
+        let loss = loss_terms.sum() / F::from(mini_batch_size).unwrap();
+        (grad_list, batch_weight_gradients, loss, trace)
     }
 }
 
@@ -253,190 +507,11 @@ fn cosine_similarity_vec<F: num_traits::Float>(m: &ndarray::ArrayView2<F>) -> Ve
     similarities
 }
 
-// Forward propagation
-fn forward<F: Float + 'static>(
-    input: &ndarray::ArrayView2<F>,
-    layers: &Vec<LayerConfig<F>>,
-) -> Vec<(ndarray::Array2<F>, Activation, ndarray::Array2<F>)> {
-    let current_input = input.clone().into_owned();
-    let mut activations = vec![(
-        current_input.clone(),
-        Activation::Identity,
-        current_input.clone(),
-    )];
-
-    for layer in layers.iter() {
-        let w_out = &layer.weight.dot(&activations.last().unwrap().0.view()) + &layer.bias;
-        let pre_activation = w_out.clone();
-        let w_out_s = match &layer.act {
-            Activation::Identity => w_out.mapv(identity),
-            Activation::ReLU => w_out.mapv(relu),
-            Activation::Sigmoid => w_out.mapv(sigmoid),
-            Activation::Tanh => w_out.mapv(tanh),
-        };
-        let current_input = w_out_s;
-        activations.push((current_input, layer.act.clone(), pre_activation));
-    }
-
-    activations
-}
-
-// Training function
-fn train<F: Float + std::fmt::Debug + FromPrimitive + 'static>(
-    epoch: usize,
-    train_inputs: &ndarray::Array2<F>,
-    train_answers_ref: &ndarray::Array2<F>,
-    layers: &mut Vec<LayerConfig<F>>,
-    learning_rate: &F,
-) -> (
-    Vec<ndarray::Array2<F>>,
-    Vec<ndarray::Array2<F>>,
-    F,
-    TraceRecord<F>,
-) {
-    let mini_batch_size = train_inputs.shape()[1];
-    // Squared errors in the output layer
-    let mut loss_terms =
-        ndarray::Array2::<F>::zeros((layers.last().unwrap().weight.shape()[0], mini_batch_size));
-
-    let mut grad_list: Vec<ndarray::Array2<F>> = Vec::new();
-    let mut batch_weight_gradients: Vec<ndarray::Array2<F>> = Vec::new();
-    let mut trace_outputs: Vec<ndarray::Array2<F>> = Vec::new();
-    let mut pre_activation_outputs: Vec<ndarray::Array2<F>> = Vec::new();
-
-    // Accumulate the gradient for each sample
-    (0..layers.len()).for_each(|i| {
-        grad_list.push(ndarray::Array2::zeros(layers[i].weight.dim()));
-        let output_size = layers[i].weight.dim().0;
-        batch_weight_gradients.push(ndarray::Array2::<F>::zeros((output_size, 1)));
-        trace_outputs.push(ndarray::Array2::zeros((output_size, mini_batch_size)));
-        pre_activation_outputs.push(ndarray::Array2::zeros((output_size, mini_batch_size)));
-    });
-
-    for (i, in_1d_vec_view) in train_inputs.columns().into_iter().enumerate() {
-        let in_2d_col_vec = in_1d_vec_view.insert_axis(ndarray::Axis(1));
-        let activations = forward::<F>(&in_2d_col_vec.view(), layers);
-        pre_activation_outputs
-            .iter_mut()
-            .enumerate()
-            .for_each(|(layer_no, pre_act_out)| {
-                let a_idx = layer_no + 1;
-                let pre_act = &activations[a_idx].2;
-                pre_act_out
-                    .column_mut(i)
-                    .assign(&pre_act.clone().remove_axis(ndarray::Axis(1)));
-            });
-
-        let mut cur_gradients;
-        cur_gradients = &activations.last().unwrap().0 - &train_answers_ref.column(i);
-        loss_terms
-            .column_mut(i)
-            .assign(&cur_gradients.column(0).powf(F::one() + F::one()));
-
-        for layer_no in (0..layers.len()).rev().into_iter() {
-            let a_idx = layer_no + 1;
-            let act = &activations[a_idx].1;
-            let l_input = &activations[a_idx - 1].0;
-            let l_output = &activations[a_idx].0;
-
-            // N-by-1 matrix representing the gradient
-            let delta = match act {
-                Activation::Identity => {
-                    &cur_gradients * l_output.mapv(identity_derivative_from_output)
-                }
-                Activation::ReLU => &cur_gradients * l_output.mapv(relu_derivative_from_output),
-                Activation::Sigmoid => {
-                    &cur_gradients * l_output.mapv(sigmoid_derivative_from_output)
-                }
-                Activation::Tanh => &cur_gradients * l_output.mapv(tanh_derivative_from_output),
-            };
-
-            // Calculate gradients in a loop (using cross products)
-            grad_list[layer_no].scaled_add(F::one(), &delta.dot(&l_input.t()));
-            batch_weight_gradients[layer_no]
-                .column_mut(0)
-                .scaled_add(F::one(), &delta.column(0));
-
-            // Trace outputs
-            trace_outputs[layer_no]
-                .column_mut(i)
-                .assign(&l_output.clone().remove_axis(ndarray::Axis(1)));
-
-            // Next error inputs
-            cur_gradients = layers[layer_no].weight.t().dot(&delta);
-        }
-    }
-
-    // Update weight and bias
-    (0..layers.len()).for_each(|i| {
-        layers[i].weight.scaled_add(
-            -F::one() * *learning_rate / F::from(mini_batch_size).unwrap(),
-            &grad_list[i],
-        );
-        layers[i].bias.scaled_add(
-            -F::one() * *learning_rate / F::from(mini_batch_size).unwrap(),
-            &batch_weight_gradients[i],
-        );
-    });
-
-    // Calculate trace statistics
-    // Mean and variance
-    let trace_mean = trace_outputs
-        .iter()
-        .map(|v| v.mean_axis(ndarray::Axis(1)).unwrap())
-        .collect::<Vec<_>>();
-
-    let trace_var = trace_outputs
-        .iter()
-        .map(|v| v.var_axis(ndarray::Axis(1), F::zero()))
-        .collect::<Vec<_>>();
-
-    // Calculate cosine similarities
-    let mut trace_row_sim = Vec::<F>::new();
-    let mut trace_col_sim = Vec::<F>::new();
-    for layer_no in (0..layers.len()).into_iter() {
-        if &layers[layer_no].weight.dim().0 == &1_usize {
-            trace_row_sim.push(F::zero());
-            trace_col_sim.push(F::zero());
-            continue;
-        }
-
-        let sim_row_vec = cosine_similarity_vec(&layers[layer_no].weight.view());
-        let max_row_idx = sim_row_vec
-            .iter()
-            .enumerate()
-            .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
-            .map(|(idx, _)| idx)
-            .unwrap();
-        trace_row_sim.push(sim_row_vec[max_row_idx]);
-
-        let sim_col_vec = cosine_similarity_vec(&layers[layer_no].weight.t());
-        let max_col_idx = sim_col_vec
-            .iter()
-            .enumerate()
-            .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
-            .map(|(idx, _)| idx)
-            .unwrap();
-        trace_col_sim.push(sim_col_vec[max_col_idx]);
-    }
-
-    let trace = TraceRecord::new(
-        epoch,
-        trace_mean,
-        trace_var,
-        trace_row_sim,
-        trace_col_sim,
-        pre_activation_outputs,
-    );
-    let loss = loss_terms.sum() / F::from(mini_batch_size).unwrap();
-    (grad_list, batch_weight_gradients, loss, trace)
-}
-
 // Plot the result of the XOR regression
-fn plot_result(layers: &Vec<LayerConfig<f64>>, base_name: String) {
+fn plot_result(nn: &NeuralNetwork<f64>, base_name: String) {
     let xor_continuous_pred = |x: f64, y: f64| {
         let in_2d_col_vec = ndarray::array![[x], [y]];
-        let activations = forward(&in_2d_col_vec.view(), layers);
+        let activations = nn.forward(&in_2d_col_vec.view());
         let pred = &activations.last().unwrap().0[[0, 0]];
         return pred.clone();
     };
@@ -563,13 +638,30 @@ fn main() {
     let mini_batch_size = args.batch_size;
     let max_epoch = args.max_epoch;
 
-    let mut layers: Vec<LayerConfig<f64>> = Vec::new();
+    let mut layer_config: Vec<LayerConfig> = Vec::new();
+    let input_size: usize = 2;
+    let output_size: usize = 2;
+    layer_config.push(LayerConfig::new(
+        input_size,
+        output_size,
+        hidden_activation.clone(),
+    ));
+    let input_size: usize = output_size;
+    let output_size: usize = 1;
+    layer_config.push(LayerConfig::new(
+        input_size,
+        output_size,
+        hidden_activation.clone(),
+    ));
+
+    let mut layer_params: Vec<LayerParams<f64>> = Vec::new();
     let mut trace_biases: Vec<Vec<(usize, Vec<f64>)>> = Vec::new();
     let mut cosine_similarities: Vec<f64> = Vec::new();
     let mut trace_gradients: Vec<Vec<(usize, Vec<f64>)>> = Vec::new();
 
-    let input_size: usize = 2;
-    let output_size: usize = 2;
+    let current_layer_no: usize = 0;
+    let input_size = layer_config[current_layer_no].input_dim;
+    let output_size = layer_config[current_layer_no].output_dim;
     if max_epoch > 1 {
         let h = if input_size == output_size {
             // If the weight matrix is ​​a square matrix, initialize it with random values ​​that maintain orthogonality.
@@ -597,62 +689,66 @@ fn main() {
         cosine_similarities.push(cosine_similarity);
         info!(
             event = "Verifying orthogonality of weight matrices for training",
-            layer_no = layers.len(),
+            layer_no = current_layer_no,
             cosine_similarity = cosine_similarity
         );
         let bias = ndarray::Array2::from_shape_fn((output_size, 1), |_| -0.1);
-        let layer = LayerConfig::<f64>::new(h, bias, hidden_activation.clone());
-        layers.push(layer);
+        layer_params.push(LayerParams::<f64>::new(h, bias));
     } else {
         let h = ndarray::array![[0.1, 0.2], [0.3, 0.4]];
         let bias = ndarray::array![[0.1], [0.1]];
-        let layer = LayerConfig::<f64>::new(h, bias, hidden_activation.clone());
-        layers.push(layer);
+        layer_params.push(LayerParams::<f64>::new(h, bias));
     }
-    let current_layer_no = layers.len() - 1;
     info!(
         event = "Initial layer configuration",
         layer_no = current_layer_no,
-        weight = &layers[current_layer_no]
+        weight = &layer_params[current_layer_no]
             .weight
             .to_string()
             .replace("\n", ""),
-        bias = &layers[current_layer_no].bias.to_string().replace("\n", ""),
-        activation = format!("{:?}", layers[current_layer_no].act),
+        bias = &layer_params[current_layer_no]
+            .bias
+            .to_string()
+            .replace("\n", ""),
+        activation = format!("{:?}", layer_config[current_layer_no].activation),
         cosine_similarity = argmax(&cosine_similarity_vec(
-            &layers[current_layer_no].weight.view()
+            &layer_params[current_layer_no].weight.view()
         ))
         .unwrap()
     );
 
-    let input_size: usize = output_size;
-    let output_size: usize = 1;
+    let current_layer_no: usize = 1;
+    let input_size = layer_config[current_layer_no].input_dim;
+    let output_size = layer_config[current_layer_no].output_dim;
     if max_epoch > 1 {
         let h = ndarray::Array2::from_shape_fn((output_size, input_size), |_| {
             rng.random_range(-0.5..0.5)
         });
         let bias = ndarray::Array2::from_shape_fn((output_size, 1), |_| 0.0);
-        let layer = LayerConfig::<f64>::new(h, bias, hidden_activation.clone());
-        layers.push(layer);
+        layer_params.push(LayerParams::<f64>::new(h, bias));
     } else {
         let h = ndarray::array![[0.5, 0.6]];
         let bias = ndarray::array![[0.1]];
-        let layer = LayerConfig::<f64>::new(h, bias, hidden_activation.clone());
-        layers.push(layer);
+        layer_params.push(LayerParams::<f64>::new(h, bias));
     }
-    let current_layer_no = layers.len() - 1;
     info!(
         event = "Initial layer configuration",
         layer_no = current_layer_no,
-        weight = &layers[current_layer_no]
+        weight = &layer_params[current_layer_no]
             .weight
             .to_string()
             .replace("\n", ""),
-        bias = &layers[current_layer_no].bias.to_string().replace("\n", ""),
-        activation = format!("{:?}", layers[current_layer_no].act)
+        bias = &layer_params[current_layer_no]
+            .bias
+            .to_string()
+            .replace("\n", ""),
+        activation = format!("{:?}", layer_config[current_layer_no].activation)
     );
 
-    (0..layers.len()).for_each(|_| {
+    let state = ModelState::<f64>::from_params(layer_params);
+    let mut nn: NeuralNetwork<_> =
+        NeuralNetwork::from_config_and_state_and_lr(layer_config, state, learning_rate);
+    (0..nn.layers.len()).for_each(|_| {
         trace_biases.push(Vec::new());
         // trace_gradients.push(Vec::new());
     });
@@ -682,7 +778,7 @@ fn main() {
 
     info!(
         event = "Show layer information",
-        layers = layers.len(),
+        layers = nn.layers.len(),
         hidden_activation = format!("{:?}", hidden_activation),
         output_activation = format!("{:?}", output_activation)
     );
@@ -694,17 +790,12 @@ fn main() {
 
     for epoch in 1..(max_epoch + 1) {
         last_epoch = epoch;
-        let (grad_list, batch_weight_gradients, loss, trace_record) = train(
-            epoch,
-            &train_inputs,
-            &train_answers,
-            &mut layers,
-            &learning_rate,
-        );
+        let (grad_list, batch_weight_gradients, loss, trace_record) =
+            nn.train(epoch, &train_inputs, &train_answers);
         trace.push(trace_record);
 
         // Add gradients to trace_gradients
-        (0..layers.len()).for_each(|layer_no| {
+        (0..nn.layers.len()).for_each(|layer_no| {
             let grad_flat: Vec<f64> = grad_list[layer_no].iter().map(|v| *v).collect::<Vec<f64>>();
             if trace_gradients.len() <= layer_no {
                 trace_gradients.push(Vec::new());
@@ -715,8 +806,8 @@ fn main() {
         let early_stop_loss = 0.002;
         if epoch == 1 || epoch % default_trace_epoch == 0 || loss < early_stop_loss {
             let mut s = String::from("");
-            for layer_no in 0..layers.len() {
-                s.push_str(format!(", layer[{layer_no}]={:?}", layers[layer_no]).as_str());
+            for layer_no in 0..nn.layers.len() {
+                s.push_str(format!(", layer[{layer_no}]={:?}", nn.layers[layer_no]).as_str());
                 s.push_str(
                     format!(
                         ", delta[{layer_no}]={}",
@@ -728,8 +819,8 @@ fn main() {
             info!(epoch = epoch, loss = loss, weight = s);
 
             // trace biases
-            (0..layers.len()).for_each(|i| {
-                trace_biases[i].push((epoch, layers[i].bias.flatten().to_vec()));
+            (0..nn.layers.len()).for_each(|i| {
+                trace_biases[i].push((epoch, nn.layers[i].params.bias.flatten().to_vec()));
             })
         }
 
@@ -747,7 +838,7 @@ fn main() {
     let elapsed_time = t_0.elapsed();
     info!(
         event = "Results",
-        layers = layers.len(),
+        layers = nn.layers.len(),
         mini_batch_size = mini_batch_size,
         last_epoch = last_epoch,
         learning_rate = learning_rate,
@@ -758,12 +849,12 @@ fn main() {
     );
 
     // Trained
-    for (i, layer) in layers.iter().enumerate() {
+    for (i, layer) in nn.layers.iter().enumerate() {
         info!(
             event = "Weights and biases after the training process",
             layer_no = i,
-            weight = format!("{:.4?}", &layer.weight).replace("\n", ""),
-            bias = format!("{:.4?}", &layer.bias).replace("\n", ""),
+            weight = format!("{:.4?}", &layer.params.weight).replace("\n", ""),
+            bias = format!("{:.4?}", &layer.params.bias).replace("\n", ""),
         );
     }
 
@@ -780,7 +871,7 @@ fn main() {
     let mut mse_term = 0.;
     for (i, in_1d_vec_view) in test_inputs.columns().into_iter().enumerate() {
         let in_2d_col_vec = in_1d_vec_view.insert_axis(ndarray::Axis(1));
-        let activations = forward(&in_2d_col_vec.view(), &layers);
+        let activations = nn.forward(&in_2d_col_vec.view());
         let output = &activations.last().unwrap();
         let answer = test_answers[[0, i]];
         let ans11 = ndarray::arr2(&[[answer]]);
@@ -801,7 +892,7 @@ fn main() {
     info!(
         accuracy = accuracy * 100.0,
         rmse = (mse_term / (test_batch_size as f64)).sqrt(),
-        layers = layers.len(),
+        layers = nn.layers.len(),
         learning_rate = learning_rate,
         last_epoch = last_epoch,
         mini_batch_size = mini_batch_size,
@@ -819,7 +910,7 @@ fn main() {
     let train_results = TrainResults::new(
         accuracy,
         (mse_term / (test_batch_size as f64)).sqrt(),
-        layers.len(),
+        nn.layers.len(),
         learning_rate,
         mini_batch_size,
         last_epoch,
@@ -853,7 +944,7 @@ fn main() {
     let date_time = chrono::Local::now().format("%Y%m%d_%H%M%S").to_string();
     let image_prefix = format!(
         "{program_name}_{date_time}_{result}_L{:02}_{}",
-        layers.len(),
+        nn.layers.len(),
         &args.hidden_activation
     );
 
@@ -887,7 +978,10 @@ fn main() {
         .collect::<Vec<Vec<(usize, f64)>>>();
     let mut chart = ChartBuilder::on(&grad_area)
         .caption(
-            format!("L2 norm of gradients: number of layers = {}", layers.len()),
+            format!(
+                "L2 norm of gradients: number of layers = {}",
+                nn.layers.len()
+            ),
             ("sans-serif", 20),
         )
         .margin(10)
@@ -905,7 +999,7 @@ fn main() {
         .draw()
         .ok();
     // Draw chart for each layers
-    (0..layers.len()).for_each(|layer_idx| {
+    (0..nn.layers.len()).for_each(|layer_idx| {
         let color = Palette99::pick(layer_idx).mix(0.9);
         chart
             .draw_series(LineSeries::new(
@@ -932,7 +1026,7 @@ fn main() {
     //
     // Plot the traces for each layer
     //
-    for layer_idx in 0..layers.len() {
+    for layer_idx in 0..nn.layers.len() {
         let path = format!("images/{image_prefix}_{layer_idx:02}.png");
         let root_area = BitMapBackend::new(&path, (600, 1100)).into_drawing_area();
         root_area.fill(&WHITE).unwrap();
@@ -1226,5 +1320,5 @@ fn main() {
         info!("Saved the figure to: {}", path);
     }
 
-    plot_result(&layers, format!("{image_prefix}"));
+    plot_result(&nn, format!("{image_prefix}"));
 }
