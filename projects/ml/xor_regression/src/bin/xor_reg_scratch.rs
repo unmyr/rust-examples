@@ -566,6 +566,7 @@ fn main() {
     let mut layers: Vec<LayerConfig<f64>> = Vec::new();
     let mut trace_biases: Vec<Vec<(usize, Vec<f64>)>> = Vec::new();
     let mut cosine_similarities: Vec<f64> = Vec::new();
+    let mut trace_gradients: Vec<Vec<(usize, Vec<f64>)>> = Vec::new();
 
     let input_size: usize = 2;
     let output_size: usize = 2;
@@ -653,6 +654,7 @@ fn main() {
 
     (0..layers.len()).for_each(|_| {
         trace_biases.push(Vec::new());
+        // trace_gradients.push(Vec::new());
     });
 
     let train_inputs: ndarray::Array2<f64>;
@@ -692,7 +694,7 @@ fn main() {
 
     for epoch in 1..(max_epoch + 1) {
         last_epoch = epoch;
-        let (_grad_list, batch_weight_gradients, loss, trace_record) = train(
+        let (grad_list, batch_weight_gradients, loss, trace_record) = train(
             epoch,
             &train_inputs,
             &train_answers,
@@ -700,6 +702,15 @@ fn main() {
             &learning_rate,
         );
         trace.push(trace_record);
+
+        // Add gradients to trace_gradients
+        (0..layers.len()).for_each(|layer_no| {
+            let grad_flat: Vec<f64> = grad_list[layer_no].iter().map(|v| *v).collect::<Vec<f64>>();
+            if trace_gradients.len() <= layer_no {
+                trace_gradients.push(Vec::new());
+            }
+            trace_gradients[layer_no].push((epoch, grad_flat));
+        });
 
         let early_stop_loss = 0.002;
         if epoch == 1 || epoch % default_trace_epoch == 0 || loss < early_stop_loss {
@@ -846,6 +857,81 @@ fn main() {
         &args.hidden_activation
     );
 
+    //
+    // Plotting traces between layers
+    //
+    let path = format!("images/{image_prefix}_all_layers.png");
+    let root_area = BitMapBackend::new(&path, (600, 300)).into_drawing_area();
+    root_area.fill(&WHITE).unwrap();
+    let drawing_areas = root_area.split_evenly((1, 1));
+    let grad_area = &drawing_areas[0];
+
+    // Plot L2 norm of gradients
+    let mut y_max = 0.0_f64;
+    let l2_norms: Vec<Vec<(usize, f64)>> = trace_gradients
+        .iter()
+        .map(|layer_trace| {
+            layer_trace
+                .iter()
+                .map(|grad_rec| {
+                    let grad_vec = &grad_rec.1;
+                    // Sum squared values
+                    let l2_norm = grad_vec.iter().map(|v| v * v).sum::<f64>().sqrt();
+                    if l2_norm > y_max {
+                        y_max = l2_norm;
+                    }
+                    (grad_rec.0, l2_norm)
+                })
+                .collect::<Vec<(usize, f64)>>()
+        })
+        .collect::<Vec<Vec<(usize, f64)>>>();
+    let mut chart = ChartBuilder::on(&grad_area)
+        .caption(
+            format!("L2 norm of gradients: number of layers = {}", layers.len()),
+            ("sans-serif", 20),
+        )
+        .margin(10)
+        .margin_right(30)
+        .x_label_area_size(30)
+        .y_label_area_size(40)
+        .build_cartesian_2d(1..last_epoch, 0.0..y_max)
+        .unwrap();
+    chart
+        .configure_mesh()
+        .x_label_formatter(&|v| format!("{}", v))
+        .y_label_formatter(&|v| format!("{:.2}", v))
+        .x_desc("epoch")
+        .y_desc("L2 norm of gradients")
+        .draw()
+        .ok();
+    // Draw chart for each layers
+    (0..layers.len()).for_each(|layer_idx| {
+        let color = Palette99::pick(layer_idx).mix(0.9);
+        chart
+            .draw_series(LineSeries::new(
+                l2_norms[layer_idx]
+                    .iter()
+                    .map(|l2_norm_rec| (l2_norm_rec.0, l2_norm_rec.1)),
+                color.stroke_width(2),
+            ))
+            .unwrap()
+            .label(format!("L{}", layer_idx))
+            .legend(move |(x, y)| Rectangle::new([(x, y), (x + 10, y + 1)], color.filled()));
+    });
+    // Draw legend
+    chart
+        .configure_series_labels()
+        .border_style(BLACK)
+        .label_font(("Calibri", 20))
+        .draw()
+        .ok();
+
+    // Notify saved path
+    info!("Saved the figure to: {}", path);
+
+    //
+    // Plot the traces for each layer
+    //
     for layer_idx in 0..layers.len() {
         let path = format!("images/{image_prefix}_{layer_idx:02}.png");
         let root_area = BitMapBackend::new(&path, (600, 1100)).into_drawing_area();
