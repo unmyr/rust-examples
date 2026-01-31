@@ -558,7 +558,7 @@ fn cosine_similarity_vec<F: num_traits::Float>(m: &ndarray::ArrayView2<F>) -> Ve
 }
 
 // Plot the result of the XOR regression
-fn plot_result(nn: &NeuralNetwork<f64>, base_name: String) {
+fn plot_result(nn: &NeuralNetwork<f64>, image_path: &std::path::Path) {
     let xor_continuous_pred = |x: f64, y: f64| {
         let in_2d_col_vec = ndarray::array![[x], [y]];
         let activations = nn.forward(&in_2d_col_vec.view());
@@ -566,7 +566,6 @@ fn plot_result(nn: &NeuralNetwork<f64>, base_name: String) {
         return pred.clone();
     };
 
-    let image_path = format!("images/{base_name}.gif");
     let root = BitMapBackend::gif(&image_path, (600, 400), 100)
         .unwrap()
         .into_drawing_area();
@@ -610,7 +609,7 @@ fn plot_result(nn: &NeuralNetwork<f64>, base_name: String) {
 
         root.present().ok();
     }
-    info!("Saved the figure to: {}", image_path);
+    info!("Saved the figure to: {:?}", image_path);
 }
 
 // Main function
@@ -805,6 +804,7 @@ fn main() {
         std::fs::create_dir_all(&model_dir).unwrap();
         nn.save_config(&model_dir.join("config.json"));
     }
+    std::fs::create_dir_all(&model_dir.join("images")).unwrap();
 
     let mut trace_biases: Vec<Vec<(usize, Vec<f64>)>> = Vec::new();
     let mut trace_gradients: Vec<Vec<(usize, Vec<f64>)>> = Vec::new();
@@ -1136,8 +1136,10 @@ fn main() {
     // Plot the traces for each layer
     //
     for layer_idx in 0..nn.layers.len() {
-        let path = format!("images/{image_prefix}_{layer_idx:02}.png");
-        let root_area = BitMapBackend::new(&path, (600, 1100)).into_drawing_area();
+        let image_path_buf = model_dir
+            .join("images")
+            .join(format!("{image_prefix}_{layer_idx:02}.png"));
+        let root_area = BitMapBackend::new(&image_path_buf, (600, 1100)).into_drawing_area();
         root_area.fill(&WHITE).unwrap();
         let drawing_areas = root_area.split_evenly((5, 1));
         let mean_area = &drawing_areas[0];
@@ -1429,5 +1431,6 @@ fn main() {
         info!("Saved the figure to: {}", path);
     }
 
-    plot_result(&nn, format!("{image_prefix}"));
+    let image_path_buf = model_dir.join("images").join(format!("{image_prefix}.gif"));
+    plot_result(&nn, image_path_buf.as_path());
 }
