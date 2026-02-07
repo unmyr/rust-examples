@@ -304,7 +304,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .unwrap();
             chart_sig
                 .draw_series(PointSeries::of_element(
-                    &sig1_series[i],
+                    &sig1_series[series_index],
                     5,
                     &Palette99::pick(3).mix(0.9),
                     &|v, s, _st| {
