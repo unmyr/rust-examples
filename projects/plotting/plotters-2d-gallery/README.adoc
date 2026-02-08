@@ -93,3 +93,10 @@ image::../images/plotters_multiple_plots_v3.svg[]
 
 .split horizontally into three regions
 image::../images/plotters_multiple_plots_h3.svg[]
+
+=== Example 6: Linear mapping visualization for ML
+Visualization of failures and successes of training XOR for two-layer neural network models. The top graph shows the result of a failed learning attempt, while the bottom graph shows the result of a successful learning attempt. The graphs visualize the results of Ax+b in layer 1 for input values (0,0), (0,1), (1,0), and (1,1), the result of applying the activation function, and the result of linear separation in layer 2.
+
+When classifying XOR in a two-layer model, it is difficult to perform linear separation in the second layer if the first layer is transformed by a linear mapping. After moving points (0,1) and (1,0) to the same point by a linear mapping, (0,0), (1,1), and (0,1)=(1,0) are classified into different regions using a nonlinear curve derived from the activation function.
+
+image::../images/plotters_ml_linear_mapping.png[]
