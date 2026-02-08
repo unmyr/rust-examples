@@ -198,7 +198,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Create a new drawing area
     let image_path_buf = std::path::PathBuf::from("../images").join(format!("{program_name}.png"));
-    let root_area = BitMapBackend::new(&image_path_buf, (1024, 680)).into_drawing_area();
+    let image_size: (u32, u32) = (1024, 680);
+    let root_area = BitMapBackend::new(&image_path_buf, image_size).into_drawing_area();
     root_area.fill(&WHITE).unwrap();
 
     // Split the drawing area into multiple sub-areas
@@ -262,6 +263,43 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .draw()
                 .unwrap();
         });
+
+        // A curve showing the output layer threshold is overlaid on the graph.
+        let x1_samples = image_size.0 / 5;
+        let a = &all_layer_params[series_index][1].weight[[0, 0]];
+        let b = &all_layer_params[series_index][1].weight[[0, 1]];
+        let c = &all_layer_params[series_index][1].bias[[0, 0]];
+        let (x_min, x_max) = (0.00001, 0.9);
+        let x1_step = (x_max - x_min) / (x1_samples as f32);
+        let logit = |x: f32| (x / (1_f32 - x)).ln();
+        let mut input_series: Vec<(f32, f32)> = vec![];
+        for i in 0..x1_samples {
+            // aσ(w11 x1 + w12 x2 + b1) + bσ(w21 x1 + w22 x2 + b1) + c = 0
+            let l1_out_sigmoid_x1 = x_min + (i as f32) * x1_step;
+            let l1_out_sigmoid_x2 = -(a * l1_out_sigmoid_x1 + c) / b;
+            if l1_out_sigmoid_x2 < 0.0 {
+                continue;
+            }
+            let l1_out_x1 = logit(l1_out_sigmoid_x1);
+            let l1_out_x2 = logit(l1_out_sigmoid_x2);
+            let l1_out = ndarray::arr2(&[[l1_out_x1], [l1_out_x2]]);
+            let w00 = all_layer_params[series_index][0].weight[[0, 0]];
+            let w01 = all_layer_params[series_index][0].weight[[0, 1]];
+            let w10 = all_layer_params[series_index][0].weight[[1, 0]];
+            let w11 = all_layer_params[series_index][0].weight[[1, 1]];
+            let w_norm = w00 * w11 - w01 * w10;
+            let w_inv = ndarray::arr2(&[[w11, -w01], [-w10, w00]]) / w_norm;
+            let l1_in = w_inv.dot(&(&l1_out - &all_layer_params[series_index][0].bias));
+
+            let p = (l1_in[[0, 0]], l1_in[[1, 0]]);
+            input_series.push(p);
+        };
+        chart_lm
+            .draw_series(LineSeries::new(
+                input_series,
+                &Palette99::pick(5).mix(0.5),
+            ))
+            .unwrap();
 
         // Linear mapping plot
         chart_lm
