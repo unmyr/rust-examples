@@ -24,7 +24,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .unwrap()
             .to_str()
             .unwrap(),
-        None => "plotters_plot_linear_mapping",
+        None => "plotters_ml_linear_mapping",
     };
 
     // Data series to plot
