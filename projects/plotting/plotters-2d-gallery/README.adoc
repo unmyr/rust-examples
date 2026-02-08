@@ -99,4 +99,15 @@ Visualization of failures and successes of training XOR for two-layer neural net
 
 When classifying XOR in a two-layer model, it is difficult to perform linear separation in the second layer if the first layer is transformed by a linear mapping. After moving points (0,1) and (1,0) to the same point by a linear mapping, (0,0), (1,1), and (0,1)=(1,0) are classified into different regions using a nonlinear curve derived from the activation function.
 
+.Example of linear mapping failure and success
 image::../images/plotters_ml_linear_mapping.png[]
+
+=== Example 7: Logit function visualization
+
+[source,shell]
+----
+cargo run --bin plotters_ml_logit --release
+----
+
+.Logit function graph
+image::../images/plotters_ml_logit.png[]
