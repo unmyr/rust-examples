@@ -6,6 +6,17 @@
 cargo run --bin xor_3d_surface --release
 ----
 
+== Example 1.1: Top view
+
+[source,shell]
+----
+cargo run --bin xor_3d_surface_top_view --release
+----
+
+.Top view
+image::images/xor_3d_surface_top_view.png[]
+
+
 == Example 2: Three-quarter view
 
 [source,shell]
