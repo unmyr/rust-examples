@@ -32,6 +32,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .configure_axes()
             .light_grid_style(BLACK.mix(0.15))
             .max_light_lines(3)
+            // axis label formatters is not working yet on animation chart
+            .x_formatter(&|x| format!("{:.1}", x))
+            .y_formatter(&|y| format!("{:.1}", y))
+            .z_formatter(&|z| format!("{:.1}", z))
             .draw()?;
 
         chart.draw_series(
@@ -45,5 +49,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         root.present()?;
     }
+    println!("Result has been saved to {}", image_path_buf.display());
     Ok(())
 }
