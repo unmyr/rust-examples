@@ -5,7 +5,17 @@ fn xor_continuous(x1: f64, x2: f64) -> f64 {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let root = BitMapBackend::gif("images/xor_surface.gif", (600, 400), 100)?.into_drawing_area();
+    let args: Vec<String> = std::env::args().collect();
+    let program_name = match args.get(0) {
+        Some(arg0) => std::path::Path::new(arg0)
+            .file_name()
+            .unwrap()
+            .to_str()
+            .unwrap(),
+        None => "xor_3d_surface",
+    };
+    let image_path_buf = std::path::PathBuf::from("images").join(format!("{program_name}.gif"));
+    let root = BitMapBackend::gif(&image_path_buf, (600, 400), 100)?.into_drawing_area();
     for pitch in 0..157 {
         root.fill(&WHITE)?;
 

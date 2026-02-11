@@ -6,6 +6,8 @@
 cargo run --bin xor_3d_surface --release
 ----
 
+image::images/xor_3d_surface.gif[]
+
 == Example 1.1: Top view
 
 [source,shell]

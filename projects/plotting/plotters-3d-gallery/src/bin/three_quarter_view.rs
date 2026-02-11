@@ -10,7 +10,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .unwrap()
             .to_str()
             .unwrap(),
-        None => "rotate_3d",
+        None => "three_quarter_view",
     };
 
     let points = ndarray::arr2(&[[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]]);
