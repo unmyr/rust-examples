@@ -28,6 +28,19 @@ cargo run --bin three_quarter_view --release
 image::images/three_quarter_view.svg[]
 
 
+=== Example 3: Pitch and Yaw rotation
+
+[source,shell]
+----
+cargo run --bin projection_3d --release
+----
+
+.Rotate with pitch, then rotate with yaw
+image::images/projection_3d_pitch_yaw.svg[]
+
+.Rotate with yaw, then rotate with pitch
+image::images/projection_3d_yaw_pitch.svg[]
+
 === References
 
 * https://docs.rs/ndarray/latest/ndarray/[ndarray - Rust^]
