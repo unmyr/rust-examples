@@ -35,8 +35,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Define multiple sets of layer parameters for testing
     let mut all_layer_params: Vec<Vec<LayerParams<f32>>> = vec![];
+    let mut epochs: Vec<usize> = vec![];
+    let mut train_results: Vec<String> = vec![];
 
-    // Original data: xor_reg_scratch_20260203_224105_ng_L02_sigmoid.jsonl
+    // Original data: Fail: Epoch 1: xor_reg_scratch_20260203_224105_ng_L02_sigmoid.jsonl
+    // {"timestamp":"2026-02-03T13:41:05.651969Z","level":"INFO","fields":{"epoch":1,"loss":0.2501199627822959,"weight":", layer[0]={weight: [[0.6491, -0.7607], [0.7607, 0.6491]], shape=[2, 2], strides=[2, 1], layout=Cc (0x5), const ndim=2, bias: [[-0.1001], [-0.1000]], shape=[2, 1], strides=[1, 1], layout=CFcf (0xf), const ndim=2, activation: Sigmoid}, delta[0]=[[0.0013], [0.0002]], layer[1]={weight: [[0.1506, -0.0573]], shape=[1, 2], strides=[2, 1], layout=CFcf (0xf), const ndim=2, bias: [[-0.0004]], shape=[1, 1], strides=[1, 1], layout=CFcf (0xf), const ndim=2, activation: Sigmoid}, delta[1]=[[0.0084]]"},"target":"xor_reg_scratch"}
+    let mut layer_params: Vec<LayerParams<f32>> = Vec::new();
+    let weight_2xk = ndarray::arr2(&[[0.6491, -0.7607], [0.7607, 0.6491]]);
+    let bias_kx1 = ndarray::arr2(&[[-0.1001], [-0.1000]]);
+    layer_params.push(LayerParams::new(weight_2xk.clone(), bias_kx1.clone()));
+    let weight_2xk = ndarray::arr2(&[[0.1506, -0.0573]]);
+    let bias_kx1 = ndarray::arr2(&[[-0.0004]]);
+    layer_params.push(LayerParams::new(weight_2xk.clone(), bias_kx1.clone()));
+    all_layer_params.push(layer_params.clone());
+    epochs.push(1);
+    train_results.push(String::from("NG"));
+
+    // Original data: Fail: Epoch 20000: xor_reg_scratch_20260203_224105_ng_L02_sigmoid.jsonl
     let mut layer_params: Vec<LayerParams<f32>> = Vec::new();
     let weight_2xk = ndarray::arr2(&[[2.5040, -6.0380], [4.6175, 6.7296]]);
     let bias_kx1 = ndarray::arr2(&[[-1.7836], [-1.1378]]);
@@ -45,8 +60,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let bias_kx1 = ndarray::arr2(&[[-4.4478]]);
     layer_params.push(LayerParams::new(weight_2xk.clone(), bias_kx1.clone()));
     all_layer_params.push(layer_params.clone());
+    epochs.push(20000);
+    train_results.push(String::from("NG"));
 
-    // Original data: xor_reg_scratch_20260206_013211_ok_L02_sigmoid.jsonl
+    // Original data: Success: Epoch 1: xor_reg_scratch_20260206_013211_ok_L02_sigmoid.jsonl
+    // {"timestamp":"2026-02-05T16:32:11.816950Z","level":"INFO","fields":{"epoch":1,"loss":0.2506873593035554,"weight":", layer[0]={weight: [[-0.9708, 0.2398], [-0.2399, -0.9708]], shape=[2, 2], strides=[2, 1], layout=Cc (0x5), const ndim=2, bias: [[-0.1000], [-0.1000]], shape=[2, 1], strides=[1, 1], layout=CFcf (0xf), const ndim=2, activation: Sigmoid}, delta[0]=[[0.0005], [0.0001]], layer[1]={weight: [[-0.2147, -0.0174]], shape=[1, 2], strides=[2, 1], layout=CFcf (0xf), const ndim=2, bias: [[0.0011]], shape=[1, 1], strides=[1, 1], layout=CFcf (0xf), const ndim=2, activation: Sigmoid}, delta[1]=[[-0.0225]]"},"target":"xor_reg_scratch"}
+    let mut layer_params: Vec<LayerParams<f32>> = Vec::new();
+    let weight_2xk = ndarray::arr2(&[[-0.9708, 0.2398], [-0.2399, -0.9708]]);
+    let bias_kx1 = ndarray::arr2(&[[-0.1000], [-0.1000]]);
+    layer_params.push(LayerParams::new(weight_2xk.clone(), bias_kx1.clone()));
+    let weight_2xk = ndarray::arr2(&[[-0.2147, -0.0174]]);
+    let bias_kx1 = ndarray::arr2(&[[0.0011]]);
+    layer_params.push(LayerParams::new(weight_2xk.clone(), bias_kx1.clone()));
+    all_layer_params.push(layer_params.clone());
+    epochs.push(1);
+    train_results.push(String::from("OK"));
+
+    // Original data: Success: Epoch 20000: xor_reg_scratch_20260206_013211_ok_L02_sigmoid.jsonl
     let mut layer_params: Vec<LayerParams<f32>> = Vec::new();
     let weight_2xk = ndarray::arr2(&[[-3.7951, -3.7615], [-5.8363, -5.6243]]);
     let bias_kx1 = ndarray::arr2(&[[5.5450], [2.1126]]);
@@ -55,6 +85,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let bias_kx1 = ndarray::arr2(&[[-3.3478]]);
     layer_params.push(LayerParams::new(weight_2xk.clone(), bias_kx1.clone()));
     all_layer_params.push(layer_params.clone());
+    epochs.push(20000);
+    train_results.push(String::from("OK"));
 
     let test_inputs_kxn: ndarray::Array2<f32> =
         ndarray::arr2(&[[0., 0.], [0., 1.], [1., 0.], [1., 1.]]).reversed_axes();
@@ -149,11 +181,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (sig_y_min, sig_y_max) = (0f32, 1f32);
 
     // Expand range of layer 1 output plot a bit
-    (0..all_layer_params.len()).for_each(|series_index| {
+    for series_index in [1, 3].iter() {
         // Adjust layer 1 output plot range according to the decision boundary
-        let a = &all_layer_params[series_index][1].weight[[0, 0]];
-        let b = &all_layer_params[series_index][1].weight[[0, 1]];
-        let c = &all_layer_params[series_index][1].bias[[0, 0]];
+        let a = &all_layer_params[*series_index][1].weight[[0, 0]];
+        let b = &all_layer_params[*series_index][1].weight[[0, 1]];
+        let c = &all_layer_params[*series_index][1].bias[[0, 0]];
         if l1_x_min > -(b * l1_y_max + c) / a {
             l1_x_min = -(b * l1_y_max + c) / a;
         }
@@ -178,7 +210,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if l1_y_max < -(a * l1_x_max + c) / b {
             l1_y_max = -(a * l1_x_max + c) / b;
         }
-    });
+    }
 
     // For coordinates (i, j), different color palettes are set for (0,0), (0,1), (1,0), and (1,1).
     let colors: Vec<Vec<RGBAColor>> = vec![
@@ -198,18 +230,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Create a new drawing area
     let image_path_buf = std::path::PathBuf::from("../images").join(format!("{program_name}.png"));
-    let image_size: (u32, u32) = (1536, 680);
+    let image_size: (u32, u32) = (5 * 280, 256 * all_layer_params.len() as u32);
     let root_area = BitMapBackend::new(&image_path_buf, image_size).into_drawing_area();
     root_area.fill(&WHITE).unwrap();
 
     // Split the drawing area into multiple sub-areas
     let drawing_areas = root_area
-        .split_evenly((2, 1))
+        .split_evenly((all_layer_params.len(), 1))
         .iter()
         .map(|area| area.split_evenly((1, 5)))
         .collect::<Vec<_>>();
 
-    let caption_normal_font: FontDesc<'static> = ("Arial", 20).into_font();
+    // let caption_normal_font: FontDesc<'static> = ("Arial", 20).into_font();
     // let caption_normal_height: u32 = caption_normal_font.get_size() as u32;
 
     let caption_small_font: FontDesc<'static> = ("Arial", 14).into_font();
@@ -222,8 +254,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .x_label_area_size(20)
             .y_label_area_size(40)
             .caption(
-                format!("Linear Mapping {}", series_index + 1),
-                caption_normal_font.clone(),
+                format!(
+                    "Linear Mapping {}: {}: epoch {}",
+                    series_index + 1,
+                    train_results[series_index],
+                    epochs[series_index]
+                ),
+                caption_small_font.clone(),
             )
             // Finally attach a coordinate on the drawing area and make a chart context
             .build_cartesian_2d(lt_x_min..lt_x_max, lt_y_min..lt_y_max)
@@ -234,11 +271,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .map(|area| {
                 ChartBuilder::on(area)
                     .margin(10)
+                    .margin_top(caption_small_height + 5)
                     .x_label_area_size(20)
                     .y_label_area_size(40)
                     .caption(
                         format!("Sigmoid Function {}", series_index + 1),
-                        caption_normal_font.clone(),
+                        caption_small_font.clone(),
                     )
                     // Finally attach a coordinate on the drawing area and make a chart context
                     .build_cartesian_2d(sig_x_min..sig_x_max, sig_y_min..sig_y_max)
@@ -370,7 +408,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let b = &all_layer_params[series_index][1].weight[[0, 1]];
         let c = &all_layer_params[series_index][1].bias[[0, 0]];
         let mut chart_l1_out_sigmoid = ChartBuilder::on(&drawing_areas[series_index][2])
-            .margin(10)
+            .margin_right(10)
             .x_label_area_size(40)
             .y_label_area_size(40)
             .caption(
@@ -444,7 +482,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let (z_min, z_max): (f32, f32) = (-0.1, 1.1);
         let x_data_range = 0_f32..1_f32;
         let y_data_range = 0_f32..1_f32;
-        let caption_style = plotters::style::TextStyle::from(caption_small_font.clone()).color(&BLACK);
+        let caption_style =
+            plotters::style::TextStyle::from(caption_small_font.clone()).color(&BLACK);
 
         let (caption_area, drawing_area) =
             &drawing_areas[series_index][3].split_vertically(caption_small_height as u32);
@@ -502,7 +541,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let (x_min, x_max): (f32, f32) = (-0.1, 1.1);
         let (y_min, y_max): (f32, f32) = (-4.1, 3.2);
 
-        let caption_style = plotters::style::TextStyle::from(caption_small_font.clone()).color(&BLACK);
+        let caption_style =
+            plotters::style::TextStyle::from(caption_small_font.clone()).color(&BLACK);
 
         let (caption_area, drawing_area) =
             &drawing_areas[series_index][4].split_vertically(caption_small_height as u32);

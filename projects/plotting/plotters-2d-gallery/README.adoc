@@ -95,7 +95,7 @@ image::../images/plotters_multiple_plots_v3.svg[]
 image::../images/plotters_multiple_plots_h3.svg[]
 
 === Example 6: Linear mapping visualization for ML
-Visualization of failures and successes of training XOR for two-layer neural network models. The top graph shows the result of a failed learning attempt, while the bottom graph shows the result of a successful learning attempt. The graphs visualize the results of Ax+b in layer 1 for input values (0,0), (0,1), (1,0), and (1,1), the result of applying the activation function, and the result of linear separation in layer 2.
+Visualization of failures and successes of training XOR for two-layer neural network models. The top 2 graph shows the result of a failed learning attempt, while the bottom 2 graph shows the result of a successful learning attempt. The graphs visualize the results of Ax+b in layer 1 for input values (0,0), (0,1), (1,0), and (1,1), the result of applying the activation function, and the result of linear separation in layer 2.
 
 * Pattern of failed learning +
 In the output of the second layer, we can see that the points (0,1) and (1,1) cannot be separated. In the output of the first layer, the point (0,1) is pushed to the edge of the sigmoid function, which suggests that learning is not progressing.
