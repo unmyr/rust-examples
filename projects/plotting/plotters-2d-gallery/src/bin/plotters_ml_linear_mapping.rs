@@ -198,7 +198,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Create a new drawing area
     let image_path_buf = std::path::PathBuf::from("../images").join(format!("{program_name}.png"));
-    let image_size: (u32, u32) = (1024, 680);
+    let image_size: (u32, u32) = (1536, 680);
     let root_area = BitMapBackend::new(&image_path_buf, image_size).into_drawing_area();
     root_area.fill(&WHITE).unwrap();
 
@@ -206,11 +206,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let drawing_areas = root_area
         .split_evenly((2, 1))
         .iter()
-        .map(|area| area.split_evenly((1, 3)))
+        .map(|area| area.split_evenly((1, 5)))
         .collect::<Vec<_>>();
 
-    let caption_font: FontDesc<'static> = ("Arial", 20).into_font();
-    let caption_font_small: FontDesc<'static> = ("Arial", 14).into_font();
+    let caption_normal_font: FontDesc<'static> = ("Arial", 20).into_font();
+    // let caption_normal_height: u32 = caption_normal_font.get_size() as u32;
+
+    let caption_small_font: FontDesc<'static> = ("Arial", 14).into_font();
+    let caption_small_height: u32 = caption_small_font.get_size() as u32;
+
     (0..drawing_areas.len()).for_each(|series_index| {
         // After this point, we should be able to draw construct a chart context
         let mut chart_lm = ChartBuilder::on(&drawing_areas[series_index][0])
@@ -219,7 +223,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .y_label_area_size(40)
             .caption(
                 format!("Linear Mapping {}", series_index + 1),
-                caption_font.clone(),
+                caption_normal_font.clone(),
             )
             // Finally attach a coordinate on the drawing area and make a chart context
             .build_cartesian_2d(lt_x_min..lt_x_max, lt_y_min..lt_y_max)
@@ -234,7 +238,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .y_label_area_size(40)
                     .caption(
                         format!("Sigmoid Function {}", series_index + 1),
-                        caption_font.clone(),
+                        caption_normal_font.clone(),
                     )
                     // Finally attach a coordinate on the drawing area and make a chart context
                     .build_cartesian_2d(sig_x_min..sig_x_max, sig_y_min..sig_y_max)
@@ -293,12 +297,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             let p = (l1_in[[0, 0]], l1_in[[1, 0]]);
             input_series.push(p);
-        };
+        }
         chart_lm
-            .draw_series(LineSeries::new(
-                input_series,
-                &Palette99::pick(5).mix(0.5),
-            ))
+            .draw_series(LineSeries::new(input_series, &Palette99::pick(5).mix(0.5)))
             .unwrap();
 
         // Linear mapping plot
@@ -377,7 +378,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     "Compare Layer 1 outputs {}: ({a:.1})x + ({b:.1})y + ({c:.1}) = 0",
                     series_index + 1
                 ),
-                caption_font_small.clone(),
+                caption_small_font.clone(),
             )
             // Finally attach a coordinate on the drawing area and make a chart context
             .build_cartesian_2d(l1_x_min..l1_x_max, l1_y_min..l1_y_max)
@@ -435,6 +436,123 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 + Text::new(format!("{:?}", p0), (10, 0), ("Arial", 10).into_font());
                 },
             ))
+            .unwrap();
+
+        // Draw sigmoid(w1*x + b0) + sigmoid(w2*x + b2)
+        let (x_min, x_max): (f32, f32) = (-0.1, 1.1);
+        let (y_min, y_max): (f32, f32) = (-0.1, 1.1);
+        let (z_min, z_max): (f32, f32) = (-0.1, 1.1);
+        let x_data_range = 0_f32..1_f32;
+        let y_data_range = 0_f32..1_f32;
+        let caption_style = plotters::style::TextStyle::from(caption_small_font.clone()).color(&BLACK);
+
+        let (caption_area, drawing_area) =
+            &drawing_areas[series_index][3].split_vertically(caption_small_height as u32);
+        caption_area
+            .titled("Predicted XOR Approximation: (0..1, 0..1)", &caption_style)
+            .unwrap();
+
+        let mut cc = ChartBuilder::on(&drawing_area)
+            .margin_left(30)
+            .margin_right(10)
+            .margin_bottom(30)
+            .build_cartesian_3d(x_min..x_max, y_min..y_max, z_min..z_max)
+            .unwrap();
+
+        cc.with_projection(|mut p| {
+            p.pitch = 0.0 as f64;
+            p.yaw = 0.0 as f64;
+            p.scale = 1.2 as f64;
+            p.into_matrix() // build the projection matrix
+        });
+
+        cc.configure_axes()
+            .light_grid_style(BLACK.mix(0.15))
+            .max_light_lines(3)
+            .x_formatter(&|x| format!("x={x:.1}"))
+            .y_formatter(&|y| format!("y={y:.1}"))
+            .z_formatter(&|_z| "".to_string())
+            .draw()
+            .unwrap();
+
+        let sigmoid = |x: f32| -> f32 { 1.0 / (1.0 + (-x).exp()) };
+        cc.draw_series(
+            SurfaceSeries::xoy(
+                x_data_range.step(0.01).values(),
+                y_data_range.step(0.01).values(),
+                |x, y| {
+                    let inputs = ndarray::arr2(&[[x as f32], [y as f32]]);
+                    let w1_out = &all_layer_params[series_index][0].weight.dot(&inputs)
+                        + &all_layer_params[series_index][0].bias;
+                    let w1_out_sigmoid = w1_out.mapv(|v| sigmoid(v));
+                    let w2_out = &all_layer_params[series_index][1]
+                        .weight
+                        .dot(&w1_out_sigmoid)
+                        + &all_layer_params[series_index][1].bias;
+                    w2_out[[0, 0]]
+                },
+            )
+            .style_func(&|&v| (VulcanoHSL::get_color(v * 1.0)).into()),
+        )
+        .unwrap();
+
+        let color_idx = 4;
+        let line_color = Palette99::pick(color_idx).mix(0.9);
+        let legend_color = line_color.clone();
+        let (x_min, x_max): (f32, f32) = (-0.1, 1.1);
+        let (y_min, y_max): (f32, f32) = (-4.1, 3.2);
+
+        let caption_style = plotters::style::TextStyle::from(caption_small_font.clone()).color(&BLACK);
+
+        let (caption_area, drawing_area) =
+            &drawing_areas[series_index][4].split_vertically(caption_small_height as u32);
+        caption_area
+            .titled("Predicted XOR Approximation: x=y", &caption_style)
+            .unwrap();
+
+        let mut cc = ChartBuilder::on(&drawing_area)
+            .margin(5)
+            .margin_top(caption_small_height + 5)
+            .margin_bottom(30)
+            .set_label_area_size(LabelAreaPosition::Left, 30)
+            .set_label_area_size(LabelAreaPosition::Bottom, 10)
+            .set_label_area_size(LabelAreaPosition::Right, 40)
+            .build_cartesian_2d(x_min..x_max, y_min..y_max)
+            .unwrap();
+
+        cc.configure_mesh()
+            .x_labels(5)
+            .y_labels(3)
+            .max_light_lines(4)
+            .draw()
+            .unwrap();
+
+        let label_name = "predicted z";
+
+        let sigmoid = |x: f32| -> f32 { 1.0 / (1.0 + (-x).exp()) };
+        cc.draw_series(LineSeries::new(
+            (x_min..x_max).step(0.01).values().map(|x| {
+                let inputs = ndarray::arr2(&[[x as f32], [x as f32]]);
+                let w1_out = &all_layer_params[series_index][0].weight.dot(&inputs)
+                    + &all_layer_params[series_index][0].bias;
+                let w1_out_sigmoid = w1_out.mapv(|v| sigmoid(v));
+                let w2_out = &all_layer_params[series_index][1]
+                    .weight
+                    .dot(&w1_out_sigmoid)
+                    + &all_layer_params[series_index][1].bias;
+                (x, w2_out[[0, 0]])
+            }),
+            line_color.stroke_width(2),
+        ))
+        .unwrap()
+        .label(label_name)
+        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &legend_color));
+
+        // Draw legend
+        cc.configure_series_labels()
+            .border_style(BLACK)
+            .label_font(("Calibri", 20))
+            .draw()
             .unwrap();
     });
     Ok(())
