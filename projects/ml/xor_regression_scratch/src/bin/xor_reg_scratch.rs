@@ -616,8 +616,10 @@ fn main() {
     //
     // Plotting traces between layers
     //
-    let path = format!("images/{image_prefix}_all_layers.png");
-    let root_area = BitMapBackend::new(&path, (600, 300)).into_drawing_area();
+    let image_path_buf = model_dir
+        .join("images")
+        .join(format!("{image_prefix}_all_layers.png"));
+    let root_area = BitMapBackend::new(&image_path_buf, (600, 300)).into_drawing_area();
     root_area.fill(&WHITE).unwrap();
     let drawing_areas = root_area.split_evenly((1, 1));
     let grad_area = &drawing_areas[0];
@@ -686,7 +688,7 @@ fn main() {
         .ok();
 
     // Notify saved path
-    info!("Saved the figure to: {}", path);
+    info!("Saved the figure to: {}", &image_path_buf.to_str().unwrap());
 
     //
     // Plot the traces for each layer
@@ -984,7 +986,7 @@ fn main() {
             .ok();
 
         // Notify saved path
-        info!("Saved the figure to: {}", path);
+        info!("Saved the figure to: {}", image_path_buf.to_str().unwrap());
     }
 
     let image_path_buf = model_dir.join("images").join(format!("{image_prefix}.gif"));
