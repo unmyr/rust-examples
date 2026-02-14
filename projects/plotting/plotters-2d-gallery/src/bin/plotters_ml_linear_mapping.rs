@@ -322,9 +322,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             if l1_out_sigmoid_x2 < 0.0 {
                 continue;
             }
-            let l1_out_x1 = logit(l1_out_sigmoid_x1);
-            let l1_out_x2 = logit(l1_out_sigmoid_x2);
-            let l1_out = ndarray::arr2(&[[l1_out_x1], [l1_out_x2]]);
+            let l1_out = ndarray::arr2(&[[logit(l1_out_sigmoid_x1)], [logit(l1_out_sigmoid_x2)]])
+                .mapv(|v| logit(v));
             let w00 = all_layer_params[series_index][0].weight[[0, 0]];
             let w01 = all_layer_params[series_index][0].weight[[0, 1]];
             let w10 = all_layer_params[series_index][0].weight[[1, 0]];
@@ -402,20 +401,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .unwrap();
         });
 
-        // Plot output layer results
+        // Plot layer 1 output after sigmoid with decision boundary of layer 2 output
         // ax + by + c = 0
         let a = &all_layer_params[series_index][1].weight[[0, 0]];
         let b = &all_layer_params[series_index][1].weight[[0, 1]];
         let c = &all_layer_params[series_index][1].bias[[0, 0]];
         let mut chart_l1_out_sigmoid = ChartBuilder::on(&drawing_areas[series_index][2])
+            .margin_top(caption_small_height + 5)
             .margin_right(10)
             .x_label_area_size(40)
             .y_label_area_size(40)
             .caption(
-                format!(
-                    "Compare Layer 1 outputs {}: ({a:.1})x + ({b:.1})y + ({c:.1}) = 0",
-                    series_index + 1
-                ),
+                "Layer 1 Output with Decision Boundary",
                 caption_small_font.clone(),
             )
             // Finally attach a coordinate on the drawing area and make a chart context
@@ -441,17 +438,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let x_axis = (l1_x_min..l1_x_max).step(step);
         chart_l1_out_sigmoid
             .draw_series(LineSeries::new(
-                x_axis.values().map(|x| {
-                    // ax + by + c = 0
-                    let a = &all_layer_params[series_index][1].weight[[0, 0]];
-                    let b = &all_layer_params[series_index][1].weight[[0, 1]];
-                    let c = &all_layer_params[series_index][1].bias[[0, 0]];
-                    let y = -(a * x + c) / b;
-                    (x, y)
-                }),
+                x_axis
+                    .values()
+                    .filter(|x| {
+                        let y = -(a * x + c) / b;
+                        y >= l1_y_min && y <= l1_y_max
+                    })
+                    .map(|x| {
+                        // ax + by + c = 0
+                        let y = -(a * x + c) / b;
+                        (x, y)
+                    }),
                 &BLUE,
             ))
-            .unwrap();
+            .unwrap()
+            .label(format!("{a:+.1}x {b:+.1}y {c:+.1} = 0"))
+            .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &BLUE));
         chart_l1_out_sigmoid
             .draw_series(PointSeries::of_element(
                 &l1_out_sig_series[series_index],
@@ -474,6 +476,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 + Text::new(format!("{:?}", p0), (10, 0), ("Arial", 10).into_font());
                 },
             ))
+            .unwrap();
+        // Draw legend for the output layer threshold
+        chart_l1_out_sigmoid
+            .configure_series_labels()
+            .position(SeriesLabelPosition::LowerMiddle)
+            .background_style(&WHITE.mix(0.8))
+            .border_style(&BLACK)
+            .draw()
             .unwrap();
 
         // Draw sigmoid(w1*x + b0) + sigmoid(w2*x + b2)
