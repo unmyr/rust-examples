@@ -59,6 +59,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // Draw legend
         cc.configure_series_labels()
+            .position(SeriesLabelPosition::LowerMiddle)
             .border_style(BLACK)
             .label_font(("Calibri", 20))
             .draw()?;

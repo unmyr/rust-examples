@@ -22,6 +22,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     chart
         .configure_series_labels()
+        .position(SeriesLabelPosition::LowerRight)
         .background_style(&WHITE.mix(0.8))
         .border_style(&BLACK)
         .draw()?;

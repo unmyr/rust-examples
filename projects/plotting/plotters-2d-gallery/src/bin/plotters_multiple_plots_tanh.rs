@@ -50,6 +50,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &legend_color));
     // Draw legend
     cc.configure_series_labels()
+        .position(SeriesLabelPosition::MiddleRight)
         .border_style(BLACK)
         .label_font(("Calibri", 20))
         .draw()?;
@@ -84,6 +85,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &legend_color.clone()));
     // Draw legend
     cc.configure_series_labels()
+        .position(SeriesLabelPosition::UpperRight)
         .border_style(BLACK)
         .label_font(("Calibri", 20))
         .draw()?;
