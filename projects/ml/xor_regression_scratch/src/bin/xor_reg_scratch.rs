@@ -607,7 +607,7 @@ fn main() {
     } else {
         result = "ng";
     }
-    let image_prefix = format!(
+    let report_name_prefix = format!(
         "{program_name}_{date_time}_{result}_L{:02}_{}",
         nn.layers.len(),
         &args.hidden_activation
@@ -618,7 +618,7 @@ fn main() {
     //
     let image_path_buf = model_dir
         .join("images")
-        .join(format!("{image_prefix}_all_layers.png"));
+        .join(format!("{report_name_prefix}_all_layers.png"));
     let root_area = BitMapBackend::new(&image_path_buf, (600, 300)).into_drawing_area();
     root_area.fill(&WHITE).unwrap();
     let drawing_areas = root_area.split_evenly((1, 1));
@@ -696,7 +696,7 @@ fn main() {
     for layer_idx in 0..nn.layers.len() {
         let image_path_buf = model_dir
             .join("images")
-            .join(format!("{image_prefix}_{layer_idx:02}.png"));
+            .join(format!("{report_name_prefix}_{layer_idx:02}.png"));
         let root_area = BitMapBackend::new(&image_path_buf, (600, 1100)).into_drawing_area();
         root_area.fill(&WHITE).unwrap();
         let drawing_areas = root_area.split_evenly((5, 1));
@@ -989,6 +989,6 @@ fn main() {
         info!("Saved the figure to: {}", image_path_buf.to_str().unwrap());
     }
 
-    let image_path_buf = model_dir.join("images").join(format!("{image_prefix}.gif"));
+    let image_path_buf = model_dir.join("images").join(format!("{report_name_prefix}.gif"));
     plot_result(&nn, image_path_buf.as_path());
 }
