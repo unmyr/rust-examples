@@ -117,3 +117,12 @@ cargo run --bin plotters_ml_logit --release
 
 .Logit function graph
 image::../images/plotters_ml_logit.png[]
+
+=== Example 8: Point plot with different element markers
+[source,shell]
+----
+cargo run --bin plotters_points_element_markers --release
+----
+
+.Point plot with different element markers
+image::../images/plotters_points_element_markers.png[]
