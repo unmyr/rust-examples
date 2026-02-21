@@ -134,3 +134,14 @@ fn it_ndarray_2d_add_columns() {
         ndarray::arr2(&[[0.1, 2.1, 1.1, 3.1], [0.1, 4.1, 3.1, 7.1]])
     );
 }
+
+// Sum a 2D array along an axis and keep the dimension by inserting a new axis.
+#[test]
+fn it_sum_axis_preserves_dim_for_column_vector() {
+    // Column vector consisting of [1,2]^t, [3,4]^t, [5,6]^t
+    // 1 3 5
+    // 2 4 6
+    let a = ndarray::arr2(&[[1, 2], [3, 4], [5, 6]]).reversed_axes();
+    let sum = a.sum_axis(ndarray::Axis(1)).insert_axis(ndarray::Axis(1));
+    assert_eq!(sum, ndarray::array![[1 + 3 + 5], [2 + 4 + 6]]);
+}
