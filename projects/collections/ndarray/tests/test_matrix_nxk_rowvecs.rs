@@ -1,3 +1,29 @@
+// Multiply two row vectors element-wise.
+#[test]
+fn it_multiply_two_row_vectors() {
+    // Row vector consisting of [1,2], [3,4], [5,6]
+    // 1 2
+    // 3 4
+    // 5 6
+    let a = ndarray::arr2(&[[1, 2], [3, 4], [5, 6]]);
+    // 2 3
+    // 4 5
+    // 6 7
+    let b = ndarray::arr2(&[[2, 3], [4, 5], [6, 7]]);
+    let c = &a * &b;
+    println!("a={:?}", a);
+    println!("b={:?}", b);
+    println!("c={:?}", c);
+    assert_eq!(
+        c,
+        ndarray::array![
+            [a[[0, 0]] * b[[0, 0]], a[[0, 1]] * b[[0, 1]]],
+            [a[[1, 0]] * b[[1, 0]], a[[1, 1]] * b[[1, 1]]],
+            [a[[2, 0]] * b[[2, 0]], a[[2, 1]] * b[[2, 1]]]
+        ]
+    );
+}
+
 // Gets a specific row view.
 #[test]
 fn it_ndarray_2d_get_a_specific_row_view() {

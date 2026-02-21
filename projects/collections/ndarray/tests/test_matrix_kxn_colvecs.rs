@@ -1,3 +1,34 @@
+// Multiply two column vectors element-wise.
+#[test]
+fn it_multiply_two_column_vectors() {
+    // Column vector consisting of [1,2]^t, [3,4]^t, [5,6]^t
+    // 1 3 5
+    // 2 4 6
+    let a = ndarray::arr2(&[[1, 2], [3, 4], [5, 6]]).reversed_axes();
+    // 2 4 6
+    // 3 5 7
+    let b = ndarray::arr2(&[[2, 3], [4, 5], [6, 7]]).reversed_axes();
+    let c = &a * &b;
+    println!("a={:?}", a);
+    println!("b={:?}", b);
+    println!("c={:?}", c);
+    assert_eq!(
+        c,
+        ndarray::array![
+            [
+                a[[0, 0]] * b[[0, 0]],
+                a[[0, 1]] * b[[0, 1]],
+                a[[0, 2]] * b[[0, 2]]
+            ],
+            [
+                a[[1, 0]] * b[[1, 0]],
+                a[[1, 1]] * b[[1, 1]],
+                a[[1, 2]] * b[[1, 2]]
+            ]
+        ]
+    );
+}
+
 // Convert the result of the XOR function for a 2x4, 4-column vector into a 1x4, 4-scalar array.
 #[test]
 fn it_ndarray_2d_column_to_vector() {
