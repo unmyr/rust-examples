@@ -110,6 +110,12 @@ image::../images/plotters_ml_linear_mapping.png[]
 
 === Example 7: Logit function visualization
 
+The logit function is the inverse function of the sigmoid function, and is defined as follows.
+[source,math]
+----
+\logit(u)=\ln\left(\frac{u}{1-u}\right)
+----
+
 [source,shell]
 ----
 cargo run --bin plotters_ml_logit --release
