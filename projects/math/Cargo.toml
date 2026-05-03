@@ -2,6 +2,7 @@
 resolver = "2"
 members = [
     "collatz",
+    "complex-examples",
     "dice_roll",
     "digits_sum_has_nth_roots",
     "factorial",

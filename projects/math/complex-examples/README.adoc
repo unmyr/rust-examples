@@ -1,0 +1,50 @@
+=== Create a new project
+. Let's create a new library project called `complex-examples`
++
+[source,console]
+----
+$ cargo new complex-examples --lib
+    Creating library `complex-examples` package
+...
+$ cd complex-examples/
+----
+
+=== Run examples
+
+==== Complex argument example
+
+arg の値域は、latexmath:[-\pi < arg < \pi]となります。arg の値は、複素数の偏角を表し、複素数が実軸の正の方向からどれだけ回転しているかを示します。 +
+The range of arg is latexmath:[-\pi < arg < \pi]. The value of arg represents the argument of a complex number, indicating how much the complex number is rotated from the positive real axis. 
+
+[source,bash]
+----
+cargo run --bin c_arg
+----
+
+.Results:
+----
+z[0] = 1+0i
+  abs = 1
+  arg = 0.00
+z[1] = 0.70710677+0.70710677i
+  abs = 1
+  arg = 45.00
+z[2] = 0+1i
+  abs = 1
+  arg = 90.00
+z[3] = -0.70710677+0.70710677i
+  abs = 1
+  arg = 135.00
+z[4] = -1+0i
+  abs = 1
+  arg = 180.00
+z[5] = -0.70710677-0.70710677i
+  abs = 1
+  arg = -135.00
+z[6] = 0-1i
+  abs = 1
+  arg = -90.00
+z[7] = 0.70710677-0.70710677i
+  abs = 1
+  arg = -45.00
+----
