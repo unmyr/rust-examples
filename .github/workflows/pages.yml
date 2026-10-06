@@ -7,7 +7,6 @@ on:
 permissions:
   contents: read
   pages: write
-  id-token: write
 
 concurrency:
   group: "pages"
@@ -24,24 +23,32 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v6
 
-    # Convert AsciiDoc files to HTML using Asciidoctor
-    # See: https://github.com/tonynv/asciidoctor-action
-    - name: Get build container
-      id: adocbuild
-      uses: tonynv/asciidoctor-action@v2
-      with:
-          program: "cd docs && make adoc"
+    # Convert AsciiDoc files to HTML using the official image pinned to release 1.107.0
+    # Release: https://github.com/asciidoctor/docker-asciidoctor/releases
+    # Tag: https://hub.docker.com/r/asciidoctor/docker-asciidoctor/tags
+    - name: Build HTML with Asciidoctor
+      run: |
+        docker run --rm \
+          --user "$(id -u):$(id -g)" \
+          --volume "$GITHUB_WORKSPACE:/documents" \
+          --workdir /documents \
+          asciidoctor/docker-asciidoctor@sha256:23c022800c00bd7b73fe4e3deca49c77500f0fb34035b131cfed3f835e8d9de9 \
+          make -C docs adoc
 
     # Upload the generated site as an artifact for deployment
     # See: https://github.com/actions/upload-pages-artifact
     - name: Upload artifact
-      uses: actions/upload-pages-artifact@v3
+      uses: actions/upload-pages-artifact@v5
       with:
         path: dist/
 
   # Deploy to GitHub Pages
   deploy:
     needs: build
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -49,4 +56,4 @@ jobs:
     steps:
       - name: Deploy site to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
