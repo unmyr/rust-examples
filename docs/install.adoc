@@ -8,7 +8,15 @@ endif::[]
 
 == Install rust
 
-1. Install
+
+. Install dependency on Ubuntu
++
+[source,bash]
+----
+sudo apt install curl ca-certificates build-essential pkg-config
+----
+
+. Install Rust
 +
 [source,console]
 ----
