@@ -1,3 +1,18 @@
+
+// Test position() method on vec
+#[test]
+fn it_vec_1d_position() {
+    let v1: Vec<&str> = vec!["one", "two", "three"];
+    let some_index = v1.iter().position(|&r| r == "two");
+    assert_eq!(some_index, Some(1));
+    assert_eq!(v1[some_index.unwrap()], "two");
+
+    let v2: Vec<String> = vec!["one".to_string(), "two".to_string(), "three".to_string()];
+    let some_index = v2.iter().position(|r| r == "two");
+    assert_eq!(some_index, Some(1));
+    assert_eq!(v2[some_index.unwrap()], "two");
+}
+
 #[test]
 fn it_vec_1d_iter() {
     let v1: Vec<i32> = vec![1, 2, 3];
