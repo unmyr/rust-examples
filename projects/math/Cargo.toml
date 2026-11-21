@@ -14,5 +14,6 @@ members = [
     "normal-distribution",
     "permutation",
     "primes",
+    "symexpr",
     "tsp-basic",
 ]
