@@ -303,4 +303,22 @@ mod tests {
 
         assert_eq!(derivative.to_string(), "ln(a)*a^x");
     }
+
+    #[test]
+    fn differentiates_x_to_the_x_with_base_derivative() {
+        let x = Expr::variable("x");
+        let expression = x.clone().pow_expr(x.clone());
+
+        let derivative = differentiate(&expression, "x");
+        let exponent_minus_one = x.clone() + Expr::constant(-1);
+        let base_derivative_term =
+            x.clone() * x.clone().pow_expr(exponent_minus_one);
+        let exponent_derivative_term =
+            x.clone().ln() * expression;
+        // Expected: x^x * ln(x) + x * x^(x-1)
+        let expected = base_derivative_term.clone() + exponent_derivative_term;
+
+        assert_eq!(derivative, expected);
+        assert_ne!(base_derivative_term, Expr::constant(0));
+    }
 }

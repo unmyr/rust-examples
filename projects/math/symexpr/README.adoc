@@ -1,0 +1,55 @@
+:stem: latexmath
+
+== 数式の計算の詳細
+
+=== `Expr::PowExpr(base, exponent)`:  一般的な指数関数の微分
+
+以下の stem:[(x^x)^{\prime}]を含む指数関数の微分についておさらいします。
+
+[stem,latexmath]
+++++
+u(x)^{v(x)}
+++++
+
+2つの解法があり、実装は解法1で行っています。
+
+==== 解法1
+
+stem:[y ={u(x)}^{v(x)}]に対して、両辺の対数を取ります。
+
+[stem,latexmath]
+++++
+\ln y =v(x) \ln u(x)
+++++
+
+両辺を微分します。
+
+[stem,latexmath]
+++++
+\frac{y'}{y}=v'(x) \ln u(x) + v(x) \frac{u^{\prime}(x)}{u(x)}
+++++
+
+両辺に stem:[y=u^v] を掛けると、
+
+[stem,latexmath]
+++++
+y'=u(x)^{v(x)} v'(x) \ln u(x) + v(x) u(x)^{v(x) - 1}u'(x)
+++++
+
+==== (参考) 解法2: stem:[u(x)=e^{\ln u(x)}] を用いる
+
+参考のため、実装では採用しなかった別解についても解説します。
+
+stem:[y ={u(x)}^{v(x)}]に対して、 _e_ を底に変換します。
+
+[stem,latexmath]
+++++
+\begin{aligned}
+\left({u(x)}^{v(x)}\right)^{\prime}
+&= \left(e^{ (\ln {u(x)}) v(x)}\right)^{\prime} \\
+&= \left\{(\ln {u(x)}){v^{\prime}}(x) + (\ln {u(x)})^{\prime}v(x)\right\} e^{(\ln {u(x)}) v(x)} \\
+&= \left\{(\ln {u(x)}) {v^{\prime}}(x) + \frac{{u}^{\prime}(x)}{u(x)}v(x)\right\} e^{(\ln {u(x)}) v(x)} \\
+&= \left\{(\ln {u(x)}) {v^{\prime}}(x) + \frac{{u}^{\prime}(x)}{u(x)}v(x)\right\} {u(x)}^{v(x)} \\
+&= {u(x)}^{v(x)} (\ln {u(x)}) {v^{\prime}}(x) + {u(x)}^{v(x) - 1} {u}^{\prime}(x) v(x) \\
+\end{aligned}
+++++
