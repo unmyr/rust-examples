@@ -1,5 +1,5 @@
 use std::fmt;
-use std::ops::{Add, Mul, Neg};
+use std::ops::{Add, Div, Mul, Neg};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Expr {
@@ -8,10 +8,13 @@ pub enum Expr {
     Add(Box<Expr>, Box<Expr>),
     Mul(Box<Expr>, Box<Expr>),
     Pow(Box<Expr>, u32),
+    PowExpr(Box<Expr>, Box<Expr>),
     Exp(Box<Expr>),
+    Ln(Box<Expr>),
     Sin(Box<Expr>),
     Cos(Box<Expr>),
     Neg(Box<Expr>),
+    Div(Box<Expr>, Box<Expr>),
 }
 
 impl Expr {
@@ -27,8 +30,16 @@ impl Expr {
         power(self, exponent)
     }
 
+    pub fn pow_expr(self, exponent: Expr) -> Self {
+        power_expr(self, exponent)
+    }
+
     pub fn exp(self) -> Self {
         Self::Exp(Box::new(self))
+    }
+
+    pub fn ln(self) -> Self {
+        Self::Ln(Box::new(self))
     }
 
     pub fn sin(self) -> Self {
@@ -64,6 +75,14 @@ impl Neg for Expr {
     }
 }
 
+impl Div for Expr {
+    type Output = Self;
+
+    fn div(self, rhs: Self) -> Self::Output {
+        quotient(self, rhs)
+    }
+}
+
 pub fn differentiate(expr: &Expr, variable: &str) -> Expr {
     match expr {
         Expr::Constant(_) => Expr::constant(0),
@@ -82,10 +101,29 @@ pub fn differentiate(expr: &Expr, variable: &str) -> Expr {
                     * differentiate(base, variable)
             }
         }
+        Expr::PowExpr(base, exponent) => {
+            let base_derivative = differentiate(base, variable);
+            let exponent_derivative = differentiate(exponent, variable);
+            let base_derivative_term = base_derivative
+                * (**exponent).clone()
+                * power_expr((**base).clone(), (**exponent).clone() + Expr::constant(-1));
+            let exponent_derivative_term =
+                exponent_derivative * (**base).clone().ln() * expr.clone();
+
+            base_derivative_term + exponent_derivative_term
+        }
         Expr::Exp(inner) => (**inner).clone().exp() * differentiate(inner, variable),
+        Expr::Ln(inner) => {
+            differentiate(inner, variable) / (**inner).clone()
+        }
         Expr::Sin(inner) => (**inner).clone().cos() * differentiate(inner, variable),
         Expr::Cos(inner) => -((**inner).clone().sin() * differentiate(inner, variable)),
         Expr::Neg(inner) => -differentiate(inner, variable),
+        Expr::Div(numerator, denominator) => {
+            (differentiate(numerator, variable) * (**denominator).clone()
+                + -((**numerator).clone() * differentiate(denominator, variable)))
+                / ((**denominator).clone() * (**denominator).clone())
+        }
     }
 }
 
@@ -106,11 +144,27 @@ fn product(lhs: Expr, rhs: Expr) -> Expr {
     }
 }
 
+fn quotient(numerator: Expr, denominator: Expr) -> Expr {
+    match (numerator, denominator) {
+        (Expr::Constant(0), _) => Expr::constant(0),
+        (numerator, Expr::Constant(1)) => numerator,
+        (numerator, denominator) => Expr::Div(Box::new(numerator), Box::new(denominator)),
+    }
+}
+
 fn power(base: Expr, exponent: u32) -> Expr {
     match exponent {
         0 => Expr::constant(1),
         1 => base,
         _ => Expr::Pow(Box::new(base), exponent),
+    }
+}
+
+fn power_expr(base: Expr, exponent: Expr) -> Expr {
+    match exponent {
+        Expr::Constant(0) => Expr::constant(1),
+        Expr::Constant(1) => base,
+        exponent => Expr::PowExpr(Box::new(base), Box::new(exponent)),
     }
 }
 
@@ -136,10 +190,10 @@ impl Expr {
     ) -> fmt::Result {
         let precedence = match self {
             Self::Add(_, _) => 1,
-            Self::Mul(_, _) => 2,
+            Self::Mul(_, _) | Self::Div(_, _) => 2,
             Self::Neg(_) => 3,
-            Self::Pow(_, _) => 4,
-            Self::Exp(_) => 4,
+            Self::Pow(_, _) | Self::PowExpr(_, _) | Self::Exp(_) => 4,
+            Self::Ln(_) => 5,
             Self::Constant(_) | Self::Variable(_) | Self::Sin(_) | Self::Cos(_) => 5,
         };
         let needs_parentheses = precedence < parent_precedence;
@@ -161,13 +215,28 @@ impl Expr {
                 f.write_str("*")?;
                 rhs.fmt_with_precedence(f, precedence)?;
             }
+            Self::Div(numerator, denominator) => {
+                numerator.fmt_with_precedence(f, precedence)?;
+                f.write_str("/")?;
+                denominator.fmt_with_precedence(f, precedence)?;
+            }
             Self::Pow(base, exponent) => {
                 base.fmt_with_precedence(f, precedence)?;
                 write!(f, "^{exponent}")?;
             }
+            Self::PowExpr(base, exponent) => {
+                base.fmt_with_precedence(f, precedence)?;
+                f.write_str("^")?;
+                exponent.fmt_with_precedence(f, precedence)?;
+            }
             Self::Exp(inner) => {
                 f.write_str("e^")?;
                 inner.fmt_with_precedence(f, precedence)?;
+            }
+            Self::Ln(inner) => {
+                f.write_str("ln(")?;
+                inner.fmt_with_precedence(f, 0)?;
+                f.write_str(")")?;
             }
             Self::Sin(inner) => {
                 f.write_str("sin(")?;
@@ -222,5 +291,16 @@ mod tests {
         let derivative = differentiate(&expression, "x");
 
         assert_eq!(derivative.to_string(), "e^x + x*e^x");
+    }
+
+    #[test]
+    fn differentiates_a_to_the_x() {
+        let a = Expr::variable("a");
+        let x = Expr::variable("x");
+        let expression = a.pow_expr(x);
+
+        let derivative = differentiate(&expression, "x");
+
+        assert_eq!(derivative.to_string(), "ln(a)*a^x");
     }
 }
