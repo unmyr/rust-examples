@@ -8,6 +8,7 @@ pub enum Expr {
     Add(Box<Expr>, Box<Expr>),
     Mul(Box<Expr>, Box<Expr>),
     Pow(Box<Expr>, u32),
+    Exp(Box<Expr>),
     Sin(Box<Expr>),
     Cos(Box<Expr>),
     Neg(Box<Expr>),
@@ -24,6 +25,10 @@ impl Expr {
 
     pub fn pow(self, exponent: u32) -> Self {
         power(self, exponent)
+    }
+
+    pub fn exp(self) -> Self {
+        Self::Exp(Box::new(self))
     }
 
     pub fn sin(self) -> Self {
@@ -77,6 +82,7 @@ pub fn differentiate(expr: &Expr, variable: &str) -> Expr {
                     * differentiate(base, variable)
             }
         }
+        Expr::Exp(inner) => (**inner).clone().exp() * differentiate(inner, variable),
         Expr::Sin(inner) => (**inner).clone().cos() * differentiate(inner, variable),
         Expr::Cos(inner) => -((**inner).clone().sin() * differentiate(inner, variable)),
         Expr::Neg(inner) => -differentiate(inner, variable),
@@ -133,6 +139,7 @@ impl Expr {
             Self::Mul(_, _) => 2,
             Self::Neg(_) => 3,
             Self::Pow(_, _) => 4,
+            Self::Exp(_) => 4,
             Self::Constant(_) | Self::Variable(_) | Self::Sin(_) | Self::Cos(_) => 5,
         };
         let needs_parentheses = precedence < parent_precedence;
@@ -157,6 +164,10 @@ impl Expr {
             Self::Pow(base, exponent) => {
                 base.fmt_with_precedence(f, precedence)?;
                 write!(f, "^{exponent}")?;
+            }
+            Self::Exp(inner) => {
+                f.write_str("e^")?;
+                inner.fmt_with_precedence(f, precedence)?;
             }
             Self::Sin(inner) => {
                 f.write_str("sin(")?;
@@ -201,5 +212,15 @@ mod tests {
         let expression = Expr::variable("x").pow(3);
 
         assert_eq!(differentiate(&expression, "y"), Expr::constant(0));
+    }
+
+    #[test]
+    fn differentiates_x_times_e_to_the_x() {
+        let x = Expr::variable("x");
+        let expression = x.clone() * x.exp();
+
+        let derivative = differentiate(&expression, "x");
+
+        assert_eq!(derivative.to_string(), "e^x + x*e^x");
     }
 }
