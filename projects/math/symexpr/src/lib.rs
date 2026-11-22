@@ -136,12 +136,35 @@ fn sum(lhs: Expr, rhs: Expr) -> Expr {
 }
 
 fn product(lhs: Expr, rhs: Expr) -> Expr {
+    match (&lhs, &rhs) {
+        (base, Expr::PowExpr(pow_base, exponent))
+            if base == pow_base.as_ref() && is_base_minus_one(base, exponent) =>
+        {
+            return power_expr(base.clone(), base.clone());
+        }
+        (Expr::PowExpr(pow_base, exponent), base)
+            if base == pow_base.as_ref() && is_base_minus_one(base, exponent) =>
+        {
+            return power_expr(base.clone(), base.clone());
+        }
+        _ => {}
+    }
+
     match (lhs, rhs) {
         (Expr::Constant(0), _) | (_, Expr::Constant(0)) => Expr::constant(0),
         (Expr::Constant(1), rhs) | (rhs, Expr::Constant(1)) => rhs,
         (Expr::Constant(lhs), Expr::Constant(rhs)) => Expr::constant(lhs * rhs),
         (lhs, rhs) => Expr::Mul(Box::new(lhs), Box::new(rhs)),
     }
+}
+
+fn is_base_minus_one(base: &Expr, exponent: &Expr) -> bool {
+    matches!(
+        exponent,
+        Expr::Add(lhs, rhs)
+            if (lhs.as_ref() == base && rhs.as_ref() == &Expr::Constant(-1))
+                || (rhs.as_ref() == base && lhs.as_ref() == &Expr::Constant(-1))
+    )
 }
 
 fn quotient(numerator: Expr, denominator: Expr) -> Expr {
@@ -305,20 +328,22 @@ mod tests {
     }
 
     #[test]
+    fn combines_a_variable_with_its_predecessor_power_in_either_order() {
+        let x = Expr::variable("x");
+        let exponent = x.clone() + Expr::constant(-1);
+        let expected = x.clone().pow_expr(x.clone());
+
+        assert_eq!(x.clone() * x.clone().pow_expr(exponent.clone()), expected);
+        assert_eq!(x.clone().pow_expr(exponent) * x.clone(), expected);
+    }
+
+    #[test]
     fn differentiates_x_to_the_x_with_base_derivative() {
         let x = Expr::variable("x");
         let expression = x.clone().pow_expr(x.clone());
 
         let derivative = differentiate(&expression, "x");
-        let exponent_minus_one = x.clone() + Expr::constant(-1);
-        let base_derivative_term =
-            x.clone() * x.clone().pow_expr(exponent_minus_one);
-        let exponent_derivative_term =
-            x.clone().ln() * expression;
-        // Expected: x^x * ln(x) + x * x^(x-1)
-        let expected = base_derivative_term.clone() + exponent_derivative_term;
-
-        assert_eq!(derivative, expected);
-        assert_ne!(base_derivative_term, Expr::constant(0));
+        // Expected: x^x + ln(x)*x^x
+        assert_eq!(derivative.to_string(), "x^x + ln(x)*x^x");
     }
 }
