@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fmt;
 use std::ops::{Add, Div, Mul, Neg};
 
@@ -16,6 +17,23 @@ pub enum Expr {
     Neg(Box<Expr>),
     Div(Box<Expr>, Box<Expr>),
 }
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum EvalError {
+    VariableNotFound(String),
+    DivisionByZero,
+}
+
+impl fmt::Display for EvalError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::VariableNotFound(name) => write!(f, "no value provided for variable '{name}'"),
+            Self::DivisionByZero => f.write_str("division by zero"),
+        }
+    }
+}
+
+impl std::error::Error for EvalError {}
 
 impl Expr {
     pub fn constant(value: i64) -> Self {
@@ -113,9 +131,7 @@ pub fn differentiate(expr: &Expr, variable: &str) -> Expr {
             base_derivative_term + exponent_derivative_term
         }
         Expr::Exp(inner) => (**inner).clone().exp() * differentiate(inner, variable),
-        Expr::Ln(inner) => {
-            differentiate(inner, variable) / (**inner).clone()
-        }
+        Expr::Ln(inner) => differentiate(inner, variable) / (**inner).clone(),
         Expr::Sin(inner) => (**inner).clone().cos() * differentiate(inner, variable),
         Expr::Cos(inner) => -((**inner).clone().sin() * differentiate(inner, variable)),
         Expr::Neg(inner) => -differentiate(inner, variable),
@@ -124,6 +140,151 @@ pub fn differentiate(expr: &Expr, variable: &str) -> Expr {
                 + -((**numerator).clone() * differentiate(denominator, variable)))
                 / ((**denominator).clone() * (**denominator).clone())
         }
+    }
+}
+
+pub fn substitute(expr: &Expr, variables: &HashMap<String, Expr>) -> Expr {
+    match expr {
+        Expr::Constant(_) => expr.clone(),
+        Expr::Variable(name) => variables.get(name).cloned().unwrap_or_else(|| expr.clone()),
+        Expr::Add(lhs, rhs) => Expr::Add(
+            Box::new(substitute(lhs, variables)),
+            Box::new(substitute(rhs, variables)),
+        ),
+        Expr::Mul(lhs, rhs) => Expr::Mul(
+            Box::new(substitute(lhs, variables)),
+            Box::new(substitute(rhs, variables)),
+        ),
+        Expr::Pow(base, exponent) => Expr::Pow(Box::new(substitute(base, variables)), *exponent),
+        Expr::PowExpr(base, exponent) => Expr::PowExpr(
+            Box::new(substitute(base, variables)),
+            Box::new(substitute(exponent, variables)),
+        ),
+        Expr::Exp(inner) => Expr::Exp(Box::new(substitute(inner, variables))),
+        Expr::Ln(inner) => Expr::Ln(Box::new(substitute(inner, variables))),
+        Expr::Sin(inner) => Expr::Sin(Box::new(substitute(inner, variables))),
+        Expr::Cos(inner) => Expr::Cos(Box::new(substitute(inner, variables))),
+        Expr::Neg(inner) => Expr::Neg(Box::new(substitute(inner, variables))),
+        Expr::Div(numerator, denominator) => Expr::Div(
+            Box::new(substitute(numerator, variables)),
+            Box::new(substitute(denominator, variables)),
+        ),
+    }
+}
+
+pub fn evaluate(expr: &Expr, variables: &HashMap<String, f64>) -> Result<f64, EvalError> {
+    match expr {
+        Expr::Constant(value) => Ok(*value as f64),
+        Expr::Variable(name) => variables
+            .get(name)
+            .copied()
+            .ok_or_else(|| EvalError::VariableNotFound(name.clone())),
+        Expr::Add(lhs, rhs) => Ok(evaluate(lhs, variables)? + evaluate(rhs, variables)?),
+        Expr::Mul(lhs, rhs) => Ok(evaluate(lhs, variables)? * evaluate(rhs, variables)?),
+        Expr::Pow(base, exponent) => Ok(integer_power(evaluate(base, variables)?, *exponent)),
+        Expr::PowExpr(base, exponent) => {
+            Ok(evaluate(base, variables)?.powf(evaluate(exponent, variables)?))
+        }
+        Expr::Exp(inner) => Ok(evaluate(inner, variables)?.exp()),
+        Expr::Ln(inner) => Ok(evaluate(inner, variables)?.ln()),
+        Expr::Sin(inner) => Ok(evaluate(inner, variables)?.sin()),
+        Expr::Cos(inner) => Ok(evaluate(inner, variables)?.cos()),
+        Expr::Neg(inner) => Ok(-evaluate(inner, variables)?),
+        Expr::Div(numerator, denominator) => {
+            let denominator = evaluate(denominator, variables)?;
+            if denominator == 0.0 {
+                return Err(EvalError::DivisionByZero);
+            }
+            Ok(evaluate(numerator, variables)? / denominator)
+        }
+    }
+}
+
+pub fn simplify(expr: &Expr) -> Expr {
+    match expr {
+        Expr::Constant(_) | Expr::Variable(_) => expr.clone(),
+        Expr::Add(lhs, rhs) => {
+            let lhs = simplify(lhs);
+            let rhs = simplify(rhs);
+            if is_sin_squared_plus_cos_squared(&lhs, &rhs) {
+                Expr::constant(1)
+            } else {
+                sum(lhs, rhs)
+            }
+        }
+        Expr::Mul(lhs, rhs) => product(simplify(lhs), simplify(rhs)),
+        Expr::Pow(base, exponent) => {
+            let base = simplify(base);
+            match (&base, exponent) {
+                (Expr::Constant(value), exponent) => value
+                    .checked_pow(*exponent)
+                    .map(Expr::constant)
+                    .unwrap_or_else(|| Expr::Pow(Box::new(base.clone()), *exponent)),
+                (_, 0) => Expr::constant(1),
+                (_, 1) => base,
+                _ => Expr::Pow(Box::new(base), *exponent),
+            }
+        }
+        Expr::PowExpr(base, exponent) => power_expr(simplify(base), simplify(exponent)),
+        Expr::Exp(inner) => match simplify(inner) {
+            Expr::Constant(0) => Expr::constant(1),
+            inner => Expr::Exp(Box::new(inner)),
+        },
+        Expr::Ln(inner) => match simplify(inner) {
+            Expr::Constant(1) => Expr::constant(0),
+            inner => Expr::Ln(Box::new(inner)),
+        },
+        Expr::Sin(inner) => match simplify(inner) {
+            Expr::Constant(0) => Expr::constant(0),
+            inner => Expr::Sin(Box::new(inner)),
+        },
+        Expr::Cos(inner) => match simplify(inner) {
+            Expr::Constant(0) => Expr::constant(1),
+            inner => Expr::Cos(Box::new(inner)),
+        },
+        Expr::Neg(inner) => negate(simplify(inner)),
+        Expr::Div(numerator, denominator) => quotient(simplify(numerator), simplify(denominator)),
+    }
+}
+
+fn integer_power(mut base: f64, mut exponent: u32) -> f64 {
+    let mut result = 1.0;
+    while exponent > 0 {
+        if exponent & 1 == 1 {
+            result *= base;
+        }
+        exponent >>= 1;
+        if exponent > 0 {
+            base *= base;
+        }
+    }
+    result
+}
+
+fn is_sin_squared_plus_cos_squared(lhs: &Expr, rhs: &Expr) -> bool {
+    fn square_argument(expr: &Expr) -> Option<(&Expr, bool)> {
+        match expr {
+            Expr::Pow(base, 2) => match base.as_ref() {
+                Expr::Sin(inner) => Some((inner, true)),
+                Expr::Cos(inner) => Some((inner, false)),
+                _ => None,
+            },
+            Expr::PowExpr(base, exponent) if exponent.as_ref() == &Expr::Constant(2) => {
+                match base.as_ref() {
+                    Expr::Sin(inner) => Some((inner, true)),
+                    Expr::Cos(inner) => Some((inner, false)),
+                    _ => None,
+                }
+            }
+            _ => None,
+        }
+    }
+
+    match (square_argument(lhs), square_argument(rhs)) {
+        (Some((lhs_arg, lhs_is_sin)), Some((rhs_arg, rhs_is_sin))) => {
+            lhs_arg == rhs_arg && lhs_is_sin != rhs_is_sin
+        }
+        _ => false,
     }
 }
 
@@ -345,5 +506,66 @@ mod tests {
         let derivative = differentiate(&expression, "x");
         // Expected: x^x + ln(x)*x^x
         assert_eq!(derivative.to_string(), "x^x + ln(x)*x^x");
+    }
+
+    #[test]
+    fn evaluates_expression_with_scalar_variable_values() {
+        let x = Expr::variable("x");
+        let y = Expr::variable("y");
+        let expression = Expr::constant(2) * x + y.pow(2);
+        let values = HashMap::from([("x".to_string(), -2.0), ("y".to_string(), 3.0)]);
+
+        assert_eq!(evaluate(&expression, &values), Ok(5.0));
+    }
+
+    #[test]
+    fn substitutes_expressions_and_simplifies_trigonometric_identity() {
+        let x = Expr::variable("x");
+        let y = Expr::variable("y");
+        let theta = Expr::variable("theta");
+        let expression = x.pow(2) + y.pow(2);
+        let replacements = HashMap::from([
+            ("x".to_string(), theta.clone().cos()),
+            ("y".to_string(), theta.clone().sin()),
+        ]);
+        let substituted = substitute(&expression, &replacements);
+
+        assert_eq!(simplify(&substituted), Expr::constant(1));
+    }
+
+    #[test]
+    fn does_not_simplify_trigonometric_squares_with_different_arguments() {
+        let theta = Expr::variable("theta");
+        let phi = Expr::variable("phi");
+        let expression = theta.cos().pow(2) + phi.sin().pow(2);
+
+        assert_eq!(simplify(&expression), expression);
+    }
+
+    #[test]
+    fn evaluates_trigonometric_substitutions_to_one() {
+        let x = Expr::variable("x");
+        let y = Expr::variable("y");
+        let expression = x.pow(2) + y.pow(2);
+        let theta: f64 = 0.7;
+        let values = HashMap::from([
+            ("x".to_string(), theta.cos()),
+            ("y".to_string(), theta.sin()),
+        ]);
+
+        assert!((evaluate(&expression, &values).unwrap() - 1.0).abs() < 1e-12);
+    }
+
+    #[test]
+    fn evaluation_reports_missing_variables_and_division_by_zero() {
+        let empty_values = HashMap::new();
+        assert_eq!(
+            evaluate(&Expr::variable("x"), &empty_values),
+            Err(EvalError::VariableNotFound("x".to_string()))
+        );
+        assert_eq!(
+            evaluate(&(Expr::constant(1) / Expr::constant(0)), &empty_values),
+            Err(EvalError::DivisionByZero)
+        );
     }
 }
