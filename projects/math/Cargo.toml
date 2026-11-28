@@ -5,6 +5,7 @@ members = [
     "complex-examples",
     "dice_roll",
     "digits_sum_has_nth_roots",
+    "expr-xor",
     "factorial",
     "group-o2-c2",
     "itertools-examples",
