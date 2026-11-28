@@ -1,11 +1,12 @@
-use rand::Rng;
+use rand::RngExt;
 use std::f64::consts::PI;
 
 /// # Examples
 /// ```
 /// use monte_carlo::calc_pi;
+/// use rand::SeedableRng;
 /// let seed: [u8; 32] = [13; 32];
-/// let mut rng: rand::rngs::StdRng = rand::SeedableRng::from_seed(seed);
+/// let mut rng: rand::rngs::StdRng = rand::rngs::StdRng::from_seed(seed);
 /// assert_eq!((calc_pi(1000, &mut rng) - 3.141).abs() < 0.11, true);
 /// ```
 pub fn calc_pi(n_samples: u64, rng: &mut rand::rngs::StdRng) -> f64 {
@@ -28,6 +29,7 @@ pub fn calc_pi(n_samples: u64, rng: &mut rand::rngs::StdRng) -> f64 {
 
 #[cfg(test)]
 mod tests {
+    use rand::SeedableRng;
     use std::f64::consts::FRAC_PI_4;
 
     use super::*;
@@ -39,7 +41,7 @@ mod tests {
         let sigma = 4.0 * (p * (1.0 - p) / (n_samples as f64)).sqrt();
 
         let seed: [u8; 32] = [13; 32];
-        let mut rng: rand::rngs::StdRng = rand::SeedableRng::from_seed(seed);
+        let mut rng: rand::rngs::StdRng = rand::rngs::StdRng::from_seed(seed);
         let error = (calc_pi(n_samples, &mut rng) - PI).abs();
 
         // verify within 2 sigma (95% confidence interval)

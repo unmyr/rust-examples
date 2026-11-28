@@ -13,7 +13,7 @@ fn main() {
         u64::pow(10, 7),
     ];
     // let seed: [u8; 32] = [13; 32];
-    let mut rng: rand::rngs::StdRng = rand::SeedableRng::from_os_rng();
+    let mut rng: rand::rngs::StdRng = rand::make_rng();
     let results = num_trials
         .iter()
         .map(|n| (n, calc_pi(*n, &mut rng)))

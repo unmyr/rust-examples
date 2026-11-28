@@ -1,9 +1,7 @@
-use rand::prelude::SliceRandom;
-use rand::Rng;
+use rand::prelude::*;
 
 fn main() {
     let mut rng = rand::rng();
-    // println!("Float: {}", rng.random_range(1.0..=6.0));
 
     // dice roll: generate 10 random integers between 1 and 6
     let numbers: Vec<u32> = (0..10).map(|_| rng.random_range(1..=6)).collect();
