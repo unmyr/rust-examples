@@ -3,3 +3,43 @@
 .References
 * https://docs.rs/rand/latest/rand/[rand - Rust^]
 * https://docs.rs/rand_distr/latest/rand_distr/[rand_distr - Rust^]
+
+=== Run the examples 1: Sample from a normal distribution
+
+[source, bash]
+----
+cargo run --bin normal_sample
+----
+
+[source,console]
+----
+$ cargo run --bin normal_sample
+...snip...
+-0.49 is from a N(0.00, 0.60) distribution
+-0.76 is from a N(0.00, 0.60) distribution
+-0.36 is from a N(0.00, 0.60) distribution
+0.62 is from a N(0.00, 0.60) distribution
+----
+
+=== Run the examples 2: Show histogram of samples from a normal distribution
+
+[source, bash]
+----
+cargo run --bin normal_sample_iter
+----
+
+[source,console]
+----
+$ cargo run --bin normal_sample_iter
+...snip...
+-1.06..-0.82: **
+-0.82..-0.58: **
+-0.58..-0.35: *****
+-0.35..-0.11: ***********
+-0.11..+0.13: *************
++0.13..+0.37: *****
++0.37..+0.60: *******
++0.60..+0.84: ***
++0.84..+1.08: *
++1.08..+1.32: *
+----
